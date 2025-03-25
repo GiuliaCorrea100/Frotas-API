@@ -1,5 +1,5 @@
 export class CarrosDto {
-  id: string; //mudar dps
+  id: string; //mudar, provalmente vai ser o valor do qrcode
   placa: string;
   odometro: string;
   modelo: string;
