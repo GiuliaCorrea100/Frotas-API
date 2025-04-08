@@ -21,7 +21,7 @@ export class CarrosController {
   }
 
   @Get('/:id')
-  findById(@Param('id') id: string): CarrosDto {
+  findById(@Param('id') id: number): CarrosDto {
     return this.carrosService.findById(id);
   }
   @Get()
@@ -35,7 +35,7 @@ export class CarrosController {
   }
 
   @Delete('/:id')
-  remove(@Param('id') id: string) {
+  remove(@Param('id') id: number) {
     return this.carrosService.remove(id);
   }
 }

@@ -20,9 +20,9 @@ export class CnhController {
     this.cnhService.create(cnh);
   }
 
-  @Get('/:rg')
-  findByRg(@Param('rg') rg: string): CnhDto {
-    return this.cnhService.findByRg(rg);
+  @Get('/:id')
+  findById(@Param('id') id: number): CnhDto {
+    return this.cnhService.findById(id);
   }
 
   @Get()
@@ -35,8 +35,8 @@ export class CnhController {
     this.cnhService.update(cnh);
   }
   //Revisar essa função, ver se vai deletar pelo rg mesmo ou não
-  @Delete('/:rg')
-  remove(@Param('rg') rg: string) {
-    return this.cnhService.remove(rg);
+  @Delete('/:id')
+  remove(@Param('id') id: number) {
+    return this.cnhService.remove(id);
   }
 }

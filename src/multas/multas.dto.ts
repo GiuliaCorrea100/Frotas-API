@@ -1,17 +1,16 @@
 export class MultasDto {
-  id: number;
+  idMultas: number;
   codInfracao: string;
   classInfracao: string;
   valor: string;
-  placa_veiculo: string;
+  placaVeiculo: string;
   data: Date;
-  num_auto_infracao: number;
+  numAutoInfracao: number;
 }
 
 export interface FindAllParameters {
-  cod_infracao: string;
-  class_infracao: string;
+  codInfracao: string;
+  classInfracao: string;
   valor: string;
-  placa_veiculo: string;
   data: Date;
 }

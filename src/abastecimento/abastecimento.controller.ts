@@ -21,7 +21,7 @@ export class AbastecimentoController {
   }
 
   @Get('/:id')
-  findById(@Param('id') id: string): AbastecimentoDto {
+  findById(@Param('id') id: number): AbastecimentoDto {
     return this.abastecimentoService.findById(id);
   }
 
@@ -36,7 +36,7 @@ export class AbastecimentoController {
   }
 
   @Delete('/:id')
-  remove(@Param('id') id: string) {
+  remove(@Param('id') id: number) {
     return this.abastecimentoService.remove(id);
   }
 }

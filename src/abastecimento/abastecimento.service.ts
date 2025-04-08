@@ -15,8 +15,10 @@ export class AbastecimentoService {
     console.log(this.abastecimento);
   }
 
-  findById(id: string): AbastecimentoDto {
-    const foundAbastecimento = this.abastecimento.filter((a) => a.id === id);
+  findById(id: number): AbastecimentoDto {
+    const foundAbastecimento = this.abastecimento.filter(
+      (a) => a.idAbastecimento === id,
+    );
 
     if (foundAbastecimento.length) {
       return foundAbastecimento[0];
@@ -30,18 +32,18 @@ export class AbastecimentoService {
       let match = true;
 
       if (
-        params.tipo_combustivel != undefined &&
-        !c.tipo_combustivel.includes(params.tipo_combustivel)
+        params.tipoCombustivel != undefined &&
+        !c.tipoCombustivel.includes(params.tipoCombustivel)
       ) {
         match = false;
       }
 
-      /*if (
-        params.data_abastecimento != undefined &&
-        !c.data_abastecimento.includes(params.data_abastecimento)
+      if (
+        params.dataAbastecimento !== undefined &&
+        c.dataAbastecimento.getTime() !== params.dataAbastecimento.getTime()
       ) {
         match = false;
-      }*/
+      }
 
       return match;
     });
@@ -49,7 +51,7 @@ export class AbastecimentoService {
 
   update(abastecimento: AbastecimentoDto) {
     const abastecimentoIndex = this.abastecimento.findIndex(
-      (a) => a.id === abastecimento.id,
+      (a) => a.idAbastecimento === abastecimento.idAbastecimento,
     );
 
     if (abastecimentoIndex >= 0) {
@@ -57,13 +59,15 @@ export class AbastecimentoService {
       return;
     }
     throw new HttpException(
-      `Item with id ${abastecimento.id} not found`,
+      `Item with id ${abastecimento.idAbastecimento} not found`,
       HttpStatus.BAD_REQUEST,
     );
   }
 
-  remove(id: string) {
-    const abastecimentoIndex = this.abastecimento.findIndex((a) => a.id === id);
+  remove(id: number) {
+    const abastecimentoIndex = this.abastecimento.findIndex(
+      (a) => a.idAbastecimento === id,
+    );
 
     if (abastecimentoIndex >= 0) {
       this.abastecimento.splice(abastecimentoIndex, 1);

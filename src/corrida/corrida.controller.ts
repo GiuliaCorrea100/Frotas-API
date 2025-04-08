@@ -21,7 +21,7 @@ export class CorridaController {
   }
 
   @Get('/:id')
-  findById(@Param('id') id: string): CorridaDto {
+  findById(@Param('id') id: number): CorridaDto {
     return this.corridaService.findById(id);
   }
   @Get()
@@ -35,7 +35,7 @@ export class CorridaController {
   }
 
   @Delete('/:id')
-  remove(@Param('id') id: string) {
+  remove(@Param('id') id: number) {
     return this.corridaService.remove(id);
   }
 }

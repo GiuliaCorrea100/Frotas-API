@@ -1,5 +1,5 @@
 export class CarrosDto {
-  id: number;
+  idCarros: number;
   tombo: number;
   qrCode: string;
   placa: string;
@@ -10,5 +10,5 @@ export class CarrosDto {
 
 export interface FindAllParameters {
   modelo: string;
-  ano: string;
+  ano: number;
 }

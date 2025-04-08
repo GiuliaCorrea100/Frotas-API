@@ -20,11 +20,9 @@ export class MultasController {
     this.multasService.create(multas);
   }
 
-  @Get('/:num_auto_infracao')
-  findByAutoInfracao(
-    @Param('num_auto_infracao') num_auto_infracao: string,
-  ): MultasDto {
-    return this.multasService.findByAutoInfracao(num_auto_infracao);
+  @Get('/:id')
+  findById(@Param('id') id: number): MultasDto {
+    return this.multasService.findById(id);
   }
 
   @Get()
@@ -37,8 +35,8 @@ export class MultasController {
     this.multasService.update(multas);
   }
 
-  @Delete('/:num_auto_infracao')
-  remove(@Param('num_auto_infracao') num_auto_infracao: string) {
-    return this.multasService.remove(num_auto_infracao);
+  @Delete('/:id')
+  remove(@Param('id') id: number) {
+    return this.multasService.remove(id);
   }
 }

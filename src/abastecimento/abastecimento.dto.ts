@@ -1,13 +1,13 @@
 export class AbastecimentoDto {
-  id: number;
-  Litros: number;
-  cod_pagamento: string;
-  preco_final: string;
-  tipo_combustivel: string;
-  data_abastecimento: Date;
+  idAbastecimento: number;
+  litros: number;
+  codPagamento: string;
+  precoFinal: string;
+  tipoCombustivel: string;
+  dataAbastecimento: Date;
 }
 
 export interface FindAllParameters {
-  tipo_combustivel: string;
-  data_abastecimento: Date;
+  tipoCombustivel: string;
+  dataAbastecimento: Date;
 }

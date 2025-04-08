@@ -15,16 +15,14 @@ export class MultasService {
     console.log(this.multas);
   }
 
-  findByAutoInfracao(num_auto_infracao: string): MultasDto {
-    const foundMulta = this.multas.filter(
-      (m) => m.num_auto_infracao === num_auto_infracao,
-    );
+  findById(id: number): MultasDto {
+    const foundMulta = this.multas.filter((c) => c.idMultas === id);
 
     if (foundMulta.length) {
       return foundMulta[0];
     }
 
-    throw new NotFoundException(`Item with id ${num_auto_infracao} not found`);
+    throw new NotFoundException(`Item with id ${id} not found`);
   }
 
   findAll(params: FindAllParameters): MultasDto[] {
@@ -32,15 +30,15 @@ export class MultasService {
       let match = true;
 
       if (
-        params.cod_infracao != undefined &&
-        !c.cod_infracao.includes(params.cod_infracao)
+        params.codInfracao != undefined &&
+        !c.codInfracao.includes(params.codInfracao)
       ) {
         match = false;
       }
 
       if (
-        params.class_infracao != undefined &&
-        !c.class_infracao.includes(params.class_infracao)
+        params.classInfracao != undefined &&
+        !c.classInfracao.includes(params.classInfracao)
       ) {
         match = false;
       }
@@ -55,7 +53,7 @@ export class MultasService {
 
   update(multas: MultasDto) {
     const multasIndex = this.multas.findIndex(
-      (m) => m.num_auto_infracao === multas.num_auto_infracao,
+      (m) => m.idMultas === multas.idMultas,
     );
 
     if (multasIndex >= 0) {
@@ -63,22 +61,20 @@ export class MultasService {
       return;
     }
     throw new HttpException(
-      `Item with id ${multas.num_auto_infracao} not found`,
+      `Item with id ${multas.idMultas} not found`,
       HttpStatus.BAD_REQUEST,
     );
   }
 
-  remove(num_auto_infracao: string) {
-    const cnhIndex = this.multas.findIndex(
-      (m) => m.num_auto_infracao === num_auto_infracao,
-    );
+  remove(id: number) {
+    const multasIndex = this.multas.findIndex((m) => m.idMultas === id);
 
-    if (cnhIndex >= 0) {
-      this.multas.splice(cnhIndex, 1);
+    if (multasIndex >= 0) {
+      this.multas.splice(multasIndex, 1);
       return;
     }
     throw new HttpException(
-      `Item with id ${num_auto_infracao} not found`,
+      `Item with id ${id} not found`,
       HttpStatus.BAD_REQUEST,
     );
   }

@@ -1,8 +1,8 @@
 export class CorridaDto {
-  id: number;
-  data_inicio: Date;
-  data_termino: Date;
-  distancia_km: string;
+  idCorrida: number;
+  dataInicio: Date;
+  dataTermino: Date;
+  distanciaKm: string;
   itinerario: string;
 }
 

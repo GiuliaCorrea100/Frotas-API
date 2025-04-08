@@ -15,8 +15,8 @@ export class CorridaService {
     console.log(this.corrida);
   }
 
-  findById(id: string): CorridaDto {
-    const foundCorrida = this.corrida.filter((c) => c.id === id);
+  findById(id: number): CorridaDto {
+    const foundCorrida = this.corrida.filter((c) => c.idCorrida === id);
 
     if (foundCorrida.length) {
       return foundCorrida[0];
@@ -39,22 +39,23 @@ export class CorridaService {
   }
 
   update(corrida: CorridaDto) {
-    //let carrosIndex
-    const corridaIndex = this.corrida.findIndex((c) => c.id === corrida.id);
+    const corridaIndex = this.corrida.findIndex(
+      (c) => c.idCorrida === corrida.idCorrida,
+    );
 
     if (corridaIndex >= 0) {
       this.corrida[corridaIndex] = corrida;
       return;
     }
     throw new HttpException(
-      `Item with id ${corrida.id} not found`,
+      `Item with id ${corrida.idCorrida} not found`,
       HttpStatus.BAD_REQUEST,
     );
   }
 
-  remove(id: string) {
+  remove(id: number) {
     //let carrosIndex
-    const corridaIndex = this.corrida.findIndex((c) => c.id === id);
+    const corridaIndex = this.corrida.findIndex((c) => c.idCorrida === id);
 
     if (corridaIndex >= 0) {
       this.corrida.splice(corridaIndex, 1);

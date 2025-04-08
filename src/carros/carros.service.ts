@@ -15,8 +15,8 @@ export class CarrosService {
     console.log(this.carros);
   }
 
-  findById(id: string): CarrosDto {
-    const foundCarro = this.carros.filter((c) => c.id === id);
+  findById(id: number): CarrosDto {
+    const foundCarro = this.carros.filter((c) => c.idCarros === id);
 
     if (foundCarro.length) {
       return foundCarro[0];
@@ -31,7 +31,7 @@ export class CarrosService {
       if (params.modelo != undefined && !c.modelo.includes(params.modelo)) {
         match = false;
       }
-      if (params.ano != undefined && !c.ano.includes(params.ano)) {
+      if (params.ano !== undefined && c.ano !== params.ano) {
         match = false;
       }
       return match;
@@ -39,22 +39,22 @@ export class CarrosService {
   }
 
   update(carros: CarrosDto) {
-    //let carrosIndex
-    const carrosIndex = this.carros.findIndex((c) => c.id === carros.id);
+    const carrosIndex = this.carros.findIndex(
+      (c) => c.idCarros === carros.idCarros,
+    );
 
     if (carrosIndex >= 0) {
       this.carros[carrosIndex] = carros;
       return;
     }
     throw new HttpException(
-      `Item with id ${carros.id} not found`,
+      `Item with id ${carros.idCarros} not found`,
       HttpStatus.BAD_REQUEST,
     );
   }
 
-  remove(id: string) {
-    //let carrosIndex
-    const carrosIndex = this.carros.findIndex((c) => c.id === id);
+  remove(id: number) {
+    const carrosIndex = this.carros.findIndex((c) => c.idCarros === id);
 
     if (carrosIndex >= 0) {
       this.carros.splice(carrosIndex, 1);
