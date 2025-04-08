@@ -1,7 +1,6 @@
 export class CnhDto {
-  rg: string;
+  id: number;
   nome: string;
-  sobrenome: string;
   classificacao: string;
   data_emissao: Date;
   data_validade: Date;
@@ -9,7 +8,6 @@ export class CnhDto {
 
 export interface FindAllParameters {
   nome: string;
-  sobrenome: string;
   classificacao: string;
   data_validade: Date;
 }

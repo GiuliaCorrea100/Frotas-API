@@ -1,6 +1,6 @@
 export class AbastecimentoDto {
-  id: string;
-  Litros: string;
+  id: number;
+  Litros: number;
   cod_pagamento: string;
   preco_final: string;
   tipo_combustivel: string;

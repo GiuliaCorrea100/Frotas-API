@@ -1,9 +1,11 @@
 export class CarrosDto {
-  id: string; //mudar, provalmente vai ser o valor do qrcode
+  id: number;
+  tombo: number;
+  qrCode: string;
   placa: string;
   odometro: string;
   modelo: string;
-  ano: string;
+  ano: number;
 }
 
 export interface FindAllParameters {
