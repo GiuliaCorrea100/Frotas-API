@@ -5,7 +5,7 @@ export class $npmConfigName1744040435172 implements MigrationInterface {
     //await queryRunner.query(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`);
     await queryRunner.query(`
       CREATE TABLE frota.cnh(
-        id serial NOT NULL, 
+        id_cnh serial NOT NULL, 
         nome varchar(100) NOT NULL,
         classificacao varchar(10) NOT NULL,
         data_emissao DATE NOT NULL,

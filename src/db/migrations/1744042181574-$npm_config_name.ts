@@ -12,7 +12,7 @@ export class $npmConfigName1744042181574 implements MigrationInterface {
             valor varchar(100) NOT NULL,
             placa varchar(100) NOT NULL,
             data_infracao DATE NOT NULL,
-            CONSTRAINT id_multas_pk PRIMARY KEY (id_multa)
+            CONSTRAINT id_multa_pk PRIMARY KEY (id_multa)
           )`);
   }
 

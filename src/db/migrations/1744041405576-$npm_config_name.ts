@@ -5,12 +5,12 @@ export class $npmConfigName1744041405576 implements MigrationInterface {
     //await queryRunner.query(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`);
     await queryRunner.query(`
           CREATE TABLE frota.corridas(
-            id serial NOT NULL,
+            id_corrida serial NOT NULL,
             data_inicio timestamptz NOT NULL,
             data_termino timestamptz NOT NULL,
             distancia_km varchar(256) NOT NULL,
             itinerario text NOT NULL,
-            CONSTRAINT id_corridas_pk PRIMARY KEY (id)
+            CONSTRAINT id_corrida_pk PRIMARY KEY (id)
           )`);
   }
 
