@@ -17,6 +17,6 @@ export class $npmConfigName1744042181574 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DROP TABLE IF EXISTS multas`);
+    await queryRunner.query(`DROP TABLE IF EXISTS frota.multas`);
   }
 }

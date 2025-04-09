@@ -11,11 +11,11 @@ export class $npmConfigName1744041996857 implements MigrationInterface {
             preco_final varchar(10) NOT NULL,
             tipo_combustivel varchar(100) NOT NULL,
             data_abastecimento timestamptz NOT NULL, 
-            CONSTRAINT id_abastecimento_pk PRIMARY KEY (id)
+            CONSTRAINT id_abastecimento_pk PRIMARY KEY (id_abastecimento)
           )`);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DROP TABLE IF EXISTS abastecimento`);
+    await queryRunner.query(`DROP TABLE IF EXISTS frota.abastecimento`);
   }
 }

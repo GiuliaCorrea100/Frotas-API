@@ -10,11 +10,11 @@ export class $npmConfigName1744040435172 implements MigrationInterface {
         classificacao varchar(10) NOT NULL,
         data_emissao DATE NOT NULL,
         data_validade DATE NOT NULL,
-        CONSTRAINT id_cnh_pk PRIMARY KEY (id)
+        CONSTRAINT id_cnh_pk PRIMARY KEY (id_cnh)
       )`);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DROP TABLE IF EXISTS cnh`);
+    await queryRunner.query(`DROP TABLE IF EXISTS frota.cnh`);
   }
 }

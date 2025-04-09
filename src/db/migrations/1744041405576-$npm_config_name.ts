@@ -10,11 +10,11 @@ export class $npmConfigName1744041405576 implements MigrationInterface {
             data_termino timestamptz NOT NULL,
             distancia_km varchar(256) NOT NULL,
             itinerario text NOT NULL,
-            CONSTRAINT id_corrida_pk PRIMARY KEY (id)
+            CONSTRAINT id_corrida_pk PRIMARY KEY (id_corrida)
           )`);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DROP TABLE IF EXISTS corridas`);
+    await queryRunner.query(`DROP TABLE IF EXISTS frota.corridas`);
   }
 }
