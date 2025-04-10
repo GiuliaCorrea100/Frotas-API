@@ -8,7 +8,11 @@ import {
   Delete,
   Query,
 } from '@nestjs/common';
-import { FindAllParameters, CarrosDto } from './carros.dto';
+import {
+  FindAllParameters,
+  CarrosDto,
+  CarrosRouteParameters,
+} from './carros.dto';
 import { CarrosService } from './carros.service';
 
 @Controller('carros')
@@ -29,13 +33,16 @@ export class CarrosController {
     return this.carrosService.findAll(params);
   }
 
-  @Put()
-  update(@Body() carros: CarrosDto) {
-    this.carrosService.update(carros);
+  @Put('/:idCarros')
+  async update(
+    @Param() params: CarrosRouteParameters,
+    @Body() carros: CarrosDto,
+  ) {
+    await this.carrosService.update(params.idCarros, carros);
   }
 
-  @Delete('/:id')
-  remove(@Param('id') id: number) {
-    return this.carrosService.remove(id);
+  @Delete('/:idCarros')
+  remove(@Param('idCarros') idCarros: number) {
+    return this.carrosService.remove(idCarros);
   }
 }

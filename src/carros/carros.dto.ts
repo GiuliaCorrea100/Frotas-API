@@ -12,3 +12,7 @@ export interface FindAllParameters {
   modelo: string;
   ano: number;
 }
+
+export class CarrosRouteParameters {
+  idCarros: number;
+}

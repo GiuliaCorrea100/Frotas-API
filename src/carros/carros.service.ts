@@ -63,32 +63,30 @@ export class CarrosService {
     return carrosFound.map((CarrosEntity) => this.mapEntityToDto(CarrosEntity));
   }
 
-  update(carros: CarrosDto) {
-    const carrosIndex = this.carros.findIndex(
-      (c) => c.idCarros === carros.idCarros,
-    );
+  async update(idCarros: number, carros: CarrosDto) {
+    const foundCarro = await this.carrosRepository.findOne({
+      where: { idCarros },
+    });
 
-    if (carrosIndex >= 0) {
-      this.carros[carrosIndex] = carros;
-      return;
+    if (!foundCarro) {
+      throw new HttpException(
+        `Item with id ${carros.idCarros} not found`,
+        HttpStatus.BAD_REQUEST,
+      );
     }
-    throw new HttpException(
-      `Item with id ${carros.idCarros} not found`,
-      HttpStatus.BAD_REQUEST,
-    );
+
+    await this.carrosRepository.update(idCarros, this.mapDtoToentity(carros));
   }
 
-  remove(id: number) {
-    const carrosIndex = this.carros.findIndex((c) => c.idCarros === id);
+  async remove(idCarros: number) {
+    const result = await this.carrosRepository.delete(idCarros);
 
-    if (carrosIndex >= 0) {
-      this.carros.splice(carrosIndex, 1);
-      return;
+    if (!result.affected) {
+      throw new HttpException(
+        `Item with id ${idCarros} not found`,
+        HttpStatus.BAD_REQUEST,
+      );
     }
-    throw new HttpException(
-      `Item with id ${id} not found`,
-      HttpStatus.BAD_REQUEST,
-    );
   }
 
   private mapEntityToDto(CarrosEntity: CarrosEntity): CarrosDto {
@@ -100,6 +98,17 @@ export class CarrosService {
       odometro: CarrosEntity.odometro,
       modelo: CarrosEntity.modelo,
       ano: CarrosEntity.ano,
+    };
+  }
+
+  private mapDtoToentity(carrosDto: CarrosDto): Partial<CarrosEntity> {
+    return {
+      tombo: carrosDto.tombo,
+      qrCode: carrosDto.qrCode,
+      placa: carrosDto.placa,
+      odometro: carrosDto.odometro,
+      modelo: carrosDto.modelo,
+      ano: carrosDto.ano,
     };
   }
 }

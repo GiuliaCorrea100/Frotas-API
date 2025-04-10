@@ -1,5 +1,5 @@
 export class UsersDto {
-  idUser: string;
+  id: string;
   username: string;
   password: string;
   permissao: string; //1-adm 2-motorista
