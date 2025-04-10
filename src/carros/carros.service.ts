@@ -5,37 +5,62 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { FindAllParameters, CarrosDto } from './carros.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { CarrosEntity } from 'src/db/entities/carros.entity';
+import { Equal, FindOptionsWhere, Like, Repository } from 'typeorm';
 
 @Injectable()
 export class CarrosService {
+  constructor(
+    @InjectRepository(CarrosEntity)
+    private readonly carrosRepository: Repository<CarrosEntity>,
+  ) {}
+
   private carros: CarrosDto[] = [];
 
-  create(carros: CarrosDto) {
-    this.carros.push(carros);
-    console.log(this.carros);
+  async create(carros: CarrosDto) {
+    console.log(carros);
+    const carrosToSave: CarrosEntity = {
+      tombo: carros.tombo,
+      qrCode: carros.qrCode,
+      modelo: carros.modelo,
+      placa: carros.placa,
+      odometro: carros.odometro,
+      ano: carros.ano,
+    };
+
+    return await this.carrosRepository.save(carrosToSave);
+    //return this.mapEntityToDto(createdCarros);
   }
 
-  findById(id: number): CarrosDto {
-    const foundCarro = this.carros.filter((c) => c.idCarros === id);
-
-    if (foundCarro.length) {
-      return foundCarro[0];
-    }
-    throw new NotFoundException(`Item with id ${id} not found`);
-  }
-
-  findAll(params: FindAllParameters): CarrosDto[] {
-    return this.carros.filter((c) => {
-      let match = true;
-
-      if (params.modelo != undefined && !c.modelo.includes(params.modelo)) {
-        match = false;
-      }
-      if (params.ano !== undefined && c.ano !== params.ano) {
-        match = false;
-      }
-      return match;
+  async findById(idCarros: number): Promise<CarrosDto> {
+    const foundCarro = await this.carrosRepository.findOne({
+      where: { idCarros },
     });
+
+    if (!foundCarro) {
+      throw new NotFoundException(`Item with id ${idCarros} not found`);
+    }
+
+    return this.mapEntityToDto(foundCarro);
+  }
+
+  async findAll(params: FindAllParameters): Promise<CarrosDto[]> {
+    const searchParams: FindOptionsWhere<CarrosEntity> = {};
+
+    if (params.modelo) {
+      searchParams.modelo = Like(`%${params.modelo}%`);
+    }
+
+    if (params.ano) {
+      searchParams.ano = Equal(params.ano);
+    }
+
+    const carrosFound = await this.carrosRepository.find({
+      where: searchParams,
+    });
+
+    return carrosFound.map((CarrosEntity) => this.mapEntityToDto(CarrosEntity));
   }
 
   update(carros: CarrosDto) {
@@ -64,5 +89,17 @@ export class CarrosService {
       `Item with id ${id} not found`,
       HttpStatus.BAD_REQUEST,
     );
+  }
+
+  private mapEntityToDto(CarrosEntity: CarrosEntity): CarrosDto {
+    return {
+      idCarros: CarrosEntity.idCarros,
+      tombo: CarrosEntity.tombo,
+      qrCode: CarrosEntity.qrCode,
+      placa: CarrosEntity.placa,
+      odometro: CarrosEntity.odometro,
+      modelo: CarrosEntity.modelo,
+      ano: CarrosEntity.ano,
+    };
   }
 }

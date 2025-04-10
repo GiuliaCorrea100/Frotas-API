@@ -1,5 +1,5 @@
 export class CarrosDto {
-  idCarros: number;
+  idCarros?: number;
   tombo: number;
   qrCode: string;
   placa: string;

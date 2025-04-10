@@ -16,16 +16,16 @@ export class CarrosController {
   constructor(private readonly carrosService: CarrosService) {}
 
   @Post()
-  create(@Body() carros: CarrosDto) {
-    this.carrosService.create(carros);
+  async create(@Body() carros: CarrosDto): Promise<CarrosDto> {
+    return await this.carrosService.create(carros);
   }
 
-  @Get('/:id')
-  findById(@Param('id') id: number): CarrosDto {
+  @Get('/:idCarros')
+  async findById(@Param('idCarros') id: number): Promise<CarrosDto> {
     return this.carrosService.findById(id);
   }
   @Get()
-  findAll(@Query() params: FindAllParameters): CarrosDto[] {
+  async findAll(@Query() params: FindAllParameters): Promise<CarrosDto[]> {
     return this.carrosService.findAll(params);
   }
 
