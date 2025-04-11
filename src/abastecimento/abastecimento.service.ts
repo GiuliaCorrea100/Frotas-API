@@ -5,77 +5,114 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { AbastecimentoDto, FindAllParameters } from './abastecimento.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { AbastecimentoEntity } from 'src/db/entities/abastecimento.entity';
+import { FindOptionsWhere, Repository, Like } from 'typeorm';
 
 @Injectable()
 export class AbastecimentoService {
+  constructor(
+    @InjectRepository(AbastecimentoEntity)
+    private readonly abastecimentoRepository: Repository<AbastecimentoEntity>,
+  ) {}
+
   private abastecimento: AbastecimentoDto[] = [];
 
-  create(abastecimento: AbastecimentoDto) {
-    this.abastecimento.push(abastecimento);
-    console.log(this.abastecimento);
+  async create(abastecimento: AbastecimentoDto) {
+    const abastecimentoToSave: AbastecimentoEntity = {
+      litros: abastecimento.litros,
+      codPagamento: abastecimento.codPagamento,
+      precoFinal: abastecimento.precoFinal,
+      tipoCombustivel: abastecimento.tipoCombustivel,
+      dataAbastecimento: abastecimento.dataAbastecimento,
+    };
+
+    return await this.abastecimentoRepository.save(abastecimentoToSave);
   }
 
-  findById(id: number): AbastecimentoDto {
-    const foundAbastecimento = this.abastecimento.filter(
-      (a) => a.idAbastecimento === id,
-    );
-
-    if (foundAbastecimento.length) {
-      return foundAbastecimento[0];
-    }
-
-    throw new NotFoundException(`Item with id ${id} not found`);
-  }
-
-  findAll(params: FindAllParameters): AbastecimentoDto[] {
-    return this.abastecimento.filter((c) => {
-      let match = true;
-
-      if (
-        params.tipoCombustivel != undefined &&
-        !c.tipoCombustivel.includes(params.tipoCombustivel)
-      ) {
-        match = false;
-      }
-
-      if (
-        params.dataAbastecimento !== undefined &&
-        c.dataAbastecimento.getTime() !== params.dataAbastecimento.getTime()
-      ) {
-        match = false;
-      }
-
-      return match;
+  async findById(idAbastecimento: number): Promise<AbastecimentoDto> {
+    const foundAbastecimento = await this.abastecimentoRepository.findOne({
+      where: { idAbastecimento },
     });
+
+    if (!foundAbastecimento) {
+      throw new NotFoundException(`Item with id ${idAbastecimento} not found`);
+    }
+
+    return this.mapEntityToDto(foundAbastecimento);
   }
 
-  update(abastecimento: AbastecimentoDto) {
-    const abastecimentoIndex = this.abastecimento.findIndex(
-      (a) => a.idAbastecimento === abastecimento.idAbastecimento,
-    );
+  async findAll(params: FindAllParameters): Promise<AbastecimentoDto[]> {
+    const searchParams: FindOptionsWhere<AbastecimentoEntity> = {};
 
-    if (abastecimentoIndex >= 0) {
-      this.abastecimento[abastecimentoIndex] = abastecimento;
-      return;
+    /*if (params.dataAbastecimento) {
+      searchParams.dataAbastecimento = Like(`%${params.dataAbastecimento}`);
+    }*/
+
+    if (params.tipoCombustivel) {
+      searchParams.tipoCombustivel = Like(`%${params.tipoCombustivel}`);
     }
-    throw new HttpException(
-      `Item with id ${abastecimento.idAbastecimento} not found`,
-      HttpStatus.BAD_REQUEST,
+
+    const abastecimentoFound = await this.abastecimentoRepository.find({
+      where: searchParams,
+    });
+
+    return abastecimentoFound.map((AbastecimentoEntity) =>
+      this.mapEntityToDto(AbastecimentoEntity),
     );
   }
 
-  remove(id: number) {
-    const abastecimentoIndex = this.abastecimento.findIndex(
-      (a) => a.idAbastecimento === id,
-    );
+  async update(idAbastecimento: number, abastecimento: AbastecimentoDto) {
+    const foundAbastecimento = await this.abastecimentoRepository.findOne({
+      where: { idAbastecimento },
+    });
 
-    if (abastecimentoIndex >= 0) {
-      this.abastecimento.splice(abastecimentoIndex, 1);
-      return;
+    if (!foundAbastecimento) {
+      throw new HttpException(
+        `Item with id ${abastecimento.idAbastecimento} not found`,
+        HttpStatus.BAD_REQUEST,
+      );
     }
-    throw new HttpException(
-      `Item with id ${id} not found`,
-      HttpStatus.BAD_REQUEST,
+
+    await this.abastecimentoRepository.update(
+      idAbastecimento,
+      this.mapDtoToentity(abastecimento),
     );
+  }
+
+  async remove(idAbastecimento: number) {
+    const result = await this.abastecimentoRepository.delete(idAbastecimento);
+
+    if (!result.affected) {
+      throw new HttpException(
+        `Item with id ${idAbastecimento} not found`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  private mapEntityToDto(
+    AbastecimentoEntity: AbastecimentoEntity,
+  ): AbastecimentoDto {
+    return {
+      idAbastecimento: AbastecimentoEntity.idAbastecimento,
+      litros: AbastecimentoEntity.litros,
+      codPagamento: AbastecimentoEntity.codPagamento,
+      precoFinal: AbastecimentoEntity.precoFinal,
+      tipoCombustivel: AbastecimentoEntity.tipoCombustivel,
+      dataAbastecimento: AbastecimentoEntity.dataAbastecimento,
+    };
+  }
+
+  private mapDtoToentity(
+    AbastecimentoDto: AbastecimentoDto,
+  ): Partial<AbastecimentoEntity> {
+    return {
+      litros: AbastecimentoDto.litros,
+      codPagamento: AbastecimentoDto.codPagamento,
+      precoFinal: AbastecimentoDto.precoFinal,
+      tipoCombustivel: AbastecimentoDto.tipoCombustivel,
+      dataAbastecimento: AbastecimentoDto.dataAbastecimento,
+    };
   }
 }

@@ -9,34 +9,50 @@ import {
   Query,
 } from '@nestjs/common';
 import { AbastecimentoService } from './abastecimento.service';
-import { AbastecimentoDto, FindAllParameters } from './abastecimento.dto';
+import {
+  AbastecimentoDto,
+  AbastecimentoRouteParameters,
+  FindAllParameters,
+} from './abastecimento.dto';
 
 @Controller('abastecimento')
 export class AbastecimentoController {
   constructor(private readonly abastecimentoService: AbastecimentoService) {}
 
   @Post()
-  create(@Body() abastecimento: AbastecimentoDto) {
-    this.abastecimentoService.create(abastecimento);
+  async create(
+    @Body() abastecimento: AbastecimentoDto,
+  ): Promise<AbastecimentoDto> {
+    return await this.abastecimentoService.create(abastecimento);
   }
 
-  @Get('/:id')
-  findById(@Param('id') id: number): AbastecimentoDto {
-    return this.abastecimentoService.findById(id);
+  @Get('/:idAbastecimento')
+  async findById(
+    @Param('idAbastecimento') idAbastecimento: number,
+  ): Promise<AbastecimentoDto> {
+    return this.abastecimentoService.findById(idAbastecimento);
   }
 
   @Get()
-  findAll(@Query() params: FindAllParameters): AbastecimentoDto[] {
+  async findAll(
+    @Query() params: FindAllParameters,
+  ): Promise<AbastecimentoDto[]> {
     return this.abastecimentoService.findAll(params);
   }
 
-  @Put()
-  update(@Body() abastecimento: AbastecimentoDto) {
-    this.abastecimentoService.update(abastecimento);
+  @Put('/:idAbastecimento')
+  async update(
+    @Param() params: AbastecimentoRouteParameters,
+    @Body() abastecimento: AbastecimentoDto,
+  ) {
+    await this.abastecimentoService.update(
+      params.idAbastecimento,
+      abastecimento,
+    );
   }
 
-  @Delete('/:id')
-  remove(@Param('id') id: number) {
-    return this.abastecimentoService.remove(id);
+  @Delete('/:idAbastecimento')
+  remove(@Param('idAbastecimento') idAbastecimento: number) {
+    return this.abastecimentoService.remove(idAbastecimento);
   }
 }

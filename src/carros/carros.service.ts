@@ -19,7 +19,6 @@ export class CarrosService {
   private carros: CarrosDto[] = [];
 
   async create(carros: CarrosDto) {
-    console.log(carros);
     const carrosToSave: CarrosEntity = {
       tombo: carros.tombo,
       qrCode: carros.qrCode,
