@@ -1,5 +1,5 @@
 export class CorridaDto {
-  idCorrida: number;
+  idCorrida?: number;
   dataInicio: Date;
   dataTermino: Date;
   distanciaKm: string;
@@ -8,4 +8,8 @@ export class CorridaDto {
 
 export interface FindAllParameters {
   itinerario: string;
+}
+
+export class CorridasRouteParameters {
+  idCorrida: number;
 }

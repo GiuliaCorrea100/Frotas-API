@@ -9,34 +9,34 @@ import {
   Query,
 } from '@nestjs/common';
 import { CnhService } from './cnh.service';
-import { CnhDto, FindAllParameters } from './cnh.dto';
+import { CnhDto, FindAllParameters, CnhRouteParameters } from './cnh.dto';
 
 @Controller('cnh')
 export class CnhController {
   constructor(private readonly cnhService: CnhService) {}
 
   @Post()
-  create(@Body() cnh: CnhDto) {
-    this.cnhService.create(cnh);
+  async create(@Body() cnh: CnhDto): Promise<CnhDto> {
+    return await this.cnhService.create(cnh);
   }
 
-  @Get('/:id')
-  findById(@Param('id') id: number): CnhDto {
-    return this.cnhService.findById(id);
+  @Get('/:idCnh')
+  async findById(@Param('idCnh') idCnh: number): Promise<CnhDto> {
+    return this.cnhService.findById(idCnh);
   }
 
   @Get()
-  findAll(@Query() params: FindAllParameters): CnhDto[] {
+  async findAll(@Query() params: FindAllParameters): Promise<CnhDto[]> {
     return this.cnhService.findAll(params);
   }
 
-  @Put()
-  update(@Body() cnh: CnhDto) {
-    this.cnhService.update(cnh);
+  @Put('/:idCnh')
+  async update(@Param() params: CnhRouteParameters, @Body() cnh: CnhDto) {
+    await this.cnhService.update(params.idCnh, cnh);
   }
-  //Revisar essa função, ver se vai deletar pelo rg mesmo ou não
-  @Delete('/:id')
-  remove(@Param('id') id: number) {
-    return this.cnhService.remove(id);
+
+  @Delete('/:idCnh')
+  remove(@Param('idCnh') idCnh: number) {
+    return this.cnhService.remove(idCnh);
   }
 }

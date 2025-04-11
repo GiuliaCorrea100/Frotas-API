@@ -8,7 +8,11 @@ import {
   Delete,
   Query,
 } from '@nestjs/common';
-import { CorridaDto, FindAllParameters } from './corrida.dto';
+import {
+  CorridaDto,
+  CorridasRouteParameters,
+  FindAllParameters,
+} from './corrida.dto';
 import { CorridaService } from './corrida.service';
 
 @Controller('corrida')
@@ -16,26 +20,29 @@ export class CorridaController {
   constructor(private readonly corridaService: CorridaService) {}
 
   @Post()
-  create(@Body() corrida: CorridaDto) {
-    this.corridaService.create(corrida);
+  async create(@Body() corrida: CorridaDto): Promise<CorridaDto> {
+    return await this.corridaService.create(corrida);
   }
 
-  @Get('/:id')
-  findById(@Param('id') id: number): CorridaDto {
-    return this.corridaService.findById(id);
+  @Get('/:idCorrida')
+  async findById(@Param('idCorrida') idCorrida: number): Promise<CorridaDto> {
+    return this.corridaService.findById(idCorrida);
   }
   @Get()
-  findAll(@Query() params: FindAllParameters): CorridaDto[] {
+  async findAll(@Query() params: FindAllParameters): Promise<CorridaDto[]> {
     return this.corridaService.findAll(params);
   }
 
-  @Put()
-  update(@Body() corrida: CorridaDto) {
-    this.corridaService.update(corrida);
+  @Put('/:idCorrida')
+  async update(
+    @Param() params: CorridasRouteParameters,
+    @Body() corrida: CorridaDto,
+  ) {
+    await this.corridaService.update(params.idCorrida, corrida);
   }
 
-  @Delete('/:id')
-  remove(@Param('id') id: number) {
-    return this.corridaService.remove(id);
+  @Delete('/:idCorrida')
+  remove(@Param('idCorrida') idCorrida: number) {
+    return this.corridaService.remove(idCorrida);
   }
 }

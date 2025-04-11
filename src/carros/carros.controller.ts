@@ -25,8 +25,8 @@ export class CarrosController {
   }
 
   @Get('/:idCarros')
-  async findById(@Param('idCarros') id: number): Promise<CarrosDto> {
-    return this.carrosService.findById(id);
+  async findById(@Param('idCarros') idCarros: number): Promise<CarrosDto> {
+    return this.carrosService.findById(idCarros);
   }
 
   @Get()

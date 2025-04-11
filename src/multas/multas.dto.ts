@@ -1,5 +1,5 @@
 export class MultasDto {
-  idMultas: number;
+  idMultas?: number;
   codInfracao: string;
   classInfracao: string;
   valor: string;
@@ -11,6 +11,11 @@ export class MultasDto {
 export interface FindAllParameters {
   codInfracao: string;
   classInfracao: string;
+  placaVeiculo: string;
   valor: string;
   data: Date;
+}
+
+export class MultasRouteParameters {
+  idMultas: number;
 }

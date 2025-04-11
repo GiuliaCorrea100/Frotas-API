@@ -5,65 +5,102 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CorridaDto, FindAllParameters } from './corrida.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { CorridasEntity } from 'src/db/entities/corrida.entity';
+import { FindOptionsWhere, Repository, Like } from 'typeorm';
 
 @Injectable()
 export class CorridaService {
+  constructor(
+    @InjectRepository(CorridasEntity)
+    private readonly corridaRepository: Repository<CorridasEntity>,
+  ) {}
+
   private corrida: CorridaDto[] = [];
 
-  create(corrida: CorridaDto) {
-    this.corrida.push(corrida);
-    console.log(this.corrida);
+  async create(corrida: CorridaDto) {
+    const corridaTosave: CorridasEntity = {
+      dataInicio: corrida.dataInicio,
+      dataTermino: corrida.dataTermino,
+      distanciaKm: corrida.distanciaKm,
+      itinerario: corrida.itinerario,
+    };
+
+    return await this.corridaRepository.save(corridaTosave);
   }
 
-  findById(id: number): CorridaDto {
-    const foundCorrida = this.corrida.filter((c) => c.idCorrida === id);
-
-    if (foundCorrida.length) {
-      return foundCorrida[0];
-    }
-    throw new NotFoundException(`Item with id ${id} not found`);
-  }
-
-  findAll(params: FindAllParameters): CorridaDto[] {
-    return this.corrida.filter((c) => {
-      let match = true;
-
-      if (
-        params.itinerario != undefined &&
-        !c.itinerario.includes(params.itinerario)
-      ) {
-        match = false;
-      }
-      return match;
+  async findById(idCorrida: number): Promise<CorridaDto> {
+    const foundCorrida = await this.corridaRepository.findOne({
+      where: { idCorrida },
     });
+
+    if (!foundCorrida) {
+      throw new NotFoundException(`Item with id ${idCorrida} not found`);
+    }
+    return this.mapEntityToDto(foundCorrida);
   }
 
-  update(corrida: CorridaDto) {
-    const corridaIndex = this.corrida.findIndex(
-      (c) => c.idCorrida === corrida.idCorrida,
-    );
+  async findAll(params: FindAllParameters): Promise<CorridaDto[]> {
+    const searchParams: FindOptionsWhere<CorridasEntity> = {};
 
-    if (corridaIndex >= 0) {
-      this.corrida[corridaIndex] = corrida;
-      return;
+    if (params.itinerario) {
+      searchParams.itinerario = Like(`%${params.itinerario}%`);
     }
-    throw new HttpException(
-      `Item with id ${corrida.idCorrida} not found`,
-      HttpStatus.BAD_REQUEST,
+
+    const corridaFound = await this.corridaRepository.find({
+      where: searchParams,
+    });
+
+    return corridaFound.map((CorridasEntity) =>
+      this.mapEntityToDto(CorridasEntity),
     );
   }
 
-  remove(id: number) {
-    //let carrosIndex
-    const corridaIndex = this.corrida.findIndex((c) => c.idCorrida === id);
+  async update(idCorrida: number, corrida: CorridaDto) {
+    const foundCorrida = await this.corridaRepository.findOne({
+      where: { idCorrida },
+    });
 
-    if (corridaIndex >= 0) {
-      this.corrida.splice(corridaIndex, 1);
-      return;
+    if (!foundCorrida) {
+      throw new HttpException(
+        `Item with id ${corrida.idCorrida} not found`,
+        HttpStatus.BAD_REQUEST,
+      );
     }
-    throw new HttpException(
-      `Item with id ${id} not found`,
-      HttpStatus.BAD_REQUEST,
+
+    await this.corridaRepository.update(
+      idCorrida,
+      this.mapDtoToEntity(corrida),
     );
+  }
+
+  async remove(idCorrida: number) {
+    const result = await this.corridaRepository.delete(idCorrida);
+
+    if (!result.affected) {
+      throw new HttpException(
+        `Item with id ${idCorrida} not found`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  private mapEntityToDto(CorridasEntity: CorridasEntity): CorridaDto {
+    return {
+      idCorrida: CorridasEntity.idCorrida,
+      dataInicio: CorridasEntity.dataInicio,
+      dataTermino: CorridasEntity.dataTermino,
+      distanciaKm: CorridasEntity.distanciaKm,
+      itinerario: CorridasEntity.itinerario,
+    };
+  }
+
+  private mapDtoToEntity(CorridaDto: CorridaDto): Partial<CorridasEntity> {
+    return {
+      dataInicio: CorridaDto.dataInicio,
+      dataTermino: CorridaDto.dataTermino,
+      distanciaKm: CorridaDto.distanciaKm,
+      itinerario: CorridaDto.itinerario,
+    };
   }
 }

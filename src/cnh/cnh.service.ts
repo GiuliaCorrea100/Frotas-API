@@ -5,75 +5,99 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { FindAllParameters, CnhDto } from './cnh.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { CnhEntity } from 'src/db/entities/cnh.entity';
+import { FindOptionsWhere, Repository, Like } from 'typeorm';
 
 @Injectable()
 export class CnhService {
+  constructor(
+    @InjectRepository(CnhEntity)
+    private readonly cnhRepository: Repository<CnhEntity>,
+  ) {}
+
   private cnh: CnhDto[] = [];
 
-  create(cnh: CnhDto) {
-    this.cnh.push(cnh);
-    console.log(this.cnh);
+  async create(cnh: CnhDto) {
+    const cnhToSave: CnhEntity = {
+      nome: cnh.nome,
+      classificacao: cnh.classificacao,
+      dataEmissao: cnh.dataEmissao,
+      dataValidade: cnh.dataValidade,
+    };
+
+    return await this.cnhRepository.save(cnhToSave);
   }
 
-  findById(id: number): CnhDto {
-    const foundCnh = this.cnh.filter((c) => c.idCnh === id);
-
-    if (foundCnh.length) {
-      return foundCnh[0];
-    }
-
-    throw new NotFoundException(`Item with id ${id} not found`);
-  }
-
-  findAll(params: FindAllParameters): CnhDto[] {
-    return this.cnh.filter((c) => {
-      let match = true;
-
-      if (
-        params.classificacao != undefined &&
-        !c.classificacao.includes(params.classificacao)
-      ) {
-        match = false;
-      }
-
-      if (
-        params.dataValidade !== undefined &&
-        c.dataValidade.getDate() !== params.dataValidade.getDate()
-      ) {
-        match = false;
-      }
-
-      if (params.nome != undefined && !c.nome.includes(params.nome)) {
-        match = false;
-      }
-
-      return match;
+  async findById(idCnh: number): Promise<CnhDto> {
+    const foundCnh = await this.cnhRepository.findOne({
+      where: { idCnh },
     });
+
+    if (!foundCnh) {
+      throw new NotFoundException(`Item with id ${idCnh} not found`);
+    }
+
+    return this.mapEntityToDto(foundCnh);
   }
 
-  update(cnh: CnhDto) {
-    const cnhIndex = this.cnh.findIndex((c) => c.idCnh === cnh.idCnh);
+  async findAll(params: FindAllParameters): Promise<CnhDto[]> {
+    const searchParams: FindOptionsWhere<CnhEntity> = {};
 
-    if (cnhIndex >= 0) {
-      this.cnh[cnhIndex] = cnh;
-      return;
+    if (params.classificacao) {
+      searchParams.classificacao = Like(`%${params.classificacao}%`);
     }
-    throw new HttpException(
-      `Item with id ${cnh.idCnh} not found`,
-      HttpStatus.BAD_REQUEST,
-    );
+
+    //implementar data de validade
+
+    const cnhFound = await this.cnhRepository.find({
+      where: searchParams,
+    });
+
+    return cnhFound.map((CnhEntity) => this.mapEntityToDto(CnhEntity));
   }
 
-  remove(id: number) {
-    const cnhIndex = this.cnh.findIndex((c) => c.idCnh === id);
+  async update(idCnh: number, cnh: CnhDto) {
+    const foundCnh = await this.cnhRepository.findOne({
+      where: { idCnh },
+    });
 
-    if (cnhIndex >= 0) {
-      this.cnh.splice(cnhIndex, 1);
-      return;
+    if (!foundCnh) {
+      throw new HttpException(
+        `Item with id ${cnh.idCnh} not found`,
+        HttpStatus.BAD_REQUEST,
+      );
     }
-    throw new HttpException(
-      `Item with id ${id} not found`,
-      HttpStatus.BAD_REQUEST,
-    );
+    await this.cnhRepository.update(idCnh, this.mapDtoToEntity(cnh));
+  }
+
+  async remove(idCnh: number) {
+    const result = await this.cnhRepository.delete(idCnh);
+
+    if (!result.affected) {
+      throw new HttpException(
+        `Item with id ${idCnh} not found`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  private mapEntityToDto(CnhEntity: CnhEntity): CnhDto {
+    return {
+      idCnh: CnhEntity.idCnh,
+      nome: CnhEntity.nome,
+      classificacao: CnhEntity.classificacao,
+      dataEmissao: CnhEntity.dataEmissao,
+      dataValidade: CnhEntity.dataValidade,
+    };
+  }
+
+  private mapDtoToEntity(CnhDto: CnhDto): Partial<CnhEntity> {
+    return {
+      nome: CnhDto.nome,
+      classificacao: CnhDto.classificacao,
+      dataEmissao: CnhDto.dataEmissao,
+      dataValidade: CnhDto.dataValidade,
+    };
   }
 }

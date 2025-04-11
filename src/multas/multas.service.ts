@@ -5,77 +5,110 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { MultasDto, FindAllParameters } from './multas.dto';
+import { MultasEntity } from 'src/db/entities/multas.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository, Like, FindOptionsWhere } from 'typeorm';
 
 @Injectable()
 export class MultasService {
+  constructor(
+    @InjectRepository(MultasEntity)
+    private readonly MultasRepository: Repository<MultasEntity>,
+  ) {}
   private multas: MultasDto[] = [];
 
-  create(multas: MultasDto) {
-    this.multas.push(multas);
-    console.log(this.multas);
+  async create(multas: MultasDto) {
+    const multasToSave: MultasEntity = {
+      codInfracao: multas.codInfracao,
+      classInfracao: multas.classInfracao,
+      valor: multas.valor,
+      placaVeiculo: multas.placaVeiculo,
+      data: multas.data,
+      numAutoInfracao: multas.numAutoInfracao,
+    };
+
+    return await this.MultasRepository.save(multasToSave);
   }
 
-  findById(id: number): MultasDto {
-    const foundMulta = this.multas.filter((c) => c.idMultas === id);
-
-    if (foundMulta.length) {
-      return foundMulta[0];
-    }
-
-    throw new NotFoundException(`Item with id ${id} not found`);
-  }
-
-  findAll(params: FindAllParameters): MultasDto[] {
-    return this.multas.filter((c) => {
-      let match = true;
-
-      if (
-        params.codInfracao != undefined &&
-        !c.codInfracao.includes(params.codInfracao)
-      ) {
-        match = false;
-      }
-
-      if (
-        params.classInfracao != undefined &&
-        !c.classInfracao.includes(params.classInfracao)
-      ) {
-        match = false;
-      }
-
-      if (params.valor != undefined && !c.valor.includes(params.valor)) {
-        match = false;
-      }
-
-      return match;
+  async findById(idMultas: number): Promise<MultasDto> {
+    const foundMulta = await this.MultasRepository.findOne({
+      where: { idMultas },
     });
+
+    if (!foundMulta) {
+      throw new NotFoundException(`Item with id ${idMultas} not found`);
+    }
+    return this.mapEntityToDto(foundMulta);
   }
 
-  update(multas: MultasDto) {
-    const multasIndex = this.multas.findIndex(
-      (m) => m.idMultas === multas.idMultas,
-    );
+  async findAll(params: FindAllParameters): Promise<MultasDto[]> {
+    const searchParams: FindOptionsWhere<MultasEntity> = {};
 
-    if (multasIndex >= 0) {
-      this.multas[multasIndex] = multas;
-      return;
+    if (params.classInfracao) {
+      searchParams.classInfracao = Like(`%${params.classInfracao}%`);
     }
-    throw new HttpException(
-      `Item with id ${multas.idMultas} not found`,
-      HttpStatus.BAD_REQUEST,
-    );
+
+    if (params.codInfracao) {
+      searchParams.codInfracao = Like(`%${params.codInfracao}%`);
+    }
+
+    if (params.placaVeiculo) {
+      searchParams.placaVeiculo = Like(`%${params.placaVeiculo}%`);
+    }
+
+    const multasFound = await this.MultasRepository.find({
+      where: searchParams,
+    });
+
+    return multasFound.map((MultasEntity) => this.mapEntityToDto(MultasEntity));
   }
 
-  remove(id: number) {
-    const multasIndex = this.multas.findIndex((m) => m.idMultas === id);
+  async update(idMultas: number, multas: MultasDto) {
+    const foundMulta = await this.MultasRepository.findOne({
+      where: { idMultas },
+    });
 
-    if (multasIndex >= 0) {
-      this.multas.splice(multasIndex, 1);
-      return;
+    if (!foundMulta) {
+      throw new HttpException(
+        `Item with id ${multas.idMultas} not found`,
+        HttpStatus.BAD_REQUEST,
+      );
     }
-    throw new HttpException(
-      `Item with id ${id} not found`,
-      HttpStatus.BAD_REQUEST,
-    );
+
+    await this.MultasRepository.update(idMultas, this.mapDtoToEntity(multas));
+  }
+
+  async remove(idMultas: number) {
+    const result = await this.MultasRepository.delete(idMultas);
+
+    if (!result.affected) {
+      throw new HttpException(
+        `Item with id ${idMultas} not found`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  private mapEntityToDto(MultasEntity: MultasEntity): MultasDto {
+    return {
+      idMultas: MultasEntity.idMultas,
+      codInfracao: MultasEntity.codInfracao,
+      classInfracao: MultasEntity.classInfracao,
+      valor: MultasEntity.valor,
+      placaVeiculo: MultasEntity.placaVeiculo,
+      data: MultasEntity.data,
+      numAutoInfracao: MultasEntity.numAutoInfracao,
+    };
+  }
+
+  private mapDtoToEntity(MultasDto: MultasDto): Partial<MultasEntity> {
+    return {
+      codInfracao: MultasDto.classInfracao,
+      classInfracao: MultasDto.codInfracao,
+      valor: MultasDto.valor,
+      placaVeiculo: MultasDto.placaVeiculo,
+      data: MultasDto.data,
+      numAutoInfracao: MultasDto.numAutoInfracao,
+    };
   }
 }

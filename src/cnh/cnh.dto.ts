@@ -1,5 +1,5 @@
 export class CnhDto {
-  idCnh: number;
+  idCnh?: number;
   nome: string;
   classificacao: string;
   dataEmissao: Date;
@@ -10,4 +10,8 @@ export interface FindAllParameters {
   nome: string;
   classificacao: string;
   dataValidade: Date;
+}
+
+export class CnhRouteParameters {
+  idCnh: number;
 }

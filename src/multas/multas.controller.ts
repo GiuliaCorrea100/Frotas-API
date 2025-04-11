@@ -8,7 +8,11 @@ import {
   Delete,
   Query,
 } from '@nestjs/common';
-import { MultasDto, FindAllParameters } from './multas.dto';
+import {
+  MultasDto,
+  FindAllParameters,
+  MultasRouteParameters,
+} from './multas.dto';
 import { MultasService } from './multas.service';
 
 @Controller('multas')
@@ -16,27 +20,30 @@ export class MultasController {
   constructor(private readonly multasService: MultasService) {}
 
   @Post()
-  create(@Body() multas: MultasDto) {
-    this.multasService.create(multas);
+  async create(@Body() multas: MultasDto): Promise<MultasDto> {
+    return await this.multasService.create(multas);
   }
 
-  @Get('/:id')
-  findById(@Param('id') id: number): MultasDto {
-    return this.multasService.findById(id);
+  @Get('/:idMultas')
+  async findById(@Param('idMultas') idMultas: number): Promise<MultasDto> {
+    return this.multasService.findById(idMultas);
   }
 
   @Get()
-  findAll(@Query() params: FindAllParameters): MultasDto[] {
+  async findAll(@Query() params: FindAllParameters): Promise<MultasDto[]> {
     return this.multasService.findAll(params);
   }
 
-  @Put()
-  update(@Body() multas: MultasDto) {
-    this.multasService.update(multas);
+  @Put('/idMultas')
+  async update(
+    @Param() params: MultasRouteParameters,
+    @Body() multas: MultasDto,
+  ) {
+    await this.multasService.update(params.idMultas, multas);
   }
 
-  @Delete('/:id')
-  remove(@Param('id') id: number) {
-    return this.multasService.remove(id);
+  @Delete('/:idMultas')
+  remove(@Param('idMultas') idMultas: number) {
+    return this.multasService.remove(idMultas);
   }
 }
