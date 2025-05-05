@@ -34,7 +34,7 @@ export class MultasController {
     return this.multasService.findAll(params);
   }
 
-  @Put('/idMultas')
+  @Put('/:idMultas')
   async update(
     @Param() params: MultasRouteParameters,
     @Body() multas: MultasDto,

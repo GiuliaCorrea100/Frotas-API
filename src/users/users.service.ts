@@ -1,20 +1,92 @@
-import { Injectable } from '@nestjs/common';
-import { UsersDto } from './users.dto';
-import { v4 as uuid } from 'uuid';
-import { hashSync as bcryptHashSync } from 'bcrypt';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { UsersDto, FindAllParameters } from './users.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository, Equal, FindOptionsWhere } from 'typeorm';
+import { UserEntity } from 'src/db/entities/users.entity';
 
 @Injectable()
 export class UsersService {
+  constructor(
+    @InjectRepository(UserEntity)
+    private readonly UsersRepository: Repository<UserEntity>,
+  ) {}
   private readonly users: UsersDto[] = [];
 
-  create(newUser: UsersDto) {
-    newUser.id = uuid();
-    newUser.password = bcryptHashSync(newUser.password, 10); //esse 10 indica quantas vezes o script vai
-    // ser rodado, quanto maior mais seguro, alterar depois
-    this.users.push(newUser);
+  async create(users: UsersDto) {
+    const usersToSave: UserEntity = {
+      idPessoaSingu: users.idPessoaSingu,
+      permissao: users.permissao,
+    };
+
+    return await this.UsersRepository.save(usersToSave);
   }
 
-  findByUsername(username: string): UsersDto | null {
-    return this.users.find((user) => user.username === username) || null;
+  async findById(idUsuario: number): Promise<UsersDto> {
+    const foundUser = await this.UsersRepository.findOne({
+      where: { idUsuario },
+    });
+
+    if (!foundUser) {
+      throw new NotFoundException(`Item with id ${idUsuario} not found`);
+    }
+    return this.mapEntityToDto(foundUser);
+  }
+
+  async findAll(params: FindAllParameters): Promise<UsersDto[]> {
+    const searchParams: FindOptionsWhere<UserEntity> = {};
+
+    if (params.permissao) {
+      searchParams.permissao = Equal(params.permissao);
+    }
+    const usersFound = await this.UsersRepository.find({
+      where: searchParams,
+    });
+    return usersFound.map((UserEntity) => this.mapEntityToDto(UserEntity));
+  }
+
+  async update(idUsuario: number, users: UsersDto) {
+    const foundUser = await this.UsersRepository.findOne({
+      where: { idUsuario },
+    });
+
+    if (!foundUser) {
+      throw new HttpException(
+        `Item with id ${users.idUsuario} not found`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    await this.UsersRepository.update(idUsuario, this.mapDtoToEntity(users));
+  }
+
+  async remove(idUsuario: number) {
+    const result = await this.UsersRepository.delete(idUsuario);
+
+    if (!result.affected) {
+      throw new HttpException(
+        `Item with id ${idUsuario} not found`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  private mapEntityToDto(UserEntity: UserEntity): UsersDto {
+    return {
+      idUsuario: UserEntity.idUsuario,
+      idPessoaSingu: UserEntity.idPessoaSingu,
+      permissao: UserEntity.permissao,
+    };
+  }
+
+  private mapDtoToEntity(UsersDto: UsersDto): Partial<UserEntity> {
+    return {
+      idPessoaSingu: UsersDto.idPessoaSingu,
+      permissao: UsersDto.permissao,
+    };
   }
 }

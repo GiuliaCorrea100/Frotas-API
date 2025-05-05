@@ -10,6 +10,6 @@ export class AuthController {
     @Body('username') username: string,
     @Body('password') password: string,
   ): Promise<AuthResponseDto> {
-    return this.authService.signIn(username, password);
+    return this.authService.singIn(username, password);
   }
 }

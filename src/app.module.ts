@@ -10,6 +10,7 @@ import { DbModule } from './db/db.module';
 import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
+import { UsersinguModule } from './usersingu/usersingu.module';
 
 @Module({
   imports: [
@@ -21,8 +22,10 @@ import { AuthModule } from './auth/auth.module';
     DbModule,
     ConfigModule,
     UsersModule,
+    UsersinguModule,
     AuthModule,
     ConfigModule.forRoot({ isGlobal: true }),
+    UsersinguModule,
   ],
   controllers: [AppController],
   providers: [AppService],

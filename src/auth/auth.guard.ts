@@ -23,7 +23,9 @@ export class AuthGuard implements CanActivate {
     // O método canActivate é chamado para verificar se o usuário está autenticado
     context: ExecutionContext,
   ): Promise<boolean> {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const request = context.switchToHttp().getRequest();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const token = this.extractTokenFromHeader(request);
 
     if (!token) {
@@ -31,9 +33,11 @@ export class AuthGuard implements CanActivate {
     }
 
     try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const payload = await this.jwtService.verifyAsync(token, {
         secret: this.jwtSecret,
       });
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
       request['user'] = payload; // Adiciona o payload ao request para que possa ser acessado em outros lugares
       // usuario autenticado
       return true;

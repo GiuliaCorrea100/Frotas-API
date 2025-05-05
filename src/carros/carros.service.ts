@@ -29,7 +29,6 @@ export class CarrosService {
     };
 
     return await this.carrosRepository.save(carrosToSave);
-    //return this.mapEntityToDto(createdCarros);
   }
 
   async findById(idCarros: number): Promise<CarrosDto> {
