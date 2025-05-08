@@ -7,7 +7,7 @@ import {
 
 @Entity({ name: 'multas' })
 export class MultasEntity {
-  @PrimaryGeneratedColumn({ type: 'int', name: 'id_multas' })
+  @PrimaryGeneratedColumn({ type: 'int', name: 'id_multa' })
   idMultas?: number;
 
   @Column({ type: 'varchar', name: 'cod_infracao' })
