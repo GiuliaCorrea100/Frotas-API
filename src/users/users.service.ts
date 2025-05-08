@@ -26,13 +26,13 @@ export class UsersService {
     return await this.UsersRepository.save(usersToSave);
   }
 
-  async findById(idUsuario: number): Promise<UsersDto> {
+  async findById(idPessoaSingu: number): Promise<UsersDto> {
     const foundUser = await this.UsersRepository.findOne({
-      where: { idUsuario },
+      where: { idPessoaSingu },
     });
 
     if (!foundUser) {
-      throw new NotFoundException(`Item with id ${idUsuario} not found`);
+      throw new NotFoundException(`Item with id ${idPessoaSingu} not found`);
     }
     return this.mapEntityToDto(foundUser);
   }

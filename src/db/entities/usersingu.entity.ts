@@ -1,16 +1,9 @@
-import {
-  Column,
-  Entity,
-  JoinColumn,
-  OneToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
-import { UserEntity } from 'src/db/entities/users.entity';
+import { Column, Entity, PrimaryColumn } from 'typeorm';
 
 @Entity({ name: 'pessoa' })
 export class UserSinguEntity {
-  @PrimaryGeneratedColumn({ type: 'integer', name: 'id_usuario' })
-  idUsuarioSingu: number;
+  @PrimaryColumn({ type: 'integer', name: 'id_pessoa' })
+  idPessoa: number;
 
   @Column({ type: 'character varying', name: 'codigo_nacional' })
   login: string;
@@ -24,7 +17,7 @@ export class UserSinguEntity {
   @Column({ type: 'character varying', name: 'nome' })
   nome: string;
 
-  @OneToOne(() => UserEntity)
+  /*@OneToOne(() => UserEntity)
   @JoinColumn({ name: 'id_pessoa_singu' })
-  idPessoaSingu: number;
+  idPessoaSingu: number;*/
 }

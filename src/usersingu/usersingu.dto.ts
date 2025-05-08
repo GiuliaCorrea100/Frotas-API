@@ -1,6 +1,6 @@
 export class UserSinguDto {
-  idUsuarioSingu?: number;
-  idPessoaSingu: number;
+  idPessoa?: number;
+  //idPessoaSingu: number;
   senha: string;
   nome: string;
   email: string;

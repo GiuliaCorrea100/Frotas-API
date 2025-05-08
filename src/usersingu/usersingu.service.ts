@@ -24,8 +24,8 @@ export class UserSinguService {
 
   private mapEntityToDto(UserSinguEntity: UserSinguEntity): UserSinguDto {
     return {
-      idUsuarioSingu: UserSinguEntity.idUsuarioSingu,
-      idPessoaSingu: UserSinguEntity.idPessoaSingu,
+      idPessoa: UserSinguEntity.idPessoa,
+      //idPessoaSingu: UserSinguEntity.idPessoaSingu,
       senha: UserSinguEntity.senha,
       nome: UserSinguEntity.nome,
       email: UserSinguEntity.email,
