@@ -6,14 +6,25 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
+<<<<<<< HEAD
     "target": "ES2023",
+=======
+    "target": "ES2021",
+>>>>>>> e833801 (adc no gitlab)
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",
     "incremental": true,
     "skipLibCheck": true,
+<<<<<<< HEAD
     "strictNullChecks": true,
     "forceConsistentCasingInFileNames": true,
+=======
+    "strictNullChecks": false,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "strictPropertyInitialization": false,  
+>>>>>>> e833801 (adc no gitlab)
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false

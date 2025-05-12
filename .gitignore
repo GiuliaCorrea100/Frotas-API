@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+=======
+.env
+
+>>>>>>> e833801 (adc no gitlab)
 # compiled output
 /dist
 /node_modules
