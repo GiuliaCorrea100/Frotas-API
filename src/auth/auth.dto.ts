@@ -1,6 +1,8 @@
 export class AuthResponseDto {
-  token: string;
+   token: string;
   expiresIn: number;
   username: string;
   permissao: number;
+  nome: string;
+  email: string;
 }
