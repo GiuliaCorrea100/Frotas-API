@@ -58,6 +58,8 @@ export class AuthService {
       expiresIn: this.jwtExpirationTimeInSeconds,
       username: loginFound.login,
       permissao: usuarioFrota.permissao,
+      nome: loginFound.nome,
+      email: loginFound.email,
     };
   }
 }

@@ -3,4 +3,6 @@ export class AuthResponseDto {
   expiresIn: number;
   username: string;
   permissao: number;
+  nome: string;
+  email: string;
 }
