@@ -8,15 +8,11 @@ import {
   Delete,
   Query,
 } from '@nestjs/common';
-<<<<<<< HEAD
-import { FindAllParameters, CarrosDto } from './carros.dto';
-=======
 import {
   FindAllParameters,
   CarrosDto,
-  CarrosRouteParameters,
+ CarrosRouteParameters,
 } from './carros.dto';
->>>>>>> e833801 (adc no gitlab)
 import { CarrosService } from './carros.service';
 
 @Controller('carros')
@@ -24,29 +20,6 @@ export class CarrosController {
   constructor(private readonly carrosService: CarrosService) {}
 
   @Post()
-<<<<<<< HEAD
-  create(@Body() carros: CarrosDto) {
-    this.carrosService.create(carros);
-  }
-
-  @Get('/:id')
-  findById(@Param('id') id: string): CarrosDto {
-    return this.carrosService.findById(id);
-  }
-  @Get()
-  findAll(@Query() params: FindAllParameters): CarrosDto[] {
-    return this.carrosService.findAll(params);
-  }
-
-  @Put()
-  update(@Body() carros: CarrosDto) {
-    this.carrosService.update(carros);
-  }
-
-  @Delete('/:id')
-  remove(@Param('id') id: string) {
-    return this.carrosService.remove(id);
-=======
   async create(@Body() carros: CarrosDto): Promise<CarrosDto> {
     return await this.carrosService.create(carros);
   }
@@ -72,6 +45,5 @@ export class CarrosController {
   @Delete('/:idCarros')
   remove(@Param('idCarros') idCarros: number) {
     return this.carrosService.remove(idCarros);
->>>>>>> e833801 (adc no gitlab)
   }
 }

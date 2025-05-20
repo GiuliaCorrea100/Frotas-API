@@ -27,4 +27,7 @@ export class CorridasEntity {
 
   @Column({ type: 'varchar', name: 'itinerario' })
   itinerario: string;
+
+   @Column({ type: 'varchar', name: 'motorista' })
+  motorista: string;
 }

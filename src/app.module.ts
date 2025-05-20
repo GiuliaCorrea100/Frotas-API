@@ -2,11 +2,6 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CarrosModule } from './carros/carros.module';
-<<<<<<< HEAD
-
-@Module({
-  imports: [CarrosModule],
-=======
 import { CnhModule } from './cnh/cnh.module';
 import { MultasModule } from './multas/multas.module';
 import { AbastecimentoModule } from './abastecimento/abastecimento.module';
@@ -32,7 +27,6 @@ import { UsersinguModule } from './usersingu/usersingu.module';
     ConfigModule.forRoot({ isGlobal: true }),
     UsersinguModule,
   ],
->>>>>>> e833801 (adc no gitlab)
   controllers: [AppController],
   providers: [AppService],
 })
