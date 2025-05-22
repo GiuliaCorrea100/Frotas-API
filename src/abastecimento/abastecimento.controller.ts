@@ -1,58 +1,46 @@
 import {
-  Controller,
-  Post,
   Body,
+  Controller,
+  Delete,
   Get,
   Param,
+  ParseIntPipe,
+  Post,
   Put,
-  Delete,
   Query,
 } from '@nestjs/common';
+import { AbastecimentoDto, FindAllParameters } from './abastecimento.dto';
 import { AbastecimentoService } from './abastecimento.service';
-import {
-  AbastecimentoDto,
-  AbastecimentoRouteParameters,
-  FindAllParameters,
-} from './abastecimento.dto';
 
-@Controller('abastecimento')
+@Controller('abastecimentos')
 export class AbastecimentoController {
   constructor(private readonly abastecimentoService: AbastecimentoService) {}
 
   @Post()
-  async create(
-    @Body() abastecimento: AbastecimentoDto,
-  ): Promise<AbastecimentoDto> {
-    return await this.abastecimentoService.create(abastecimento);
+  async create(@Body() dto: AbastecimentoDto): Promise<AbastecimentoDto> {
+    return this.abastecimentoService.create(dto);
   }
 
-  @Get('/:idAbastecimento')
-  async findById(
-    @Param('idAbastecimento') idAbastecimento: number,
-  ): Promise<AbastecimentoDto> {
-    return this.abastecimentoService.findById(idAbastecimento);
+  @Get(':id')
+  async findById(@Param('id', ParseIntPipe) id: number): Promise<AbastecimentoDto> {
+    return this.abastecimentoService.findById(id);
   }
 
   @Get()
-  async findAll(
-    @Query() params: FindAllParameters,
-  ): Promise<AbastecimentoDto[]> {
-    return this.abastecimentoService.findAll(params);
+  async findAll(@Query() query: FindAllParameters): Promise<AbastecimentoDto[]> {
+    return this.abastecimentoService.findAll(query);
   }
 
-  @Put('/:idAbastecimento')
+  @Put(':id')
   async update(
-    @Param() params: AbastecimentoRouteParameters,
-    @Body() abastecimento: AbastecimentoDto,
-  ) {
-    await this.abastecimentoService.update(
-      params.idAbastecimento,
-      abastecimento,
-    );
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: AbastecimentoDto,
+  ): Promise<void> {
+    await this.abastecimentoService.update(id, dto);
   }
 
-  @Delete('/:idAbastecimento')
-  remove(@Param('idAbastecimento') idAbastecimento: number) {
-    return this.abastecimentoService.remove(idAbastecimento);
+  @Delete(':id')
+  async remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
+    await this.abastecimentoService.remove(id);
   }
 }

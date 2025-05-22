@@ -4,10 +4,11 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { AbastecimentoDto, FindAllParameters } from './abastecimento.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AbastecimentoEntity } from 'src/db/entities/abastecimento.entity';
-import { FindOptionsWhere, Repository, Like } from 'typeorm';
+import { CorridasEntity } from 'src/db/entities/corrida.entity';
+import { FindOptionsWhere, Like, Repository } from 'typeorm';
+import { AbastecimentoDto, FindAllParameters } from './abastecimento.dto';
 
 @Injectable()
 export class AbastecimentoService {
@@ -16,15 +17,19 @@ export class AbastecimentoService {
     private readonly abastecimentoRepository: Repository<AbastecimentoEntity>,
   ) {}
 
-  private abastecimento: AbastecimentoDto[] = [];
-
   async create(abastecimento: AbastecimentoDto) {
-    const abastecimentoToSave: AbastecimentoEntity = {
+    const abastecimentoToSave: Partial<AbastecimentoEntity> = {
       litros: abastecimento.litros,
       codPagamento: abastecimento.codPagamento,
       precoFinal: abastecimento.precoFinal,
-      tipoCombustivel: abastecimento.tipoCombustivel,
       dataAbastecimento: abastecimento.dataAbastecimento,
+      valor_unitario_litro: abastecimento.valor_unitario_litro,
+      valor_medio_litro: abastecimento.valor_medio_litro,
+      valor_unitario: abastecimento.valor_unitario,
+      valor_medio: abastecimento.valor_medio,
+      justificativa_alteracao: abastecimento.justificativa_alteracao,
+      tipo_combustivel_id: abastecimento.tipo_combustivel_id,
+      id_corrida: { idCorrida: abastecimento.id_corrida } as CorridasEntity,
     };
 
     return await this.abastecimentoRepository.save(abastecimentoToSave);
@@ -33,6 +38,7 @@ export class AbastecimentoService {
   async findById(idAbastecimento: number): Promise<AbastecimentoDto> {
     const foundAbastecimento = await this.abastecimentoRepository.findOne({
       where: { idAbastecimento },
+      relations: ['corrida'],
     });
 
     if (!foundAbastecimento) {
@@ -43,40 +49,40 @@ export class AbastecimentoService {
   }
 
   async findAll(params: FindAllParameters): Promise<AbastecimentoDto[]> {
-    const searchParams: FindOptionsWhere<AbastecimentoEntity> = {};
+    const where: FindOptionsWhere<AbastecimentoEntity> = {};
 
-    /*if (params.dataAbastecimento) {
-      searchParams.dataAbastecimento = Like(`%${params.dataAbastecimento}`);
-    }*/
-
-    if (params.tipoCombustivel) {
-      searchParams.tipoCombustivel = Like(`%${params.tipoCombustivel}`);
+    if (params.dataAbastecimento) {
+      where.dataAbastecimento = params.dataAbastecimento;
     }
 
-    const abastecimentoFound = await this.abastecimentoRepository.find({
-      where: searchParams,
+    if (params.tipoCombustivel) {
+
+      where.tipoCombustivel = Like(`%${params.tipoCombustivel}%`);
+    }
+
+    const results = await this.abastecimentoRepository.find({
+      where,
+      relations: ['corrida'],
     });
 
-    return abastecimentoFound.map((AbastecimentoEntity) =>
-      this.mapEntityToDto(AbastecimentoEntity),
-    );
+    return results.map(this.mapEntityToDto);
   }
 
   async update(idAbastecimento: number, abastecimento: AbastecimentoDto) {
-    const foundAbastecimento = await this.abastecimentoRepository.findOne({
+    const found = await this.abastecimentoRepository.findOne({
       where: { idAbastecimento },
     });
 
-    if (!foundAbastecimento) {
+    if (!found) {
       throw new HttpException(
-        `Item with id ${abastecimento.idAbastecimento} not found`,
+        `Item with id ${idAbastecimento} not found`,
         HttpStatus.BAD_REQUEST,
       );
     }
 
     await this.abastecimentoRepository.update(
       idAbastecimento,
-      this.mapDtoToentity(abastecimento),
+      this.mapDtoToEntity(abastecimento),
     );
   }
 
@@ -91,28 +97,40 @@ export class AbastecimentoService {
     }
   }
 
-  private mapEntityToDto(
-    AbastecimentoEntity: AbastecimentoEntity,
-  ): AbastecimentoDto {
+  private mapEntityToDto(entity: AbastecimentoEntity): AbastecimentoDto {
     return {
-      idAbastecimento: AbastecimentoEntity.idAbastecimento,
-      litros: AbastecimentoEntity.litros,
-      codPagamento: AbastecimentoEntity.codPagamento,
-      precoFinal: AbastecimentoEntity.precoFinal,
-      tipoCombustivel: AbastecimentoEntity.tipoCombustivel,
-      dataAbastecimento: AbastecimentoEntity.dataAbastecimento,
+      idAbastecimento: entity.idAbastecimento,
+      litros: entity.litros,
+      codPagamento: entity.codPagamento,
+      precoFinal: entity.precoFinal,
+      dataAbastecimento: entity.dataAbastecimento,
+      valor_unitario_litro: entity.valor_unitario_litro,
+      valor_medio_litro: entity.valor_medio_litro,
+      valor_unitario: entity.valor_unitario,
+      valor_medio: entity.valor_medio,
+      justificativa_alteracao: entity.justificativa_alteracao,
+      tipo_combustivel_id: entity.tipo_combustivel_id,
+      id_corrida: entity.id_corrida?.idCorrida ?? null,
     };
   }
 
-  private mapDtoToentity(
-    AbastecimentoDto: AbastecimentoDto,
-  ): Partial<AbastecimentoEntity> {
-    return {
-      litros: AbastecimentoDto.litros,
-      codPagamento: AbastecimentoDto.codPagamento,
-      precoFinal: AbastecimentoDto.precoFinal,
-      tipoCombustivel: AbastecimentoDto.tipoCombustivel,
-      dataAbastecimento: AbastecimentoDto.dataAbastecimento,
-    };
+  private mapDtoToEntity(dto: AbastecimentoDto): AbastecimentoEntity {
+    const entity = new AbastecimentoEntity();
+    entity.idAbastecimento = dto.idAbastecimento;
+    entity.litros = dto.litros;
+    entity.codPagamento = dto.codPagamento;
+    entity.precoFinal = dto.precoFinal;
+    entity.dataAbastecimento = dto.dataAbastecimento;
+    entity.valor_unitario_litro = dto.valor_unitario_litro;
+    entity.valor_medio_litro = dto.valor_medio_litro;
+    entity.valor_unitario = dto.valor_unitario;
+    entity.valor_medio = dto.valor_medio;
+    entity.justificativa_alteracao = dto.justificativa_alteracao;
+    entity.tipo_combustivel_id = dto.tipo_combustivel_id;
+
+    entity.id_corrida = { idCorrida: dto.id_corrida } as CorridasEntity;
+
+    return entity;
   }
+
 }

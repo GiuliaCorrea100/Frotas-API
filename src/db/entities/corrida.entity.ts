@@ -2,13 +2,19 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { AbastecimentoEntity } from './abastecimento.entity';
 
 @Entity({ name: 'corridas' })
 export class CorridasEntity {
   @PrimaryGeneratedColumn({ type: 'int', name: 'id_corrida' })
   idCorrida?: number;
+
+  @OneToMany(() => AbastecimentoEntity, abastecimento => abastecimento.id_corrida)
+abastecimentos: AbastecimentoEntity[];
+
 
   @CreateDateColumn({
     type: 'timestamptz',
