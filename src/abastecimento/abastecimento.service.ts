@@ -35,6 +35,8 @@ export class AbastecimentoService {
     return await this.abastecimentoRepository.save(abastecimentoToSave);
   }
 
+  
+
   async findById(idAbastecimento: number): Promise<AbastecimentoDto> {
     const foundAbastecimento = await this.abastecimentoRepository.findOne({
       where: { idAbastecimento },
