@@ -4,10 +4,10 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { AbastecimentoDto, FindAllParameters } from './abastecimento.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AbastecimentoEntity } from 'src/db/entities/abastecimento.entity';
-import { FindOptionsWhere, Like, Repository } from 'typeorm';
-import { AbastecimentoDto, FindAllParameters } from './abastecimento.dto';
+import { FindOptionsWhere, Repository, Like } from 'typeorm';
 
 @Injectable()
 export class AbastecimentoService {
@@ -16,23 +16,23 @@ export class AbastecimentoService {
     private readonly abastecimentoRepository: Repository<AbastecimentoEntity>,
   ) {}
 
+  private abastecimento: AbastecimentoDto[] = [];
+
   async create(abastecimento: AbastecimentoDto) {
-    const abastecimentoToSave: Partial<AbastecimentoEntity> = {
+    const abastecimentoToSave: AbastecimentoEntity = {
       litros: abastecimento.litros,
       codPagamento: abastecimento.codPagamento,
       precoFinal: abastecimento.precoFinal,
+      tipoCombustivel: abastecimento.tipoCombustivel,
       dataAbastecimento: abastecimento.dataAbastecimento,
     };
 
     return await this.abastecimentoRepository.save(abastecimentoToSave);
   }
 
-  
-
   async findById(idAbastecimento: number): Promise<AbastecimentoDto> {
     const foundAbastecimento = await this.abastecimentoRepository.findOne({
       where: { idAbastecimento },
-      relations: ['corrida'],
     });
 
     if (!foundAbastecimento) {
@@ -43,40 +43,40 @@ export class AbastecimentoService {
   }
 
   async findAll(params: FindAllParameters): Promise<AbastecimentoDto[]> {
-    const where: FindOptionsWhere<AbastecimentoEntity> = {};
+    const searchParams: FindOptionsWhere<AbastecimentoEntity> = {};
 
-    if (params.dataAbastecimento) {
-      where.dataAbastecimento = params.dataAbastecimento;
-    }
+    /*if (params.dataAbastecimento) {
+      searchParams.dataAbastecimento = Like(`%${params.dataAbastecimento}`);
+    }*/
 
     if (params.tipoCombustivel) {
-
-      where.tipoCombustivel = Like(`%${params.tipoCombustivel}%`);
+      searchParams.tipoCombustivel = Like(`%${params.tipoCombustivel}`);
     }
 
-    const results = await this.abastecimentoRepository.find({
-      where,
-      relations: ['corrida'],
+    const abastecimentoFound = await this.abastecimentoRepository.find({
+      where: searchParams,
     });
 
-    return results.map(this.mapEntityToDto);
+    return abastecimentoFound.map((AbastecimentoEntity) =>
+      this.mapEntityToDto(AbastecimentoEntity),
+    );
   }
 
   async update(idAbastecimento: number, abastecimento: AbastecimentoDto) {
-    const found = await this.abastecimentoRepository.findOne({
+    const foundAbastecimento = await this.abastecimentoRepository.findOne({
       where: { idAbastecimento },
     });
 
-    if (!found) {
+    if (!foundAbastecimento) {
       throw new HttpException(
-        `Item with id ${idAbastecimento} not found`,
+        `Item with id ${abastecimento.idAbastecimento} not found`,
         HttpStatus.BAD_REQUEST,
       );
     }
 
     await this.abastecimentoRepository.update(
       idAbastecimento,
-      this.mapDtoToEntity(abastecimento),
+      this.mapDtoToentity(abastecimento),
     );
   }
 
@@ -91,25 +91,28 @@ export class AbastecimentoService {
     }
   }
 
-  private mapEntityToDto(entity: AbastecimentoEntity): AbastecimentoDto {
+  private mapEntityToDto(
+    AbastecimentoEntity: AbastecimentoEntity,
+  ): AbastecimentoDto {
     return {
-      idAbastecimento: entity.idAbastecimento,
-      litros: entity.litros,
-      codPagamento: entity.codPagamento,
-      precoFinal: entity.precoFinal,
-      dataAbastecimento: entity.dataAbastecimento,
+      idAbastecimento: AbastecimentoEntity.idAbastecimento,
+      litros: AbastecimentoEntity.litros,
+      codPagamento: AbastecimentoEntity.codPagamento,
+      precoFinal: AbastecimentoEntity.precoFinal,
+      tipoCombustivel: AbastecimentoEntity.tipoCombustivel,
+      dataAbastecimento: AbastecimentoEntity.dataAbastecimento,
     };
   }
 
-  private mapDtoToEntity(dto: AbastecimentoDto): AbastecimentoEntity {
-    const entity = new AbastecimentoEntity();
-    entity.idAbastecimento = dto.idAbastecimento;
-    entity.litros = dto.litros;
-    entity.codPagamento = dto.codPagamento;
-    entity.precoFinal = dto.precoFinal;
-    entity.dataAbastecimento = dto.dataAbastecimento;
-
-    return entity;
+  private mapDtoToentity(
+    AbastecimentoDto: AbastecimentoDto,
+  ): Partial<AbastecimentoEntity> {
+    return {
+      litros: AbastecimentoDto.litros,
+      codPagamento: AbastecimentoDto.codPagamento,
+      precoFinal: AbastecimentoDto.precoFinal,
+      tipoCombustivel: AbastecimentoDto.tipoCombustivel,
+      dataAbastecimento: AbastecimentoDto.dataAbastecimento,
+    };
   }
-
 }

@@ -2,9 +2,9 @@ export class AbastecimentoDto {
   idAbastecimento?: number;
   litros: number;
   codPagamento: string;
-  precoFinal: number;
+  precoFinal: string;
+  tipoCombustivel: string;
   dataAbastecimento: Date;
-
 }
 
 export interface FindAllParameters {

@@ -4,7 +4,6 @@ export class CorridaDto {
   dataTermino: Date;
   distanciaKm: string;
   itinerario: string;
-  motorista: string;
 }
 
 export interface FindAllParameters {

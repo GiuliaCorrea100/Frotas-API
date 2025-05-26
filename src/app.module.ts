@@ -11,6 +11,7 @@ import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersinguModule } from './usersingu/usersingu.module';
+import { TipoCombustivelModule } from './tipo_combustivel/tipo_combustivel.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { UsersinguModule } from './usersingu/usersingu.module';
     AuthModule,
     ConfigModule.forRoot({ isGlobal: true }),
     UsersinguModule,
+    TipoCombustivelModule,
   ],
   controllers: [AppController],
   providers: [AppService],
