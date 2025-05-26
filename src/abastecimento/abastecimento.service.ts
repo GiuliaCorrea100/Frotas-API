@@ -6,7 +6,6 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AbastecimentoEntity } from 'src/db/entities/abastecimento.entity';
-import { CorridasEntity } from 'src/db/entities/corrida.entity';
 import { FindOptionsWhere, Like, Repository } from 'typeorm';
 import { AbastecimentoDto, FindAllParameters } from './abastecimento.dto';
 
@@ -23,13 +22,6 @@ export class AbastecimentoService {
       codPagamento: abastecimento.codPagamento,
       precoFinal: abastecimento.precoFinal,
       dataAbastecimento: abastecimento.dataAbastecimento,
-      valor_unitario_litro: abastecimento.valor_unitario_litro,
-      valor_medio_litro: abastecimento.valor_medio_litro,
-      valor_unitario: abastecimento.valor_unitario,
-      valor_medio: abastecimento.valor_medio,
-      justificativa_alteracao: abastecimento.justificativa_alteracao,
-      tipo_combustivel_id: abastecimento.tipo_combustivel_id,
-      id_corrida: { idCorrida: abastecimento.id_corrida } as CorridasEntity,
     };
 
     return await this.abastecimentoRepository.save(abastecimentoToSave);
@@ -106,13 +98,6 @@ export class AbastecimentoService {
       codPagamento: entity.codPagamento,
       precoFinal: entity.precoFinal,
       dataAbastecimento: entity.dataAbastecimento,
-      valor_unitario_litro: entity.valor_unitario_litro,
-      valor_medio_litro: entity.valor_medio_litro,
-      valor_unitario: entity.valor_unitario,
-      valor_medio: entity.valor_medio,
-      justificativa_alteracao: entity.justificativa_alteracao,
-      tipo_combustivel_id: entity.tipo_combustivel_id,
-      id_corrida: entity.id_corrida?.idCorrida ?? null,
     };
   }
 
@@ -123,14 +108,6 @@ export class AbastecimentoService {
     entity.codPagamento = dto.codPagamento;
     entity.precoFinal = dto.precoFinal;
     entity.dataAbastecimento = dto.dataAbastecimento;
-    entity.valor_unitario_litro = dto.valor_unitario_litro;
-    entity.valor_medio_litro = dto.valor_medio_litro;
-    entity.valor_unitario = dto.valor_unitario;
-    entity.valor_medio = dto.valor_medio;
-    entity.justificativa_alteracao = dto.justificativa_alteracao;
-    entity.tipo_combustivel_id = dto.tipo_combustivel_id;
-
-    entity.id_corrida = { idCorrida: dto.id_corrida } as CorridasEntity;
 
     return entity;
   }
