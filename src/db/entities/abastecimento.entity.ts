@@ -2,8 +2,13 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
+  ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { TipoCombustivelEntity } from './tipoCombustivel.entity';
+import { CorridasEntity } from './corrida.entity';
+
 
 @Entity({ name: 'abastecimento' })
 export class AbastecimentoEntity {
@@ -42,5 +47,15 @@ export class AbastecimentoEntity {
 
   @Column({ type: 'varchar', name: 'justificativa_alteracao', nullable: true })
   justificativaAlteracao?: string;
+
+  //CHAVE ESTRANGEIRA
+  @ManyToOne(() => TipoCombustivelEntity)
+  @JoinColumn({ name: 'id_tipo_combustivel' })
+  tipo_combustivel: TipoCombustivelEntity;
+
+  @ManyToOne(() => CorridasEntity)
+  @JoinColumn({ name: 'id_corrida' })
+  corrida: CorridasEntity;
+
 
 }
