@@ -4,10 +4,10 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { AbastecimentoDto, FindAllParameters } from './abastecimento.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AbastecimentoEntity } from 'src/db/entities/abastecimento.entity';
-import { FindOptionsWhere, Repository, Like } from 'typeorm';
+import { FindOptionsWhere, Like, Repository } from 'typeorm';
+import { AbastecimentoDto, FindAllParameters } from './abastecimento.dto';
 
 @Injectable()
 export class AbastecimentoService {
@@ -25,6 +25,12 @@ export class AbastecimentoService {
       precoFinal: abastecimento.precoFinal,
       tipoCombustivel: abastecimento.tipoCombustivel,
       dataAbastecimento: abastecimento.dataAbastecimento,
+     
+      valorUnitarioLitro: abastecimento.valorUnitarioLitro,
+      valorMedioLitro: abastecimento.valorMedioLitro,
+      valorUnitario: abastecimento.valorUnitario,
+      valorMedio: abastecimento.valorMedio,
+      justificativaAlteracao: abastecimento.justificativaAlteracao,
     };
 
     return await this.abastecimentoRepository.save(abastecimentoToSave);
@@ -101,6 +107,13 @@ export class AbastecimentoService {
       precoFinal: AbastecimentoEntity.precoFinal,
       tipoCombustivel: AbastecimentoEntity.tipoCombustivel,
       dataAbastecimento: AbastecimentoEntity.dataAbastecimento,
+
+      valorUnitarioLitro: AbastecimentoEntity.valorUnitarioLitro,
+      valorMedioLitro: AbastecimentoEntity.valorMedioLitro,
+      valorUnitario: AbastecimentoEntity.valorUnitario,
+      valorMedio: AbastecimentoEntity.valorMedio,
+      justificativaAlteracao: AbastecimentoEntity.justificativaAlteracao,
+
     };
   }
 
@@ -113,6 +126,12 @@ export class AbastecimentoService {
       precoFinal: AbastecimentoDto.precoFinal,
       tipoCombustivel: AbastecimentoDto.tipoCombustivel,
       dataAbastecimento: AbastecimentoDto.dataAbastecimento,
+
+      valorUnitarioLitro: AbastecimentoDto.valorUnitarioLitro,
+      valorMedioLitro: AbastecimentoDto.valorMedioLitro,
+      valorUnitario: AbastecimentoDto.valorUnitario,
+      valorMedio: AbastecimentoDto.valorMedio,
+      justificativaAlteracao: AbastecimentoDto.justificativaAlteracao,
     };
   }
 }

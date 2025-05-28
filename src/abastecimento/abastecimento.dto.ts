@@ -5,6 +5,12 @@ export class AbastecimentoDto {
   precoFinal: string;
   tipoCombustivel: string;
   dataAbastecimento: Date;
+
+  valorUnitarioLitro: number;
+  valorMedioLitro: number;
+  valorUnitario: number;
+  valorMedio: number;
+  justificativaAlteracao?: string;
 }
 
 export interface FindAllParameters {

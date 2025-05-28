@@ -1,17 +1,17 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
 } from '@nestjs/common';
-import { TipoCombustivelService } from './tipo_combustivel.service';
 import {
   TipoCombustivelDto,
   TipoCombustivelRouteParams,
 } from './tipo_combustivel.dto';
+import { TipoCombustivelService } from './tipo_combustivel.service';
 
 @Controller('tipo-combustivel')
 export class TipoCombustivelController {

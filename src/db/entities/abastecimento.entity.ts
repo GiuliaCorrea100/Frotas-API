@@ -1,8 +1,8 @@
 import {
-    Column,
-    CreateDateColumn,
-    Entity,
-    PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 
 @Entity({ name: 'abastecimento' })
@@ -27,4 +27,20 @@ export class AbastecimentoEntity {
     name: 'data_abastecimento',
   })
   dataAbastecimento: Date;
+
+  @Column({ type: 'decimal', name: 'valor_unitario_litro' })
+  valorUnitarioLitro: number;
+
+  @Column({ type: 'decimal', name: 'valor_medio_litro' })
+  valorMedioLitro: number;
+
+  @Column({ type: 'decimal', name: 'valor_unitario' })
+  valorUnitario: number;
+
+  @Column({ type: 'decimal', name: 'valor_medio' })
+  valorMedio: number;
+
+  @Column({ type: 'varchar', name: 'justificativa_alteracao', nullable: true })
+  justificativaAlteracao?: string;
+
 }
