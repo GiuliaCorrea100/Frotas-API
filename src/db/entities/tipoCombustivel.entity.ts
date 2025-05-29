@@ -7,7 +7,7 @@ import {
 @Entity('tipo_combustivel')
 export class TipoCombustivelEntity {
   @PrimaryGeneratedColumn()
-  tipo_combustivel_id: number;
+  id_tipo_combustivel: number;
 
   @Column()
   nome: string;

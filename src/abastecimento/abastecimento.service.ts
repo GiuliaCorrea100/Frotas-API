@@ -8,6 +8,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { AbastecimentoEntity } from 'src/db/entities/abastecimento.entity';
 import { FindOptionsWhere, Like, Repository } from 'typeorm';
 import { AbastecimentoDto, FindAllParameters } from './abastecimento.dto';
+import { TipoCombustivelEntity } from 'src/db/entities/tipoCombustivel.entity';
+import { CorridasEntity } from 'src/db/entities/corrida.entity';
 
 @Injectable()
 export class AbastecimentoService {
@@ -23,14 +25,16 @@ export class AbastecimentoService {
       litros: abastecimento.litros,
       codPagamento: abastecimento.codPagamento,
       precoFinal: abastecimento.precoFinal,
-      tipoCombustivel: abastecimento.tipoCombustivel,
       dataAbastecimento: abastecimento.dataAbastecimento,
-     
+
       valorUnitarioLitro: abastecimento.valorUnitarioLitro,
       valorMedioLitro: abastecimento.valorMedioLitro,
       valorUnitario: abastecimento.valorUnitario,
       valorMedio: abastecimento.valorMedio,
       justificativaAlteracao: abastecimento.justificativaAlteracao,
+      
+      tipo_combustivel: new TipoCombustivelEntity,
+      corrida: new CorridasEntity
     };
 
     return await this.abastecimentoRepository.save(abastecimentoToSave);
@@ -56,7 +60,7 @@ export class AbastecimentoService {
     }*/
 
     if (params.tipoCombustivel) {
-      searchParams.tipoCombustivel = Like(`%${params.tipoCombustivel}`);
+      searchParams.tipo_combustivel = Like(`%${params.tipoCombustivel}`);
     }
 
     const abastecimentoFound = await this.abastecimentoRepository.find({
@@ -105,7 +109,6 @@ export class AbastecimentoService {
       litros: AbastecimentoEntity.litros,
       codPagamento: AbastecimentoEntity.codPagamento,
       precoFinal: AbastecimentoEntity.precoFinal,
-      tipoCombustivel: AbastecimentoEntity.tipoCombustivel,
       dataAbastecimento: AbastecimentoEntity.dataAbastecimento,
 
       valorUnitarioLitro: AbastecimentoEntity.valorUnitarioLitro,
@@ -124,7 +127,6 @@ export class AbastecimentoService {
       litros: AbastecimentoDto.litros,
       codPagamento: AbastecimentoDto.codPagamento,
       precoFinal: AbastecimentoDto.precoFinal,
-      tipoCombustivel: AbastecimentoDto.tipoCombustivel,
       dataAbastecimento: AbastecimentoDto.dataAbastecimento,
 
       valorUnitarioLitro: AbastecimentoDto.valorUnitarioLitro,

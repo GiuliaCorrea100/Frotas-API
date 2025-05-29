@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -45,12 +46,14 @@ export class AbastecimentoController {
     @Param() params: AbastecimentoRouteParameters,
     @Body() abastecimento: AbastecimentoDto,
   ) {
+    if (!abastecimento || Object.keys(abastecimento).length === 0) {
+      throw new BadRequestException('Nenhum dado enviado para atualização.');
+    }
     await this.abastecimentoService.update(
       params.idAbastecimento,
       abastecimento,
     );
   }
-
   @Delete('/:idAbastecimento')
   remove(@Param('idAbastecimento') idAbastecimento: number) {
     return this.abastecimentoService.remove(idAbastecimento);

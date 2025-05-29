@@ -24,13 +24,13 @@ export class TipoCombustivelController {
     return this.tipoCombustivelService.create(dto);
   }
 
-  @Patch(':tipo_combustivel_id')
+  @Patch(':id_tipo_combustivel')
   update(
     @Param() params: TipoCombustivelRouteParams,
     @Body() dto: TipoCombustivelDto,
   ) {
     return this.tipoCombustivelService.update(
-      params.tipo_combustivel_id,
+      params.id_tipo_combustivel,
       dto,
     );
   }

@@ -6,8 +6,8 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { TipoCombustivelEntity } from './tipoCombustivel.entity';
 import { CorridasEntity } from './corrida.entity';
+import { TipoCombustivelEntity } from './tipoCombustivel.entity';
 
 
 @Entity({ name: 'abastecimento' })
@@ -18,20 +18,17 @@ export class AbastecimentoEntity {
   @Column({ type: 'int', name: 'litros' })
   litros: number;
 
-  @Column({ type: 'varchar', name: 'cod_pagamento' })
-  codPagamento: string;
+  @Column({ type: 'decimal', name: 'cod_pagamento' })
+  codPagamento: number;
 
-  @Column({ type: 'varchar', name: 'precoFinal' })
-  precoFinal: string;
-
-  @Column({ type: 'varchar', name: 'tipo_combustivel' })
-  tipoCombustivel: string;
+  @Column({ type: 'decimal', name: 'preco_final' })
+  precoFinal: number;
 
   @CreateDateColumn({
     type: 'timestamp without time zone',
     name: 'data_abastecimento',
   })
-  dataAbastecimento: Date;
+  dataAbastecimento: string;
 
   @Column({ type: 'decimal', name: 'valor_unitario_litro' })
   valorUnitarioLitro: number;

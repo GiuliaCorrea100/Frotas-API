@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { TipoCombustivelEntity } from 'src/db/entities/tipoCombustivel.entity';
+import { Repository } from 'typeorm';
 import { TipoCombustivelDto } from './tipo_combustivel.dto';
 
 @Injectable()
@@ -22,7 +22,7 @@ export class TipoCombustivelService {
 
   async findOne(id: number): Promise<TipoCombustivelEntity> {
     const tipo = await this.repository.findOne({
-      where: { tipo_combustivel_id: id },
+      where: { id_tipo_combustivel: id },
     });
     if (!tipo) {
       throw new NotFoundException('Tipo de combustível não encontrado');
