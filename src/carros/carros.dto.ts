@@ -6,6 +6,11 @@ export class CarrosDto {
   odometro: string;
   modelo: string;
   ano: number;
+  
+  //adicionei as colunas
+  localidade_fisica : string;
+  situacao: string;
+
 }
 
 export interface FindAllParameters {

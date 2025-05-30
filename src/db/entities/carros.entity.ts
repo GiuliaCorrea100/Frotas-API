@@ -22,4 +22,10 @@ export class CarrosEntity {
 
   @Column({ type: 'int', name: 'ano' })
   ano: number;
+
+  @Column({ type: 'varchar', name: 'localidade_fisica' })
+  localidade_fisica: string;
+
+  @Column({ type: 'varchar', name: 'situacao' })
+  situacao: string;
 }

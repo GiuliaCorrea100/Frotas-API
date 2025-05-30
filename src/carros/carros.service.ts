@@ -26,6 +26,9 @@ export class CarrosService {
       placa: carros.placa,
       odometro: carros.odometro,
       ano: carros.ano,
+
+      localidade_fisica: carros.localidade_fisica,
+      situacao: carros.situacao,
     };
 
     return await this.carrosRepository.save(carrosToSave);
@@ -96,6 +99,8 @@ export class CarrosService {
       odometro: CarrosEntity.odometro,
       modelo: CarrosEntity.modelo,
       ano: CarrosEntity.ano,
+      localidade_fisica: CarrosEntity.localidade_fisica,
+      situacao: CarrosEntity.situacao,
     };
   }
 
