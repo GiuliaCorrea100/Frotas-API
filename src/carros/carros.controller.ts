@@ -1,17 +1,17 @@
 import {
-  Controller,
-  Post,
   Body,
+  Controller,
+  Delete,
   Get,
   Param,
+  Post,
   Put,
-  Delete,
   Query,
 } from '@nestjs/common';
 import {
-  FindAllParameters,
   CarrosDto,
- CarrosRouteParameters,
+  CarrosRouteParameters,
+  FindAllParameters,
 } from './carros.dto';
 import { CarrosService } from './carros.service';
 

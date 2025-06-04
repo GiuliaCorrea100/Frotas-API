@@ -9,6 +9,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CarrosEntity } from 'src/db/entities/carros.entity';
 import { Equal, FindOptionsWhere, Like, Repository } from 'typeorm';
 
+import { TipoCombustivelEntity } from 'src/db/entities/tipoCombustivel.entity';
+
 @Injectable()
 export class CarrosService {
   constructor(
@@ -29,6 +31,8 @@ export class CarrosService {
 
       localidade_fisica: carros.localidade_fisica,
       situacao: carros.situacao,
+      tipo_combustivel: new TipoCombustivelEntity
+      
     };
 
     return await this.carrosRepository.save(carrosToSave);
@@ -101,6 +105,7 @@ export class CarrosService {
       ano: CarrosEntity.ano,
       localidade_fisica: CarrosEntity.localidade_fisica,
       situacao: CarrosEntity.situacao,
+      tipo_combustivel: CarrosEntity.tipo_combustivel,
     };
   }
 
@@ -112,6 +117,10 @@ export class CarrosService {
       odometro: carrosDto.odometro,
       modelo: carrosDto.modelo,
       ano: carrosDto.ano,
+      localidade_fisica: carrosDto.localidade_fisica,
+      situacao: carrosDto.situacao,
+      tipo_combustivel: carrosDto.tipo_combustivel,
+
     };
   }
 }

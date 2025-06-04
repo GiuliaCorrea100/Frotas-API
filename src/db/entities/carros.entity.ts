@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { TipoCombustivelEntity } from './tipoCombustivel.entity';
 
 @Entity({ name: 'carros' })
 export class CarrosEntity {
@@ -28,4 +29,8 @@ export class CarrosEntity {
 
   @Column({ type: 'varchar', name: 'situacao' })
   situacao: string;
+
+   @ManyToOne(() => TipoCombustivelEntity)
+    @JoinColumn({ name: 'id_tipo_combustivel' })
+    tipo_combustivel: TipoCombustivelEntity;
 }
