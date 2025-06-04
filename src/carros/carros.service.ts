@@ -9,8 +9,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CarrosEntity } from 'src/db/entities/carros.entity';
 import { Equal, FindOptionsWhere, Like, Repository } from 'typeorm';
 
-import { TipoCombustivelEntity } from 'src/db/entities/tipoCombustivel.entity';
-
 @Injectable()
 export class CarrosService {
   constructor(
@@ -31,7 +29,9 @@ export class CarrosService {
 
       localidade_fisica: carros.localidade_fisica,
       situacao: carros.situacao,
-      tipo_combustivel: new TipoCombustivelEntity
+       ativo: carros.ativo,
+       id_tipo_combustivel: carros.id_tipo_combustivel,
+    //  tipo_combustivel: new TipoCombustivelEntity
       
     };
 
@@ -94,6 +94,21 @@ export class CarrosService {
     }
   }
 
+  // ativar carro/inativar carro
+  async inativar(idCarros: number): Promise<CarrosDto> {
+
+  const carro = await this.carrosRepository.findOne({ where: { idCarros} });
+
+  if (!carro) {
+    throw new NotFoundException(`Carro com ID ${idCarros} não encontrado`);
+  }
+
+  carro.ativo = !carro.ativo;
+
+  const carroAtualizado = await this.carrosRepository.save(carro);
+  return this.mapEntityToDto(carroAtualizado);
+}
+
   private mapEntityToDto(CarrosEntity: CarrosEntity): CarrosDto {
     return {
       idCarros: CarrosEntity.idCarros,
@@ -105,7 +120,9 @@ export class CarrosService {
       ano: CarrosEntity.ano,
       localidade_fisica: CarrosEntity.localidade_fisica,
       situacao: CarrosEntity.situacao,
-      tipo_combustivel: CarrosEntity.tipo_combustivel,
+      ativo: CarrosEntity.ativo,
+      id_tipo_combustivel: CarrosEntity.id_tipo_combustivel,
+    //  tipo_combustivel: CarrosEntity.tipo_combustivel,
     };
   }
 
@@ -119,7 +136,9 @@ export class CarrosService {
       ano: carrosDto.ano,
       localidade_fisica: carrosDto.localidade_fisica,
       situacao: carrosDto.situacao,
-      tipo_combustivel: carrosDto.tipo_combustivel,
+      ativo: carrosDto.ativo,
+      id_tipo_combustivel: carrosDto.id_tipo_combustivel,
+     // tipo_combustivel: carrosDto.tipo_combustivel,
 
     };
   }

@@ -12,7 +12,9 @@ export class CarrosDto {
   //adicionei as colunas
   localidade_fisica : string;
   situacao: string;
-  tipo_combustivel: TipoCombustivelEntity;
+  ativo: boolean;
+  id_tipo_combustivel: number;
+ // tipo_combustivel: TipoCombustivelEntity;
 
 }
 

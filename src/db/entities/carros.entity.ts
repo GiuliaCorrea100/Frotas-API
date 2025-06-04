@@ -1,5 +1,4 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { TipoCombustivelEntity } from './tipoCombustivel.entity';
 
 @Entity({ name: 'carros' })
 export class CarrosEntity {
@@ -29,8 +28,15 @@ export class CarrosEntity {
 
   @Column({ type: 'varchar', name: 'situacao' })
   situacao: string;
+   
+ @Column({ type: 'boolean', name: 'ativo' })
+  ativo: boolean;
+   
 
-   @ManyToOne(() => TipoCombustivelEntity)
+  @Column({ type: 'int', name: 'id_tipo_combustivel' }) 
+  id_tipo_combustivel: number;
+
+  /* @ManyToOne(() => TipoCombustivelEntity)
     @JoinColumn({ name: 'id_tipo_combustivel' })
-    tipo_combustivel: TipoCombustivelEntity;
+    tipo_combustivel: TipoCombustivelEntity; */
 }

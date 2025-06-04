@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Put,
   Query,
@@ -46,4 +47,11 @@ export class CarrosController {
   remove(@Param('idCarros') idCarros: number) {
     return this.carrosService.remove(idCarros);
   }
+
+  @Patch(':id/inativar')
+  async inativar(@Param('id') id: number){
+    return this.carrosService.inativar(id);
+}
+
+
 }
