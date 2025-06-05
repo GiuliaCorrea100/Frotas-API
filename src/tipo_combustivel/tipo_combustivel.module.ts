@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { TipoCombustivelService } from './tipo_combustivel.service';
-import { TipoCombustivelController } from './tipo_combustivel.controller';
-import { TipoCombustivelEntity } from 'src/db/entities/tipoCombustivel.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { TipoCombustivelEntity } from 'src/db/entities/tipoCombustivel.entity';
+import { TipoCombustivelController } from './tipo_combustivel.controller';
+import { TipoCombustivelService } from './tipo_combustivel.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([TipoCombustivelEntity])],
