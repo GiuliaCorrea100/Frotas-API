@@ -10,4 +10,9 @@ export class UsersinguController {
   async findByLogin(@Param('login') login: string): Promise<UserSinguDto> {
     return this.UserSinguService.findByLogin(login);
   }
+
+  @Get('/buscar-id/:idPessoa')
+  async findById(@Param('idPessoa') idPessoa: number): Promise<UserSinguDto> {
+    return await this.UserSinguService.findById(idPessoa);
+  }
 }

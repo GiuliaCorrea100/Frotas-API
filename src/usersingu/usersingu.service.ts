@@ -22,6 +22,17 @@ export class UserSinguService {
     return this.mapEntityToDto(foundUser);
   }
 
+  async findById(idPessoa: number): Promise<UserSinguDto> {
+    const foundUser = await this.UserSinguRepository.findOne({
+      where: { idPessoa },
+    });
+
+    if (!foundUser) {
+      throw new NotFoundException(`Item with id ${idPessoa} not found`);
+    }
+    return this.mapEntityToDto(foundUser);
+  }
+
   private mapEntityToDto(UserSinguEntity: UserSinguEntity): UserSinguDto {
     return {
       idPessoa: UserSinguEntity.idPessoa,
