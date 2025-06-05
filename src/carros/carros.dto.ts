@@ -1,4 +1,3 @@
-import { TipoCombustivelEntity } from "src/db/entities/tipoCombustivel.entity";
 
 export class CarrosDto {
   idCarros?: number;
@@ -13,8 +12,8 @@ export class CarrosDto {
   localidade_fisica : string;
   situacao: string;
   ativo: boolean;
-  id_tipo_combustivel: number;
- // tipo_combustivel: TipoCombustivelEntity;
+  id_tipo_combustivel?: number;
+  //tipo_combustivel: TipoCombustivelEntity;
 
 }
 

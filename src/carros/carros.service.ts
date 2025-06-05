@@ -4,35 +4,45 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { FindAllParameters, CarrosDto } from './carros.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CarrosEntity } from 'src/db/entities/carros.entity';
+import { TipoCombustivelEntity } from 'src/db/entities/tipoCombustivel.entity';
 import { Equal, FindOptionsWhere, Like, Repository } from 'typeorm';
+import { CarrosDto, FindAllParameters } from './carros.dto';
 
 @Injectable()
 export class CarrosService {
   constructor(
     @InjectRepository(CarrosEntity)
     private readonly carrosRepository: Repository<CarrosEntity>,
+
+    @InjectRepository(TipoCombustivelEntity)
+    private readonly tipoCombustivelRepository: Repository<TipoCombustivelEntity>,
   ) {}
+  
 
-  private carros: CarrosDto[] = [];
+   async create(carros: CarrosDto) {
+    // Verificar se o tipo de combustível existe
+    const tipoCombustivel = await this.tipoCombustivelRepository.findOne({
+      where: { id_tipo_combustivel: carros.id_tipo_combustivel }
+    });
 
-  async create(carros: CarrosDto) {
-    const carrosToSave: CarrosEntity = {
+    if (!tipoCombustivel) {
+      throw new NotFoundException(`Tipo de combustível com id ${carros.id_tipo_combustivel} não encontrado`);
+    }
+
+
+    const carrosToSave: Partial<CarrosEntity> = {
       tombo: carros.tombo,
       qrCode: carros.qrCode,
       modelo: carros.modelo,
       placa: carros.placa,
       odometro: carros.odometro,
       ano: carros.ano,
-
       localidade_fisica: carros.localidade_fisica,
       situacao: carros.situacao,
-       ativo: carros.ativo,
-       id_tipo_combustivel: carros.id_tipo_combustivel,
-    //  tipo_combustivel: new TipoCombustivelEntity
-      
+      ativo: carros.ativo,
+      tipo_combustivel: tipoCombustivel, // Usar a entidade completa
     };
 
     return await this.carrosRepository.save(carrosToSave);
@@ -41,6 +51,7 @@ export class CarrosService {
   async findById(idCarros: number): Promise<CarrosDto> {
     const foundCarro = await this.carrosRepository.findOne({
       where: { idCarros },
+      relations: ['tipo_combustivel'], // Incluindo a relação com tipo_combustivel
     });
 
     if (!foundCarro) {
@@ -121,7 +132,7 @@ export class CarrosService {
       localidade_fisica: CarrosEntity.localidade_fisica,
       situacao: CarrosEntity.situacao,
       ativo: CarrosEntity.ativo,
-      id_tipo_combustivel: CarrosEntity.id_tipo_combustivel,
+      id_tipo_combustivel: CarrosEntity.tipo_combustivel?.id_tipo_combustivel,
     //  tipo_combustivel: CarrosEntity.tipo_combustivel,
     };
   }
@@ -137,7 +148,7 @@ export class CarrosService {
       localidade_fisica: carrosDto.localidade_fisica,
       situacao: carrosDto.situacao,
       ativo: carrosDto.ativo,
-      id_tipo_combustivel: carrosDto.id_tipo_combustivel,
+     // id_tipo_combustivel: carrosDto.id_tipo_combustivel,
      // tipo_combustivel: carrosDto.tipo_combustivel,
 
     };

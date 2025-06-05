@@ -8,6 +8,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
   imports: [TypeOrmModule.forFeature([TipoCombustivelEntity])],
   controllers: [TipoCombustivelController],
   providers: [TipoCombustivelService],
-  exports: [TipoCombustivelService],
+  exports: [TipoCombustivelService, TypeOrmModule],
 })
 export class TipoCombustivelModule {}
