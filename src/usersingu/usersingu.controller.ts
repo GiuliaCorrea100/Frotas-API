@@ -15,4 +15,13 @@ export class UsersinguController {
   async findById(@Param('idPessoa') idPessoa: number): Promise<UserSinguDto> {
     return await this.UserSinguService.findById(idPessoa);
   }
+
+  @Get('buscar-nome/:nome')
+  async findbyNome(@Param('nome') nome: string): Promise<UserSinguDto[]> {
+    if (!nome || nome.length < 3) {
+      return [];
+    }
+
+    return await this.UserSinguService.findByNome(nome.trim());
+  }
 }

@@ -49,6 +49,21 @@ export class UsersService {
     return usersFound.map((UserEntity) => this.mapEntityToDto(UserEntity));
   }
 
+  async permissaoAdm(idPessoaSingu: number): Promise<void> {
+    //busca o usuario no banco
+    const foundUser = await this.UsersRepository.findOne({
+      where: { idPessoaSingu },
+    });
+
+    if (!foundUser) {
+      throw new NotFoundException(`Item with id ${idPessoaSingu} not found`);
+    }
+
+    foundUser.permissao = 2;
+
+    await this.UsersRepository.save(foundUser);
+  }
+
   async update(idUsuario: number, users: UsersDto) {
     const foundUser = await this.UsersRepository.findOne({
       where: { idUsuario },

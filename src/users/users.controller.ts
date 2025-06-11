@@ -7,6 +7,7 @@ import {
   Put,
   Delete,
   Query,
+  Patch,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { FindAllParameters, UsersDto, UsersRouteParameters } from './users.dto';
@@ -28,6 +29,13 @@ export class UsersController {
   @Get()
   async findAll(@Query() params: FindAllParameters): Promise<UsersDto[]> {
     return this.usersService.findAll(params);
+  }
+
+  @Patch('/mudar-permissao/:idPessoaSingu')
+  async permissaoAdm(
+    @Param('idPessoaSingu') idPessoaSingu: number,
+  ): Promise<void> {
+    await this.usersService.permissaoAdm(idPessoaSingu);
   }
 
   @Put('/:idUsuario')

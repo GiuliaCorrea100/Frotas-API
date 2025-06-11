@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, ILike } from 'typeorm';
 import { UserSinguEntity } from 'src/db/entities/usersingu.entity';
 import { UserSinguDto } from './usersingu.dto';
 
@@ -31,6 +31,27 @@ export class UserSinguService {
       throw new NotFoundException(`Item with id ${idPessoa} not found`);
     }
     return this.mapEntityToDto(foundUser);
+  }
+
+  async findByNome(nome?: string): Promise<UserSinguDto[]> {
+    console.log('entrando na função');
+    if (!nome || nome.length < 3) {
+      return [];
+    }
+
+    console.log('🔍 Buscando por nome:', nome);
+
+    const usuarios = await this.UserSinguRepository.find({
+      where: {
+        nome: ILike(`%${nome}%`),
+      },
+      take: 10,
+      order: {
+        nome: 'ASC',
+      },
+    });
+
+    return usuarios.map((user) => this.mapEntityToDto(user));
   }
 
   private mapEntityToDto(UserSinguEntity: UserSinguEntity): UserSinguDto {
