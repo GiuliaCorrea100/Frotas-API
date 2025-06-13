@@ -8,7 +8,11 @@ import {
   Delete,
   Query,
 } from '@nestjs/common';
-import { FindAllParameters, CarrosDto } from './carros.dto';
+import {
+  FindAllParameters,
+  CarrosDto,
+  CarrosRouteParameters,
+} from './carros.dto';
 import { CarrosService } from './carros.service';
 
 @Controller('carros')
@@ -16,26 +20,30 @@ export class CarrosController {
   constructor(private readonly carrosService: CarrosService) {}
 
   @Post()
-  create(@Body() carros: CarrosDto) {
-    this.carrosService.create(carros);
+  async create(@Body() carros: CarrosDto): Promise<CarrosDto> {
+    return await this.carrosService.create(carros);
   }
 
-  @Get('/:id')
-  findById(@Param('id') id: string): CarrosDto {
-    return this.carrosService.findById(id);
+  @Get('/:idCarros')
+  async findById(@Param('idCarros') idCarros: number): Promise<CarrosDto> {
+    return this.carrosService.findById(idCarros);
   }
+
   @Get()
-  findAll(@Query() params: FindAllParameters): CarrosDto[] {
+  async findAll(@Query() params: FindAllParameters): Promise<CarrosDto[]> {
     return this.carrosService.findAll(params);
   }
 
-  @Put()
-  update(@Body() carros: CarrosDto) {
-    this.carrosService.update(carros);
+  @Put('/:idCarros')
+  async update(
+    @Param() params: CarrosRouteParameters,
+    @Body() carros: CarrosDto,
+  ) {
+    await this.carrosService.update(params.idCarros, carros);
   }
 
-  @Delete('/:id')
-  remove(@Param('id') id: string) {
-    return this.carrosService.remove(id);
+  @Delete('/:idCarros')
+  remove(@Param('idCarros') idCarros: number) {
+    return this.carrosService.remove(idCarros);
   }
 }

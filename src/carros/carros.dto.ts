@@ -1,12 +1,18 @@
 export class CarrosDto {
-  id: string; //mudar dps
+  idCarros?: number;
+  tombo: number;
+  qrCode: string;
   placa: string;
   odometro: string;
   modelo: string;
-  ano: string;
+  ano: number;
 }
 
 export interface FindAllParameters {
   modelo: string;
-  ano: string;
+  ano: number;
+}
+
+export class CarrosRouteParameters {
+  idCarros: number;
 }
