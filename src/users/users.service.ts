@@ -59,7 +59,11 @@ export class UsersService {
       throw new NotFoundException(`Item with id ${idPessoaSingu} not found`);
     }
 
-    foundUser.permissao = 2;
+    if (foundUser.permissao == 2) {
+      foundUser.permissao = 1;
+    } else {
+      foundUser.permissao = 2;
+    }
 
     await this.UsersRepository.save(foundUser);
   }
