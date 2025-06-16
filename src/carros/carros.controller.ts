@@ -1,17 +1,18 @@
 import {
-  Controller,
-  Post,
   Body,
+  Controller,
+  Delete,
   Get,
   Param,
+  Patch,
+  Post,
   Put,
-  Delete,
   Query,
 } from '@nestjs/common';
 import {
-  FindAllParameters,
   CarrosDto,
   CarrosRouteParameters,
+  FindAllParameters,
 } from './carros.dto';
 import { CarrosService } from './carros.service';
 
@@ -45,5 +46,10 @@ export class CarrosController {
   @Delete('/:idCarros')
   remove(@Param('idCarros') idCarros: number) {
     return this.carrosService.remove(idCarros);
+  }
+
+  @Patch(':id/inativar')
+  async inativar(@Param('id') id: number) {
+    return this.carrosService.inativar(id);
   }
 }

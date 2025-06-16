@@ -4,10 +4,12 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { AbastecimentoDto, FindAllParameters } from './abastecimento.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AbastecimentoEntity } from 'src/db/entities/abastecimento.entity';
-import { FindOptionsWhere, Repository, Like } from 'typeorm';
+import { CorridasEntity } from 'src/db/entities/corrida.entity';
+import { TipoCombustivelEntity } from 'src/db/entities/tipoCombustivel.entity';
+import { FindOptionsWhere, Like, Repository } from 'typeorm';
+import { AbastecimentoDto, FindAllParameters } from './abastecimento.dto';
 
 @Injectable()
 export class AbastecimentoService {
@@ -23,8 +25,16 @@ export class AbastecimentoService {
       litros: abastecimento.litros,
       codPagamento: abastecimento.codPagamento,
       precoFinal: abastecimento.precoFinal,
-      tipoCombustivel: abastecimento.tipoCombustivel,
       dataAbastecimento: abastecimento.dataAbastecimento,
+
+      valorUnitarioLitro: abastecimento.valorUnitarioLitro,
+      valorMedioLitro: abastecimento.valorMedioLitro,
+      valorUnitario: abastecimento.valorUnitario,
+      valorMedio: abastecimento.valorMedio,
+      justificativaAlteracao: abastecimento.justificativaAlteracao,
+
+      tipo_combustivel: new TipoCombustivelEntity(),
+      corrida: new CorridasEntity(),
     };
 
     return await this.abastecimentoRepository.save(abastecimentoToSave);
@@ -45,13 +55,13 @@ export class AbastecimentoService {
   async findAll(params: FindAllParameters): Promise<AbastecimentoDto[]> {
     const searchParams: FindOptionsWhere<AbastecimentoEntity> = {};
 
-    /*if (params.dataAbastecimento) {
+    if (params.dataAbastecimento) {
       searchParams.dataAbastecimento = Like(`%${params.dataAbastecimento}`);
-    }*/
-
-    if (params.tipoCombustivel) {
-      searchParams.tipoCombustivel = Like(`%${params.tipoCombustivel}`);
     }
+
+    //  if (params.tipoCombustivel) {
+    //   searchParams.tipo_combustivel = Like(`%${params.tipoCombustivel}`);
+    //}
 
     const abastecimentoFound = await this.abastecimentoRepository.find({
       where: searchParams,
@@ -99,8 +109,15 @@ export class AbastecimentoService {
       litros: AbastecimentoEntity.litros,
       codPagamento: AbastecimentoEntity.codPagamento,
       precoFinal: AbastecimentoEntity.precoFinal,
-      tipoCombustivel: AbastecimentoEntity.tipoCombustivel,
       dataAbastecimento: AbastecimentoEntity.dataAbastecimento,
+
+      valorUnitarioLitro: AbastecimentoEntity.valorUnitarioLitro,
+      valorMedioLitro: AbastecimentoEntity.valorMedioLitro,
+      valorUnitario: AbastecimentoEntity.valorUnitario,
+      valorMedio: AbastecimentoEntity.valorMedio,
+      justificativaAlteracao: AbastecimentoEntity.justificativaAlteracao,
+      tipo_combustivel: AbastecimentoEntity.tipo_combustivel,
+      corrida: AbastecimentoEntity.corrida,
     };
   }
 
@@ -111,8 +128,16 @@ export class AbastecimentoService {
       litros: AbastecimentoDto.litros,
       codPagamento: AbastecimentoDto.codPagamento,
       precoFinal: AbastecimentoDto.precoFinal,
-      tipoCombustivel: AbastecimentoDto.tipoCombustivel,
       dataAbastecimento: AbastecimentoDto.dataAbastecimento,
+
+      valorUnitarioLitro: AbastecimentoDto.valorUnitarioLitro,
+      valorMedioLitro: AbastecimentoDto.valorMedioLitro,
+      valorUnitario: AbastecimentoDto.valorUnitario,
+      valorMedio: AbastecimentoDto.valorMedio,
+      justificativaAlteracao: AbastecimentoDto.justificativaAlteracao,
+
+      tipo_combustivel: AbastecimentoDto.tipo_combustivel,
+      corrida: AbastecimentoDto.corrida,
     };
   }
 }

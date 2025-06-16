@@ -1,4 +1,11 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { TipoCombustivelEntity } from './tipoCombustivel.entity';
 
 @Entity({ name: 'carros' })
 export class CarrosEntity {
@@ -22,4 +29,17 @@ export class CarrosEntity {
 
   @Column({ type: 'int', name: 'ano' })
   ano: number;
+
+  @Column({ type: 'varchar', name: 'localidade_fisica' })
+  localidade_fisica: string;
+
+  @Column({ type: 'varchar', name: 'situacao' })
+  situacao: string;
+
+  @Column({ type: 'boolean', name: 'ativo' })
+  ativo: boolean;
+
+  @ManyToOne(() => TipoCombustivelEntity)
+  @JoinColumn({ name: 'id_tipo_combustivel' })
+  tipo_combustivel: TipoCombustivelEntity;
 }

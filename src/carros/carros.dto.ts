@@ -6,6 +6,11 @@ export class CarrosDto {
   odometro: string;
   modelo: string;
   ano: number;
+
+  localidade_fisica: string;
+  situacao: string;
+  ativo: boolean;
+  id_tipo_combustivel?: number;
 }
 
 export interface FindAllParameters {
