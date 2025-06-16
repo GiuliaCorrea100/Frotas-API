@@ -35,6 +35,11 @@ export class CarrosController {
     return this.carrosService.findAll(params);
   }
 
+  @Get('/por-tombo/:tombo')
+  async findByTombo(@Param('tombo') tombo: number): Promise<CarrosDto> {
+    return this.carrosService.findByTombo(tombo);
+  }
+
   @Put('/:idCarros')
   async update(
     @Param() params: CarrosRouteParameters,

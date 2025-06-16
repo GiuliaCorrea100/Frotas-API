@@ -28,6 +28,7 @@ export class CorridaController {
   async findById(@Param('idCorrida') idCorrida: number): Promise<CorridaDto> {
     return this.corridaService.findById(idCorrida);
   }
+
   @Get()
   async findAll(@Query() params: FindAllParameters): Promise<CorridaDto[]> {
     return this.corridaService.findAll(params);

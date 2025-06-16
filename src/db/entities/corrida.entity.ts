@@ -3,7 +3,10 @@ import {
   CreateDateColumn,
   Entity,
   PrimaryGeneratedColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+import { UserSinguEntity } from 'src/db/entities/usersingu.entity';
 
 @Entity({ name: 'corridas' })
 export class CorridasEntity {
@@ -27,4 +30,11 @@ export class CorridasEntity {
 
   @Column({ type: 'varchar', name: 'itinerario' })
   itinerario: string;
+
+  @Column({ type: 'varchar', name: 'tombo_carro', nullable: false })
+  tomboCarro: string;
+
+  @ManyToOne(() => UserSinguEntity)
+  @JoinColumn({ name: 'numero_idmotorista', referencedColumnName: 'idPessoa' })
+  motorista?: UserSinguEntity;
 }

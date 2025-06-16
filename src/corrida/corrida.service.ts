@@ -8,6 +8,7 @@ import { CorridaDto, FindAllParameters } from './corrida.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CorridasEntity } from 'src/db/entities/corrida.entity';
 import { FindOptionsWhere, Repository, Like } from 'typeorm';
+import { UserSinguEntity } from 'src/db/entities/usersingu.entity';
 
 @Injectable()
 export class CorridaService {
@@ -16,22 +17,16 @@ export class CorridaService {
     private readonly corridaRepository: Repository<CorridasEntity>,
   ) {}
 
-  private corrida: CorridaDto[] = [];
-
-  async create(corrida: CorridaDto) {
-    const corridaTosave: CorridasEntity = {
-      dataInicio: corrida.dataInicio,
-      dataTermino: corrida.dataTermino,
-      distanciaKm: corrida.distanciaKm,
-      itinerario: corrida.itinerario,
-    };
-
-    return await this.corridaRepository.save(corridaTosave);
+  async create(corrida: CorridaDto): Promise<CorridaDto> {
+    const corridaToSave = this.mapDtoToEntity(corrida);
+    const savedEntity = await this.corridaRepository.save(corridaToSave);
+    return this.mapEntityToDto(savedEntity);
   }
 
   async findById(idCorrida: number): Promise<CorridaDto> {
     const foundCorrida = await this.corridaRepository.findOne({
       where: { idCorrida },
+      relations: ['motorista'],
     });
 
     if (!foundCorrida) {
@@ -49,11 +44,10 @@ export class CorridaService {
 
     const corridaFound = await this.corridaRepository.find({
       where: searchParams,
+      relations: ['motorista'],
     });
 
-    return corridaFound.map((CorridasEntity) =>
-      this.mapEntityToDto(CorridasEntity),
-    );
+    return corridaFound.map((entity) => this.mapEntityToDto(entity));
   }
 
   async update(idCorrida: number, corrida: CorridaDto) {
@@ -63,7 +57,7 @@ export class CorridaService {
 
     if (!foundCorrida) {
       throw new HttpException(
-        `Item with id ${corrida.idCorrida} not found`,
+        `Item with id ${idCorrida} not found`,
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -85,22 +79,27 @@ export class CorridaService {
     }
   }
 
-  private mapEntityToDto(CorridasEntity: CorridasEntity): CorridaDto {
+  private mapEntityToDto(corridaEntity: CorridasEntity): CorridaDto {
     return {
-      idCorrida: CorridasEntity.idCorrida,
-      dataInicio: CorridasEntity.dataInicio,
-      dataTermino: CorridasEntity.dataTermino,
-      distanciaKm: CorridasEntity.distanciaKm,
-      itinerario: CorridasEntity.itinerario,
+      idCorrida: corridaEntity.idCorrida,
+      dataInicio: corridaEntity.dataInicio,
+      dataTermino: corridaEntity.dataTermino,
+      distanciaKm: corridaEntity.distanciaKm,
+      itinerario: corridaEntity.itinerario,
+      tomboCarro: corridaEntity.tomboCarro,
+      numeroIdMotorista: corridaEntity.motorista?.idPessoa,
+      nomeMotorista: corridaEntity.motorista?.nome,
     };
   }
 
-  private mapDtoToEntity(CorridaDto: CorridaDto): Partial<CorridasEntity> {
+  private mapDtoToEntity(corridaDto: CorridaDto): Partial<CorridasEntity> {
     return {
-      dataInicio: CorridaDto.dataInicio,
-      dataTermino: CorridaDto.dataTermino,
-      distanciaKm: CorridaDto.distanciaKm,
-      itinerario: CorridaDto.itinerario,
+      dataInicio: corridaDto.dataInicio,
+      dataTermino: corridaDto.dataTermino,
+      distanciaKm: corridaDto.distanciaKm,
+      itinerario: corridaDto.itinerario,
+      tomboCarro: corridaDto.tomboCarro,
+      motorista: { idPessoa: corridaDto.numeroIdMotorista } as UserSinguEntity,
     };
   }
 }

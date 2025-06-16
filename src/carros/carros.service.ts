@@ -79,6 +79,20 @@ export class CarrosService {
     return carrosFound.map((CarrosEntity) => this.mapEntityToDto(CarrosEntity));
   }
 
+  async findByTombo(tombo: number): Promise<CarrosDto> {
+    const tomboNumber = Number(tombo);
+
+    const foundCarro = await this.carrosRepository.findOne({
+      where: { tombo: tomboNumber },
+    });
+
+    if (!foundCarro) {
+      throw new NotFoundException(`Carro com tombo ${tombo} não encontrado`);
+    }
+
+    return this.mapEntityToDto(foundCarro);
+  }
+
   async update(idCarros: number, carros: CarrosDto) {
     const foundCarro = await this.carrosRepository.findOne({
       where: { idCarros },

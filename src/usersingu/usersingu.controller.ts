@@ -1,4 +1,4 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { UserSinguDto } from './usersingu.dto';
 import { UserSinguService } from './usersingu.service';
 
@@ -14,6 +14,11 @@ export class UsersinguController {
   @Get('/buscar-id/:idPessoa')
   async findById(@Param('idPessoa') idPessoa: number): Promise<UserSinguDto> {
     return await this.UserSinguService.findById(idPessoa);
+  }
+
+  @Get('/buscarPorNome/:nome')
+  async buscarPorNome(@Param('nome') nome: string): Promise<UserSinguDto[]> {
+    return this.UserSinguService.buscarPorNome(nome);
   }
 
   @Get('buscar-nome/:nome')

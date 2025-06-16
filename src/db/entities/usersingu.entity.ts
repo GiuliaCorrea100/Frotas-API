@@ -16,8 +16,4 @@ export class UserSinguEntity {
 
   @Column({ type: 'character varying', name: 'nome' })
   nome: string;
-
-  /*@OneToOne(() => UserEntity)
-  @JoinColumn({ name: 'id_pessoa_singu' })
-  idPessoaSingu: number;*/
 }
