@@ -58,7 +58,7 @@ export class CorridaService {
 
     const corridaFound = await this.corridaRepository.find({
       where: searchParams,
-      relations: ['motorista'],
+      relations: ['motorista', 'carro'],
     });
 
     return corridaFound.map((entity) => this.mapEntityToDto(entity));
@@ -100,10 +100,10 @@ export class CorridaService {
       dataTermino: corridaEntity.dataTermino,
       distanciaKm: corridaEntity.distanciaKm,
       itinerario: corridaEntity.itinerario,
-      tomboCarro: corridaEntity.tomboCarro,
       numeroIdMotorista: corridaEntity.motorista?.idPessoa,
       nomeMotorista: corridaEntity.motorista?.nome,
       idCarros: corridaEntity.idCarros,
+      placaVeiculo: corridaEntity.carro?.placa,
     };
   }
 
@@ -113,7 +113,6 @@ export class CorridaService {
       dataTermino: corridaDto.dataTermino,
       distanciaKm: corridaDto.distanciaKm,
       itinerario: corridaDto.itinerario,
-      tomboCarro: corridaDto.tomboCarro,
       motorista: { idPessoa: corridaDto.numeroIdMotorista } as UserSinguEntity,
       idCarros: corridaDto.idCarros,
     };

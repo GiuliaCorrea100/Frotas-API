@@ -4,10 +4,10 @@ export class CorridaDto {
   dataTermino: Date;
   distanciaKm?: string;
   itinerario: string;
-  tomboCarro: string;
   numeroIdMotorista: number;
   nomeMotorista?: string;
   idCarros: number;
+  placaVeiculo?: string;
 }
 
 export interface FindAllParameters {
