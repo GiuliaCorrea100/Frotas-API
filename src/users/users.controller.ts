@@ -31,6 +31,12 @@ export class UsersController {
     return this.usersService.findAll(params);
   }
 
+  //adicionei esse get natly
+  @Get('/buscar-por-nome/:nome')
+  async findByName(@Param('nome') nome: string): Promise<UsersDto[]> {
+    return this.usersService.findByName(nome);
+  }
+
   @Patch('/mudar-permissao/:idPessoaSingu')
   async permissaoAdm(
     @Param('idPessoaSingu') idPessoaSingu: number,

@@ -7,6 +7,7 @@ export class CorridaDto {
   tomboCarro: string;
   numeroIdMotorista: number;
   nomeMotorista?: string;
+  idCarros: number;
 }
 
 export interface FindAllParameters {

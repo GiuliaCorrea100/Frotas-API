@@ -10,4 +10,8 @@ export class UserEntity {
 
   @Column({ type: 'int', name: 'permissao' })
   permissao: number;
+
+  @Column({ type: 'varchar', name: 'nome' })
+    nome: string;
+
 }

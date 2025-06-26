@@ -18,8 +18,22 @@ export class CorridaService {
   ) {}
 
   async create(corrida: CorridaDto): Promise<CorridaDto> {
+    // CÂMERA 1: O que o serviço recebeu do controller?
+    console.log('--- PASSO 1: DTO recebido no serviço ---');
+    console.log(corrida);
+
     const corridaToSave = this.mapDtoToEntity(corrida);
+
+    // CÂMERA 2: Como ficou o objeto que será salvo no banco?
+    console.log('--- PASSO 2: Objeto da Entidade ANTES de salvar ---');
+    console.log(corridaToSave);
+
     const savedEntity = await this.corridaRepository.save(corridaToSave);
+
+    // CÂMERA 3: O que o banco de dados retornou após salvar?
+    console.log('--- PASSO 3: Entidade DEPOIS de salvar (retorno do banco) ---');
+    console.log(savedEntity);
+
     return this.mapEntityToDto(savedEntity);
   }
 
@@ -89,6 +103,7 @@ export class CorridaService {
       tomboCarro: corridaEntity.tomboCarro,
       numeroIdMotorista: corridaEntity.motorista?.idPessoa,
       nomeMotorista: corridaEntity.motorista?.nome,
+      idCarros: corridaEntity.idCarros,
     };
   }
 
@@ -100,6 +115,7 @@ export class CorridaService {
       itinerario: corridaDto.itinerario,
       tomboCarro: corridaDto.tomboCarro,
       motorista: { idPessoa: corridaDto.numeroIdMotorista } as UserSinguEntity,
+      idCarros: corridaDto.idCarros,
     };
   }
 }

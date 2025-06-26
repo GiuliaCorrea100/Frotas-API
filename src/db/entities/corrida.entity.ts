@@ -34,6 +34,9 @@ export class CorridasEntity {
   @Column({ type: 'varchar', name: 'tombo_carro', nullable: false })
   tomboCarro: string;
 
+  @Column({ type: 'int', name: 'id_carros', nullable: false })
+  idCarros: number;
+
   @ManyToOne(() => UserSinguEntity)
   @JoinColumn({ name: 'numero_idmotorista', referencedColumnName: 'idPessoa' })
   motorista?: UserSinguEntity;
