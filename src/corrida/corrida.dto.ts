@@ -4,7 +4,7 @@ export class CorridaDto {
   dataTermino: Date;
   distanciaKm?: string;
   itinerario: string;
-  numeroIdMotorista: number;
+  idMotorista: number;
   nomeMotorista?: string;
   idCarros: number;
   placaVeiculo?: string;

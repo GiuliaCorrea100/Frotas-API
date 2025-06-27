@@ -6,7 +6,7 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { UserSinguEntity } from 'src/db/entities/usersingu.entity';
+import { UserEntity } from 'src/db/entities/users.entity';
 import { CarrosEntity } from '../../db/entities/carros.entity';
 
 @Entity({ name: 'corridas' })
@@ -35,9 +35,12 @@ export class CorridasEntity {
   @Column({ type: 'int', name: 'id_carros', nullable: false })
   idCarros: number;
 
-  @ManyToOne(() => UserSinguEntity)
-  @JoinColumn({ name: 'numero_idmotorista', referencedColumnName: 'idPessoa' })
-  motorista?: UserSinguEntity;
+  @Column({ type: 'int', name: 'id_motorista', nullable: false })
+  idMotorista: number;
+
+  @ManyToOne(() => UserEntity)
+  @JoinColumn({ name: 'id_motorista', referencedColumnName: 'idUsuario' })
+  motorista?: UserEntity;
 
   @ManyToOne(() => CarrosEntity)
   @JoinColumn({ name: 'id_carros', referencedColumnName: 'idCarros' }) // name: coluna nesta tabela; referencedColumnName: coluna na tabela de Carros

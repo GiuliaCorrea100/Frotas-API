@@ -8,7 +8,8 @@ import { CorridaDto, FindAllParameters } from './corrida.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CorridasEntity } from 'src/db/entities/corrida.entity';
 import { FindOptionsWhere, Repository, Like } from 'typeorm';
-import { UserSinguEntity } from 'src/db/entities/usersingu.entity';
+import { UserEntity } from 'src/db/entities/users.entity';
+
 
 @Injectable()
 export class CorridaService {
@@ -28,10 +29,21 @@ export class CorridaService {
     console.log('--- PASSO 2: Objeto da Entidade ANTES de salvar ---');
     console.log(corridaToSave);
 
+    const insertResult = await this.corridaRepository.insert(corridaToSave);
+
+    const newId = insertResult.identifiers[0].idCorrida;
+
+    if (!newId) {
+        throw new Error("Falha ao criar a corrida, o ID não foi gerado.");
+    }
+
     const savedEntity = await this.corridaRepository.save(corridaToSave);
 
     // CÂMERA 3: O que o banco de dados retornou após salvar?
     console.log('--- PASSO 3: Entidade DEPOIS de salvar (retorno do banco) ---');
+
+    return this.findById(newId);
+
     console.log(savedEntity);
 
     return this.mapEntityToDto(savedEntity);
@@ -40,7 +52,7 @@ export class CorridaService {
   async findById(idCorrida: number): Promise<CorridaDto> {
     const foundCorrida = await this.corridaRepository.findOne({
       where: { idCorrida },
-      relations: ['motorista'],
+      relations: ['motorista', 'carro'],
     });
 
     if (!foundCorrida) {
@@ -100,7 +112,7 @@ export class CorridaService {
       dataTermino: corridaEntity.dataTermino,
       distanciaKm: corridaEntity.distanciaKm,
       itinerario: corridaEntity.itinerario,
-      numeroIdMotorista: corridaEntity.motorista?.idPessoa,
+      idMotorista: corridaEntity.idMotorista,
       nomeMotorista: corridaEntity.motorista?.nome,
       idCarros: corridaEntity.idCarros,
       placaVeiculo: corridaEntity.carro?.placa,
@@ -113,7 +125,7 @@ export class CorridaService {
       dataTermino: corridaDto.dataTermino,
       distanciaKm: corridaDto.distanciaKm,
       itinerario: corridaDto.itinerario,
-      motorista: { idPessoa: corridaDto.numeroIdMotorista } as UserSinguEntity,
+      idMotorista: corridaDto.idMotorista,
       idCarros: corridaDto.idCarros,
     };
   }
