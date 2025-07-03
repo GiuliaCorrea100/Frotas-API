@@ -14,13 +14,13 @@ export class CorridasEntity {
   @PrimaryGeneratedColumn({ type: 'int', name: 'id_corrida' })
   idCorrida?: number;
 
-  @CreateDateColumn({
+  @Column({
     type: 'timestamptz',
     name: 'data_inicio',
   })
   dataInicio: Date;
 
-  @CreateDateColumn({
+  @Column({
     type: 'timestamptz',
     name: 'data_termino',
   })
@@ -37,6 +37,9 @@ export class CorridasEntity {
 
   @Column({ type: 'int', name: 'id_motorista', nullable: false })
   idMotorista: number;
+
+  @Column({ type: 'varchar', name: 'situacao', nullable: false })
+  situacao: string;
 
   @ManyToOne(() => UserEntity)
   @JoinColumn({ name: 'id_motorista', referencedColumnName: 'idUsuario' })

@@ -7,7 +7,7 @@ import {
 import { CorridaDto, FindAllParameters } from './corrida.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CorridasEntity } from 'src/db/entities/corrida.entity';
-import { FindOptionsWhere, Repository, Like } from 'typeorm';
+import { FindOptionsWhere, Repository, Like, Between } from 'typeorm';
 import { UserEntity } from 'src/db/entities/users.entity';
 
 
@@ -104,6 +104,24 @@ export class CorridaService {
       );
     }
   }
+
+  async verificarCorridaAgendada(idMotorista: number): Promise<boolean> {
+    const hoje = new Date();
+    const inicioDia = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+    const fimDia = new Date(inicioDia);
+    fimDia.setDate(inicioDia.getDate() + 1);
+
+    const corrida = await this.corridaRepository.findOne({
+      where: {
+        idMotorista,
+        situacao: 'AGENDADA',
+        dataInicio: Between(inicioDia, fimDia),
+      },
+    });
+
+    return !!corrida;
+  }
+
 
   private mapEntityToDto(corridaEntity: CorridasEntity): CorridaDto {
     return {

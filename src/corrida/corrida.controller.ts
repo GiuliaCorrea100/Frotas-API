@@ -34,6 +34,13 @@ export class CorridaController {
     return this.corridaService.findAll(params);
   }
 
+  //adicionei esse aq natly
+  @Get('/verificar-agendada/:idMotorista')
+  async verificarCorridaAgendada(@Param('idMotorista') idMotorista: number): Promise<boolean> {
+    return this.corridaService.verificarCorridaAgendada(idMotorista);
+  }
+
+
   @Put('/:idCorrida')
   async update(
     @Param() params: CorridasRouteParameters,

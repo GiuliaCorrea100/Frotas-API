@@ -60,6 +60,7 @@ export class AuthService {
       permissao: usuarioFrota.permissao,
       nome: loginFound.nome,
       email: loginFound.email,
+      idUsuario: usuarioFrota.idUsuario,
     };
   }
 }
