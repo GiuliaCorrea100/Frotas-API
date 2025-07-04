@@ -29,4 +29,12 @@ export class UsersinguController {
 
     return await this.UserSinguService.findByNome(nome.trim());
   }
+
+  @Get('conferir-senha/:idPessoa/:senha')
+  async confirmarSenha(
+    @Param('idPessoa') idPessoa: number,
+    @Param('senha') senha: string,
+  ): Promise<boolean> {
+    return this.UserSinguService.confirmarSenha(idPessoa, senha);
+  }
 }
