@@ -26,7 +26,6 @@ export class AuthService {
   }
 
   async singIn(login: string, senha: string): Promise<AuthResponseDto> {
-    //passo 1: Autenticar no Singu
     const loginFound = await this.userSinguService.findByLogin(login);
 
     const senhaHash = md5(senha);
@@ -35,18 +34,17 @@ export class AuthService {
       throw new UnauthorizedException();
     }
 
-    //passo 2: verificar se o usuário existe no sistema
     const usuarioFrota = await this.usersService.findById(loginFound.idPessoa);
 
     if (!usuarioFrota) {
       throw new UnauthorizedException('Usuário não cadastrado no Frotas');
     }
 
-    //Passo 3: gerar o token JWT com informações do Frotas
+
     const payload = {
-      sub: usuarioFrota.idUsuario, //id no banco frota
+      sub: usuarioFrota.idUsuario, 
       login: loginFound.login,
-      permissao: usuarioFrota.permissao, //permissões específicas do frota
+      permissao: usuarioFrota.permissao, 
     };
 
     const token = this.jwtService.sign(payload, {
