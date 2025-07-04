@@ -46,6 +46,6 @@ export class CorridasEntity {
   motorista?: UserEntity;
 
   @ManyToOne(() => CarrosEntity)
-  @JoinColumn({ name: 'id_carros', referencedColumnName: 'idCarros' }) // name: coluna nesta tabela; referencedColumnName: coluna na tabela de Carros
+  @JoinColumn({ name: 'id_carros', referencedColumnName: 'idCarros' }) 
   carro?: CarrosEntity;
 }
