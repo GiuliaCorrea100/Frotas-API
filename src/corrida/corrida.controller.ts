@@ -12,6 +12,7 @@ import {
   CorridaDto,
   CorridasRouteParameters,
   FindAllParameters,
+  MotoristaDashboardDto,
 } from './corrida.dto';
 import { CorridaService } from './corrida.service';
 
@@ -34,12 +35,17 @@ export class CorridaController {
     return this.corridaService.findAll(params);
   }
 
-  //adicionei esse aq natly
-  @Get('/verificar-agendada/:idMotorista')
-  async verificarCorridaAgendada(@Param('idMotorista') idMotorista: number): Promise<boolean> {
-    return this.corridaService.verificarCorridaAgendada(idMotorista);
-  }
+  // ❌ REMOVIDO: O endpoint antigo que causava o erro foi removido.
+  // @Get('/verificar-agendada/:idMotorista')
+  // async verificarCorridaAgendada(...) {}
 
+  // ✅ MANTIDO: Este é o novo endpoint que o front-end está usando.
+  @Get('/motorista-dashboard/:idMotorista')
+  async getMotoristaDashboard(
+    @Param('idMotorista') idMotorista: number,
+  ): Promise<MotoristaDashboardDto> {
+    return this.corridaService.getMotoristaDashboard(idMotorista);
+  }
 
   @Put('/:idCorrida')
   async update(

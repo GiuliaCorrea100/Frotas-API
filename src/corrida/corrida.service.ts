@@ -4,10 +4,12 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CorridaDto, FindAllParameters } from './corrida.dto';
+// ✅ CORREÇÃO: Adicionado 'MotoristaDashboardDto' à importação.
+import { CorridaDto, FindAllParameters, MotoristaDashboardDto } from './corrida.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CorridasEntity } from 'src/db/entities/corrida.entity';
-import { FindOptionsWhere, Repository, Like, Between } from 'typeorm';
+// ✅ CORREÇÃO: Adicionado 'MoreThan' à importação do TypeORM.
+import { FindOptionsWhere, Repository, Like, Between, MoreThan } from 'typeorm';
 import { UserEntity } from 'src/db/entities/users.entity';
 
 
@@ -29,7 +31,6 @@ export class CorridaService {
     console.log(corridaToSave);
 
     const insertResult = await this.corridaRepository.insert(corridaToSave);
-
     const newId = insertResult.identifiers[0].idCorrida;
 
     if (!newId) {
@@ -42,10 +43,6 @@ export class CorridaService {
     console.log('--- PASSO 3: Entidade DEPOIS de salvar (retorno do banco) ---');
 
     return this.findById(newId);
-
-    console.log(savedEntity);
-
-    return this.mapEntityToDto(savedEntity);
   }
 
   async findById(idCorrida: number): Promise<CorridaDto> {
@@ -104,23 +101,39 @@ export class CorridaService {
     }
   }
 
-  async verificarCorridaAgendada(idMotorista: number): Promise<boolean> {
+  async getMotoristaDashboard(idMotorista: number): Promise<MotoristaDashboardDto> {
     const hoje = new Date();
-    const inicioDia = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
-    const fimDia = new Date(inicioDia);
-    fimDia.setDate(inicioDia.getDate() + 1);
+    const inicioDoDia = new Date(new Date().setHours(0, 0, 0, 0));
+    const fimDoDia = new Date(new Date().setHours(23, 59, 59, 999));
 
-    const corrida = await this.corridaRepository.findOne({
+    // Busca a corrida agendada para hoje
+    const corridaDeHoje = await this.corridaRepository.findOne({
       where: {
         idMotorista,
         situacao: 'AGENDADA',
-        dataInicio: Between(inicioDia, fimDia),
+        dataInicio: Between(inicioDoDia, fimDoDia),
       },
+      relations: ['carro'], // Inclui dados do carro se necessário
     });
 
-    return !!corrida;
-  }
+    // Busca todas as próximas corridas agendadas (após o dia de hoje)
+    const proximasCorridas = await this.corridaRepository.find({
+      where: {
+        idMotorista,
+        situacao: 'AGENDADA',
+        dataInicio: MoreThan(fimDoDia), // Pega datas estritamente maiores que o fim do dia de hoje
+      },
+      order: {
+        dataInicio: 'ASC', // Ordena as próximas corridas da mais próxima para a mais distante
+      },
+      relations: ['carro'],
+    });
 
+    return {
+      corridaDeHoje: corridaDeHoje ? this.mapEntityToDto(corridaDeHoje) : null,
+      proximasCorridas: proximasCorridas.map(entity => this.mapEntityToDto(entity)),
+    };
+  }
 
   private mapEntityToDto(corridaEntity: CorridasEntity): CorridaDto {
     return {
@@ -133,17 +146,26 @@ export class CorridaService {
       nomeMotorista: corridaEntity.motorista?.nome,
       idCarros: corridaEntity.idCarros,
       placaVeiculo: corridaEntity.carro?.placa,
+      situacao: corridaEntity.situacao,
     };
   }
 
   private mapDtoToEntity(corridaDto: CorridaDto): Partial<CorridasEntity> {
-    return {
-      dataInicio: corridaDto.dataInicio,
-      dataTermino: corridaDto.dataTermino,
-      distanciaKm: corridaDto.distanciaKm,
-      itinerario: corridaDto.itinerario,
-      idMotorista: corridaDto.idMotorista,
-      idCarros: corridaDto.idCarros,
+    // Ao mapear do DTO para a entidade, não inclua a situação se ela não for enviada do front-end
+    // para evitar sobrescrever a situação existente no banco com 'undefined'.
+    const entity: Partial<CorridasEntity> = {
+        dataInicio: corridaDto.dataInicio,
+        dataTermino: corridaDto.dataTermino,
+        distanciaKm: corridaDto.distanciaKm,
+        itinerario: corridaDto.itinerario,
+        idMotorista: corridaDto.idMotorista,
+        idCarros: corridaDto.idCarros,
     };
+
+    if (corridaDto.situacao) {
+        entity.situacao = corridaDto.situacao;
+    }
+    
+    return entity;
   }
 }
