@@ -4,11 +4,9 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-// ✅ CORREÇÃO: Adicionado 'MotoristaDashboardDto' à importação.
 import { CorridaDto, FindAllParameters, MotoristaDashboardDto } from './corrida.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CorridasEntity } from 'src/db/entities/corrida.entity';
-// ✅ CORREÇÃO: Adicionado 'MoreThan' à importação do TypeORM.
 import { FindOptionsWhere, Repository, Like, Between, MoreThan } from 'typeorm';
 import { UserEntity } from 'src/db/entities/users.entity';
 
@@ -21,26 +19,17 @@ export class CorridaService {
   ) {}
 
   async create(corrida: CorridaDto): Promise<CorridaDto> {
-
-    console.log('--- PASSO 1: DTO recebido no serviço ---');
-    console.log(corrida);
-
     const corridaToSave = this.mapDtoToEntity(corrida);
-
-    console.log('--- PASSO 2: Objeto da Entidade ANTES de salvar ---');
-    console.log(corridaToSave);
+    corridaToSave.situacao = 'AGENDADA';
 
     const insertResult = await this.corridaRepository.insert(corridaToSave);
     const newId = insertResult.identifiers[0].idCorrida;
 
     if (!newId) {
-        throw new Error("Falha ao criar a corrida, o ID não foi gerado.");
+      throw new Error("Falha ao criar a corrida, o ID não foi gerado.");
     }
 
-    const savedEntity = await this.corridaRepository.save(corridaToSave);
-
-
-    console.log('--- PASSO 3: Entidade DEPOIS de salvar (retorno do banco) ---');
+    await this.corridaRepository.save(corridaToSave);
 
     return this.findById(newId);
   }
@@ -102,29 +91,26 @@ export class CorridaService {
   }
 
   async getMotoristaDashboard(idMotorista: number): Promise<MotoristaDashboardDto> {
-    const hoje = new Date();
     const inicioDoDia = new Date(new Date().setHours(0, 0, 0, 0));
     const fimDoDia = new Date(new Date().setHours(23, 59, 59, 999));
 
-    // Busca a corrida agendada para hoje
     const corridaDeHoje = await this.corridaRepository.findOne({
       where: {
         idMotorista,
         situacao: 'AGENDADA',
         dataInicio: Between(inicioDoDia, fimDoDia),
       },
-      relations: ['carro'], // Inclui dados do carro se necessário
+      relations: ['carro'], 
     });
 
-    // Busca todas as próximas corridas agendadas (após o dia de hoje)
     const proximasCorridas = await this.corridaRepository.find({
       where: {
         idMotorista,
         situacao: 'AGENDADA',
-        dataInicio: MoreThan(fimDoDia), // Pega datas estritamente maiores que o fim do dia de hoje
+        dataInicio: MoreThan(fimDoDia),
       },
       order: {
-        dataInicio: 'ASC', // Ordena as próximas corridas da mais próxima para a mais distante
+        dataInicio: 'ASC', 
       },
       relations: ['carro'],
     });
@@ -151,8 +137,6 @@ export class CorridaService {
   }
 
   private mapDtoToEntity(corridaDto: CorridaDto): Partial<CorridasEntity> {
-    // Ao mapear do DTO para a entidade, não inclua a situação se ela não for enviada do front-end
-    // para evitar sobrescrever a situação existente no banco com 'undefined'.
     const entity: Partial<CorridasEntity> = {
         dataInicio: corridaDto.dataInicio,
         dataTermino: corridaDto.dataTermino,
