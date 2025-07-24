@@ -7,7 +7,7 @@ import {
 import { CorridaDto, FindAllParameters, MotoristaDashboardDto } from './corrida.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CorridasEntity } from 'src/db/entities/corrida.entity';
-import { FindOptionsWhere, Repository, Like, Between, MoreThan } from 'typeorm';
+import { FindOptionsWhere, Repository, Like, Between, MoreThan, LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
 import { UserEntity } from 'src/db/entities/users.entity';
 
 
@@ -18,7 +18,33 @@ export class CorridaService {
     private readonly corridaRepository: Repository<CorridasEntity>,
   ) {}
 
+  async verificarConflitoDeCorrida(idMotorista: number, dataInicio: Date, dataTermino: Date): Promise<boolean> {
+    const conflitos = await this.corridaRepository.find({
+      where: {
+        idMotorista,
+        situacao: 'AGENDADA',
+        dataInicio: LessThanOrEqual(dataTermino),
+        dataTermino: MoreThanOrEqual(dataInicio),
+      },
+    });
+
+    return conflitos.length > 0;
+  }
+
   async create(corrida: CorridaDto): Promise<CorridaDto> {
+    const existeConflito = await this.verificarConflitoDeCorrida(
+      corrida.idMotorista,
+      new Date(corrida.dataInicio),
+      new Date(corrida.dataTermino)
+    );
+
+    if (existeConflito) {
+      throw new HttpException(
+        'Já existe uma corrida agendada para esse usuário nesse período!',
+        HttpStatus.CONFLICT,
+      );
+    }
+
     const corridaToSave = this.mapDtoToEntity(corrida);
     corridaToSave.situacao = 'AGENDADA';
 
@@ -30,7 +56,6 @@ export class CorridaService {
     }
 
     await this.corridaRepository.save(corridaToSave);
-
     return this.findById(newId);
   }
 
@@ -100,7 +125,7 @@ export class CorridaService {
         situacao: 'AGENDADA',
         dataInicio: Between(inicioDoDia, fimDoDia),
       },
-      relations: ['carro'], 
+      relations: ['carro'],
     });
 
     const proximasCorridas = await this.corridaRepository.find({
@@ -110,7 +135,7 @@ export class CorridaService {
         dataInicio: MoreThan(fimDoDia),
       },
       order: {
-        dataInicio: 'ASC', 
+        dataInicio: 'ASC',
       },
       relations: ['carro'],
     });
@@ -149,7 +174,7 @@ export class CorridaService {
     if (corridaDto.situacao) {
         entity.situacao = corridaDto.situacao;
     }
-    
+
     return entity;
   }
 }
