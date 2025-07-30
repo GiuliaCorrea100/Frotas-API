@@ -33,6 +33,12 @@ export class CorridasEntity {
   @Column({ type: 'int', name: 'id_motorista', nullable: false })
   idMotorista: number;
 
+  @Column({ type: 'varchar', name: 'situacao', nullable: false })
+  situacao: string;
+
+  @Column({ type: 'boolean', name: 'chave_emprestada', nullable: false })
+  chaveEmprestada: boolean;
+
   @ManyToOne(() => UserEntity)
   @JoinColumn({ name: 'id_motorista', referencedColumnName: 'idUsuario' })
   motorista?: UserEntity;

@@ -87,6 +87,17 @@ export class UsersService {
     await this.UsersRepository.save(foundUser);
   }
 
+  async findUserSingu(idUsuario: number): Promise<number> {
+    const foundUser = await this.UsersRepository.findOne({
+      where: { idUsuario },
+    });
+
+    if (!foundUser) {
+      throw new NotFoundException(`Item with id ${idUsuario} not found`);
+    }
+    return foundUser.idPessoaSingu;
+  }
+
   async update(idUsuario: number, users: UsersDto) {
     const foundUser = await this.UsersRepository.findOne({
       where: { idUsuario },

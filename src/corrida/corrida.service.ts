@@ -18,31 +18,18 @@ export class CorridaService {
   ) {}
 
   async create(corrida: CorridaDto): Promise<CorridaDto> {
-    // CÂMERA 1: O que o serviço recebeu do controller?
-    console.log('--- PASSO 1: DTO recebido no serviço ---');
-    console.log(corrida);
-
     const corridaToSave = this.mapDtoToEntity(corrida);
-
-    // CÂMERA 2: Como ficou o objeto que será salvo no banco?
-    console.log('--- PASSO 2: Objeto da Entidade ANTES de salvar ---');
-    console.log(corridaToSave);
 
     const insertResult = await this.corridaRepository.insert(corridaToSave);
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const newId = insertResult.identifiers[0].idCorrida;
+    const identifiers = insertResult.identifiers as { idCorrida: number }[];
+    const newId = identifiers[0].idCorrida;
 
     if (!newId) {
       throw new Error('Falha ao criar a corrida, o ID não foi gerado.');
     }
 
     const savedEntity = await this.corridaRepository.save(corridaToSave);
-
-    // CÂMERA 3: O que o banco de dados retornou após salvar?
-    console.log(
-      '--- PASSO 3: Entidade DEPOIS de salvar (retorno do banco) ---',
-    );
 
     return this.findById(newId);
 
@@ -76,6 +63,25 @@ export class CorridaService {
     });
 
     return corridaFound.map((entity) => this.mapEntityToDto(entity));
+  }
+
+  async emprestarChave(idCorrida: number): Promise<void> {
+    //busca a corrida no banco
+    const foundCorrida = await this.corridaRepository.findOne({
+      where: { idCorrida },
+    });
+
+    if (!foundCorrida) {
+      throw new NotFoundException(`Item with id ${idCorrida} not found`);
+    }
+
+    if (foundCorrida.chaveEmprestada == false) {
+      foundCorrida.chaveEmprestada = true;
+    } else {
+      foundCorrida.chaveEmprestada = false;
+    }
+
+    await this.corridaRepository.save(foundCorrida);
   }
 
   async update(idCorrida: number, corrida: CorridaDto) {
@@ -115,6 +121,8 @@ export class CorridaService {
       distanciaKm: corridaEntity.distanciaKm,
       itinerario: corridaEntity.itinerario,
       idMotorista: corridaEntity.idMotorista,
+      chaveEmprestada: corridaEntity.chaveEmprestada,
+      situacao: corridaEntity.situacao,
       nomeMotorista: corridaEntity.motorista?.nome,
       idCarros: corridaEntity.idCarros,
       placaVeiculo: corridaEntity.carro?.placa,
