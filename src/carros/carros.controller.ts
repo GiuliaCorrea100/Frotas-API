@@ -1,14 +1,19 @@
 import {
-  Controller,
-  Post,
   Body,
+  Controller,
+  Delete,
   Get,
   Param,
+  Patch,
+  Post,
   Put,
-  Delete,
   Query,
 } from '@nestjs/common';
-import { FindAllParameters, CarrosDto } from './carros.dto';
+import {
+  CarrosDto,
+  CarrosRouteParameters,
+  FindAllParameters,
+} from './carros.dto';
 import { CarrosService } from './carros.service';
 
 @Controller('carros')
@@ -16,26 +21,40 @@ export class CarrosController {
   constructor(private readonly carrosService: CarrosService) {}
 
   @Post()
-  create(@Body() carros: CarrosDto) {
-    this.carrosService.create(carros);
+  async create(@Body() carros: CarrosDto): Promise<CarrosDto> {
+    return await this.carrosService.create(carros);
   }
 
-  @Get('/:id')
-  findById(@Param('id') id: string): CarrosDto {
-    return this.carrosService.findById(id);
+  @Get('/:idCarros')
+  async findById(@Param('idCarros') idCarros: number): Promise<CarrosDto> {
+    return this.carrosService.findById(idCarros);
   }
+
   @Get()
-  findAll(@Query() params: FindAllParameters): CarrosDto[] {
+  async findAll(@Query() params: FindAllParameters): Promise<CarrosDto[]> {
     return this.carrosService.findAll(params);
   }
 
-  @Put()
-  update(@Body() carros: CarrosDto) {
-    this.carrosService.update(carros);
+  @Get('/por-tombo/:tombo')
+  async findByTombo(@Param('tombo') tombo: number): Promise<CarrosDto> {
+    return this.carrosService.findByTombo(tombo);
   }
 
-  @Delete('/:id')
-  remove(@Param('id') id: string) {
-    return this.carrosService.remove(id);
+  @Put('/:idCarros')
+  async update(
+    @Param() params: CarrosRouteParameters,
+    @Body() carros: CarrosDto,
+  ) {
+    await this.carrosService.update(params.idCarros, carros);
+  }
+
+  @Delete('/:idCarros')
+  remove(@Param('idCarros') idCarros: number) {
+    return this.carrosService.remove(idCarros);
+  }
+
+  @Patch(':id/inativar')
+  async inativar(@Param('id') id: number) {
+    return this.carrosService.inativar(id);
   }
 }
