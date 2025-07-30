@@ -37,6 +37,11 @@ export class UsersController {
     return this.usersService.findByName(nome);
   }
 
+  @Get('/buscar-singu/:idUsuario')
+  async findUserSingu(@Param('idUsuario') idUsuario: number): Promise<number> {
+    return this.usersService.findUserSingu(idUsuario);
+  }
+
   @Patch('/mudar-permissao/:idPessoaSingu')
   async permissaoAdm(
     @Param('idPessoaSingu') idPessoaSingu: number,
