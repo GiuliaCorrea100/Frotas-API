@@ -6,24 +6,19 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { UserEntity } from 'src/db/entities/users.entity';
-import { CarrosEntity } from '../../db/entities/carros.entity';
+import { UserEntity } from './users.entity';
+import { CarrosEntity } from './carros.entity';
+//import { OcorrenciasEntity } from './ocorrencias.entity';
 
 @Entity({ name: 'corridas' })
 export class CorridasEntity {
   @PrimaryGeneratedColumn({ type: 'int', name: 'id_corrida' })
   idCorrida?: number;
 
-  @Column({
-    type: 'timestamptz',
-    name: 'data_inicio',
-  })
+  @CreateDateColumn({ type: 'timestamptz', name: 'data_inicio' })
   dataInicio: Date;
 
-  @Column({
-    type: 'timestamptz',
-    name: 'data_termino',
-  })
+  @CreateDateColumn({ type: 'timestamptz', name: 'data_termino' })
   dataTermino: Date;
 
   @Column({ type: 'varchar', name: 'distancia_km' })
@@ -41,6 +36,9 @@ export class CorridasEntity {
   @Column({ type: 'varchar', name: 'situacao', nullable: false })
   situacao: string;
 
+  @Column({ type: 'boolean', name: 'chave_emprestada', nullable: false })
+  chaveEmprestada: boolean;
+
   @ManyToOne(() => UserEntity)
   @JoinColumn({ name: 'id_motorista', referencedColumnName: 'idUsuario' })
   motorista?: UserEntity;
@@ -48,4 +46,7 @@ export class CorridasEntity {
   @ManyToOne(() => CarrosEntity)
   @JoinColumn({ name: 'id_carros', referencedColumnName: 'idCarros' }) 
   carro?: CarrosEntity;
+
+  // @OneToMany(() => OcorrenciasEntity, (ocorrencia) => ocorrencia.corrida)
+  // ocorrencias?: OcorrenciasEntity[];
 }

@@ -7,6 +7,7 @@ import {
   Put,
   Delete,
   Query,
+  Patch,
 } from '@nestjs/common';
 import {
   CorridaDto,

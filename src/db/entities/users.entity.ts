@@ -12,6 +12,5 @@ export class UserEntity {
   permissao: number;
 
   @Column({ type: 'varchar', name: 'nome' })
-    nome: string;
-
+  nome: string;
 }

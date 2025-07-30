@@ -86,6 +86,25 @@ export class CorridaService {
     return corridaFound.map((entity) => this.mapEntityToDto(entity));
   }
 
+  async emprestarChave(idCorrida: number): Promise<void> {
+    //busca a corrida no banco
+    const foundCorrida = await this.corridaRepository.findOne({
+      where: { idCorrida },
+    });
+
+    if (!foundCorrida) {
+      throw new NotFoundException(`Item with id ${idCorrida} not found`);
+    }
+
+    if (foundCorrida.chaveEmprestada == false) {
+      foundCorrida.chaveEmprestada = true;
+    } else {
+      foundCorrida.chaveEmprestada = false;
+    }
+
+    await this.corridaRepository.save(foundCorrida);
+  }
+
   async update(idCorrida: number, corrida: CorridaDto) {
     const foundCorrida = await this.corridaRepository.findOne({
       where: { idCorrida },
@@ -154,6 +173,8 @@ export class CorridaService {
       distanciaKm: corridaEntity.distanciaKm,
       itinerario: corridaEntity.itinerario,
       idMotorista: corridaEntity.idMotorista,
+      chaveEmprestada: corridaEntity.chaveEmprestada,
+      situacao: corridaEntity.situacao,
       nomeMotorista: corridaEntity.motorista?.nome,
       idCarros: corridaEntity.idCarros,
       placaVeiculo: corridaEntity.carro?.placa,

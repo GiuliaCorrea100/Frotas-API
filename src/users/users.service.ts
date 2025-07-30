@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { UsersDto, FindAllParameters } from './users.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-//adicionei o Like 
+//adicionei o Like
 import { Repository, Equal, FindOptionsWhere, Like } from 'typeorm';
 import { UserEntity } from 'src/db/entities/users.entity';
 
@@ -23,7 +23,7 @@ export class UsersService {
     const usersFound = await this.UsersRepository.find({
       where: {
         // Busca por nomes que contenham o texto digitado
-        nome: Like(`%${nome}%`), 
+        nome: Like(`%${nome}%`),
         // A linha "permissao: 2," foi REMOVIDA daqui.
       },
     });
@@ -34,7 +34,6 @@ export class UsersService {
 
     return usersFound.map((userEntity) => this.mapEntityToDto(userEntity));
   }
-
 
   async create(users: UsersDto) {
     const usersToSave: UserEntity = {
@@ -86,6 +85,17 @@ export class UsersService {
     }
 
     await this.UsersRepository.save(foundUser);
+  }
+
+  async findUserSingu(idUsuario: number): Promise<number> {
+    const foundUser = await this.UsersRepository.findOne({
+      where: { idUsuario },
+    });
+
+    if (!foundUser) {
+      throw new NotFoundException(`Item with id ${idUsuario} not found`);
+    }
+    return foundUser.idPessoaSingu;
   }
 
   async update(idUsuario: number, users: UsersDto) {
