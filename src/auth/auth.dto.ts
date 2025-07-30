@@ -5,4 +5,5 @@ export class AuthResponseDto {
   permissao: number;
   nome: string;
   email: string;
+  idUsuario: number;
 }

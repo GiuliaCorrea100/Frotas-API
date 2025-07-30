@@ -13,6 +13,7 @@ import {
   CorridaDto,
   CorridasRouteParameters,
   FindAllParameters,
+  MotoristaDashboardDto,
 } from './corrida.dto';
 import { CorridaService } from './corrida.service';
 
@@ -33,6 +34,13 @@ export class CorridaController {
   @Get()
   async findAll(@Query() params: FindAllParameters): Promise<CorridaDto[]> {
     return this.corridaService.findAll(params);
+  }
+
+  @Get('/motorista-dashboard/:idMotorista')
+  async getMotoristaDashboard(
+    @Param('idMotorista') idMotorista: number,
+  ): Promise<MotoristaDashboardDto> {
+    return this.corridaService.getMotoristaDashboard(idMotorista);
   }
 
   @Patch('/emprestar-chave/:idCorrida')
