@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, ILike } from 'typeorm';
 import { UserSinguEntity } from 'src/db/entities/usersingu.entity';
 import { UserSinguDto } from './usersingu.dto';
+import { md5 } from 'src/util/md5';
 
 @Injectable()
 export class UserSinguService {
@@ -60,6 +61,25 @@ export class UserSinguService {
     });
 
     return usuarios.map((user) => this.mapEntityToDto(user));
+  }
+
+  async confirmarSenha(idPessoa: number, senha: string): Promise<boolean> {
+    const foundUser = await this.UserSinguRepository.findOne({
+      where: { idPessoa },
+    });
+
+    if (!foundUser) {
+      throw new NotFoundException(`Item with id ${idPessoa} not found`);
+    }
+    const senhaHash = md5(senha);
+
+    if (senhaHash === foundUser.senha) {
+      return true;
+    } else {
+      return false;
+    }
+
+    return true;
   }
 
   private mapEntityToDto(UserSinguEntity: UserSinguEntity): UserSinguDto {

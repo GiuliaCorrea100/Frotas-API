@@ -7,6 +7,7 @@ import {
   Put,
   Delete,
   Query,
+  Patch,
 } from '@nestjs/common';
 import {
   CorridaDto,
@@ -32,6 +33,11 @@ export class CorridaController {
   @Get()
   async findAll(@Query() params: FindAllParameters): Promise<CorridaDto[]> {
     return this.corridaService.findAll(params);
+  }
+
+  @Patch('/emprestar-chave/:idCorrida')
+  async emprestarChave(@Param('idCorrida') idCorrida: number): Promise<void> {
+    await this.corridaService.emprestarChave(idCorrida);
   }
 
   @Put('/:idCorrida')
