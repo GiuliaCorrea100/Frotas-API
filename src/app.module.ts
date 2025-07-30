@@ -12,6 +12,7 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersinguModule } from './usersingu/usersingu.module';
 import { TipoCombustivelModule } from './tipo_combustivel/tipo_combustivel.module';
+import { OcorrenciasModule } from './ocorrencias/ocorrencias.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { TipoCombustivelModule } from './tipo_combustivel/tipo_combustivel.modul
     ConfigModule.forRoot({ isGlobal: true }),
     UsersinguModule,
     TipoCombustivelModule,
+    OcorrenciasModule,
   ],
   controllers: [AppController],
   providers: [AppService],

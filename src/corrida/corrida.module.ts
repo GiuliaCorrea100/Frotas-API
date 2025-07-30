@@ -11,6 +11,7 @@ import { UsersinguModule } from '../usersingu/usersingu.module';
     forwardRef(() => UsersinguModule),
   ],
   controllers: [CorridaController],
+  exports: [CorridaService],
   providers: [CorridaService],
 })
 export class CorridaModule {}

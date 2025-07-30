@@ -8,8 +8,7 @@ import { CorridaDto, FindAllParameters } from './corrida.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CorridasEntity } from 'src/db/entities/corrida.entity';
 import { FindOptionsWhere, Repository, Like } from 'typeorm';
-import { UserEntity } from 'src/db/entities/users.entity';
-
+//import { UserEntity } from 'src/db/entities/users.entity';
 
 @Injectable()
 export class CorridaService {
@@ -31,16 +30,19 @@ export class CorridaService {
 
     const insertResult = await this.corridaRepository.insert(corridaToSave);
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const newId = insertResult.identifiers[0].idCorrida;
 
     if (!newId) {
-        throw new Error("Falha ao criar a corrida, o ID não foi gerado.");
+      throw new Error('Falha ao criar a corrida, o ID não foi gerado.');
     }
 
     const savedEntity = await this.corridaRepository.save(corridaToSave);
 
     // CÂMERA 3: O que o banco de dados retornou após salvar?
-    console.log('--- PASSO 3: Entidade DEPOIS de salvar (retorno do banco) ---');
+    console.log(
+      '--- PASSO 3: Entidade DEPOIS de salvar (retorno do banco) ---',
+    );
 
     return this.findById(newId);
 
