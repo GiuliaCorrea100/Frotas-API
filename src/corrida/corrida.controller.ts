@@ -35,11 +35,6 @@ export class CorridaController {
     return this.corridaService.findAll(params);
   }
 
-  // ❌ REMOVIDO: O endpoint antigo que causava o erro foi removido.
-  // @Get('/verificar-agendada/:idMotorista')
-  // async verificarCorridaAgendada(...) {}
-
-  // ✅ MANTIDO: Este é o novo endpoint que o front-end está usando.
   @Get('/motorista-dashboard/:idMotorista')
   async getMotoristaDashboard(
     @Param('idMotorista') idMotorista: number,
