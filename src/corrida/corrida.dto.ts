@@ -15,6 +15,12 @@ export class CorridaDto {
 
   nomeMotorista?: string;
   placaVeiculo?: string;
+  situacao?: string;
+}
+
+export interface MotoristaDashboardDto {
+  corridaDeHoje: CorridaDto | null;
+  proximasCorridas: CorridaDto[];
 }
 
 export interface FindAllParameters {

@@ -4,11 +4,12 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CorridaDto, FindAllParameters } from './corrida.dto';
+import { CorridaDto, FindAllParameters, MotoristaDashboardDto } from './corrida.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CorridasEntity } from 'src/db/entities/corrida.entity';
-import { FindOptionsWhere, Repository, Like } from 'typeorm';
-//import { UserEntity } from 'src/db/entities/users.entity';
+import { FindOptionsWhere, Repository, Like, Between, MoreThan, LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
+import { UserEntity } from 'src/db/entities/users.entity';
+
 
 @Injectable()
 export class CorridaService {
@@ -17,25 +18,45 @@ export class CorridaService {
     private readonly corridaRepository: Repository<CorridasEntity>,
   ) {}
 
+  async verificarConflitoDeCorrida(idMotorista: number, dataInicio: Date, dataTermino: Date): Promise<boolean> {
+    const conflitos = await this.corridaRepository.find({
+      where: {
+        idMotorista,
+        situacao: 'AGENDADA',
+        dataInicio: LessThanOrEqual(dataTermino),
+        dataTermino: MoreThanOrEqual(dataInicio),
+      },
+    });
+
+    return conflitos.length > 0;
+  }
+
   async create(corrida: CorridaDto): Promise<CorridaDto> {
-    const corridaToSave = this.mapDtoToEntity(corrida);
+    const existeConflito = await this.verificarConflitoDeCorrida(
+      corrida.idMotorista,
+      new Date(corrida.dataInicio),
+      new Date(corrida.dataTermino)
+    );
 
-    const insertResult = await this.corridaRepository.insert(corridaToSave);
-
-    const identifiers = insertResult.identifiers as { idCorrida: number }[];
-    const newId = identifiers[0].idCorrida;
-
-    if (!newId) {
-      throw new Error('Falha ao criar a corrida, o ID não foi gerado.');
+    if (existeConflito) {
+      throw new HttpException(
+        'Já existe uma corrida agendada para esse usuário nesse período!',
+        HttpStatus.CONFLICT,
+      );
     }
 
-    const savedEntity = await this.corridaRepository.save(corridaToSave);
+    const corridaToSave = this.mapDtoToEntity(corrida);
+    corridaToSave.situacao = 'AGENDADA';
 
+    const insertResult = await this.corridaRepository.insert(corridaToSave);
+    const newId = insertResult.identifiers[0].idCorrida;
+
+    if (!newId) {
+      throw new Error("Falha ao criar a corrida, o ID não foi gerado.");
+    }
+
+    await this.corridaRepository.save(corridaToSave);
     return this.findById(newId);
-
-    console.log(savedEntity);
-
-    return this.mapEntityToDto(savedEntity);
   }
 
   async findById(idCorrida: number): Promise<CorridaDto> {
@@ -113,6 +134,37 @@ export class CorridaService {
     }
   }
 
+  async getMotoristaDashboard(idMotorista: number): Promise<MotoristaDashboardDto> {
+    const inicioDoDia = new Date(new Date().setHours(0, 0, 0, 0));
+    const fimDoDia = new Date(new Date().setHours(23, 59, 59, 999));
+
+    const corridaDeHoje = await this.corridaRepository.findOne({
+      where: {
+        idMotorista,
+        situacao: 'AGENDADA',
+        dataInicio: Between(inicioDoDia, fimDoDia),
+      },
+      relations: ['carro'],
+    });
+
+    const proximasCorridas = await this.corridaRepository.find({
+      where: {
+        idMotorista,
+        situacao: 'AGENDADA',
+        dataInicio: MoreThan(fimDoDia),
+      },
+      order: {
+        dataInicio: 'ASC',
+      },
+      relations: ['carro'],
+    });
+
+    return {
+      corridaDeHoje: corridaDeHoje ? this.mapEntityToDto(corridaDeHoje) : null,
+      proximasCorridas: proximasCorridas.map(entity => this.mapEntityToDto(entity)),
+    };
+  }
+
   private mapEntityToDto(corridaEntity: CorridasEntity): CorridaDto {
     return {
       idCorrida: corridaEntity.idCorrida,
@@ -126,17 +178,24 @@ export class CorridaService {
       nomeMotorista: corridaEntity.motorista?.nome,
       idCarros: corridaEntity.idCarros,
       placaVeiculo: corridaEntity.carro?.placa,
+      situacao: corridaEntity.situacao,
     };
   }
 
   private mapDtoToEntity(corridaDto: CorridaDto): Partial<CorridasEntity> {
-    return {
-      dataInicio: corridaDto.dataInicio,
-      dataTermino: corridaDto.dataTermino,
-      distanciaKm: corridaDto.distanciaKm,
-      itinerario: corridaDto.itinerario,
-      idMotorista: corridaDto.idMotorista,
-      idCarros: corridaDto.idCarros,
+    const entity: Partial<CorridasEntity> = {
+        dataInicio: corridaDto.dataInicio,
+        dataTermino: corridaDto.dataTermino,
+        distanciaKm: corridaDto.distanciaKm,
+        itinerario: corridaDto.itinerario,
+        idMotorista: corridaDto.idMotorista,
+        idCarros: corridaDto.idCarros,
     };
+
+    if (corridaDto.situacao) {
+        entity.situacao = corridaDto.situacao;
+    }
+
+    return entity;
   }
 }
