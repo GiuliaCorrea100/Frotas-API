@@ -47,6 +47,11 @@ export class CorridaController {
     return this.corridaService.getMotoristaDashboard(idMotorista);
   }
 
+  @Patch('/emprestar-chave/:idCorrida')
+  async emprestarChave(@Param('idCorrida') idCorrida: number): Promise<void> {
+    await this.corridaService.emprestarChave(idCorrida);
+  }
+
   @Put('/:idCorrida')
   async update(
     @Param() params: CorridasRouteParameters,
