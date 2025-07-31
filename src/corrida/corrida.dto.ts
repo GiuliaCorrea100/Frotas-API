@@ -5,7 +5,6 @@ export class CorridaDto {
   distanciaKm?: string;
   itinerario: string;
   idMotorista: number;
-  situacao: string; //novo atributo
 
   //true= emprestada(está com motorista)
   //false = não emprestada (não está com o motorista)

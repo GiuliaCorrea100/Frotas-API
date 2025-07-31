@@ -4,12 +4,22 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CorridaDto, FindAllParameters, MotoristaDashboardDto } from './corrida.dto';
+import {
+  CorridaDto,
+  FindAllParameters,
+  MotoristaDashboardDto,
+} from './corrida.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CorridasEntity } from 'src/db/entities/corrida.entity';
-import { FindOptionsWhere, Repository, Like, Between, MoreThan, LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
-import { UserEntity } from 'src/db/entities/users.entity';
-
+import {
+  FindOptionsWhere,
+  Repository,
+  Like,
+  Between,
+  MoreThan,
+  LessThanOrEqual,
+  MoreThanOrEqual,
+} from 'typeorm';
 
 @Injectable()
 export class CorridaService {
@@ -18,7 +28,11 @@ export class CorridaService {
     private readonly corridaRepository: Repository<CorridasEntity>,
   ) {}
 
-  async verificarConflitoDeCorrida(idMotorista: number, dataInicio: Date, dataTermino: Date): Promise<boolean> {
+  async verificarConflitoDeCorrida(
+    idMotorista: number,
+    dataInicio: Date,
+    dataTermino: Date,
+  ): Promise<boolean> {
     const conflitos = await this.corridaRepository.find({
       where: {
         idMotorista,
@@ -35,7 +49,7 @@ export class CorridaService {
     const existeConflito = await this.verificarConflitoDeCorrida(
       corrida.idMotorista,
       new Date(corrida.dataInicio),
-      new Date(corrida.dataTermino)
+      new Date(corrida.dataTermino),
     );
 
     if (existeConflito) {
@@ -49,10 +63,12 @@ export class CorridaService {
     corridaToSave.situacao = 'AGENDADA';
 
     const insertResult = await this.corridaRepository.insert(corridaToSave);
-    const newId = insertResult.identifiers[0].idCorrida;
+
+    const identifiers = insertResult.identifiers as { idCorrida: number }[];
+    const newId = identifiers[0].idCorrida;
 
     if (!newId) {
-      throw new Error("Falha ao criar a corrida, o ID não foi gerado.");
+      throw new Error('Falha ao criar a corrida, o ID não foi gerado.');
     }
 
     await this.corridaRepository.save(corridaToSave);
@@ -134,7 +150,9 @@ export class CorridaService {
     }
   }
 
-  async getMotoristaDashboard(idMotorista: number): Promise<MotoristaDashboardDto> {
+  async getMotoristaDashboard(
+    idMotorista: number,
+  ): Promise<MotoristaDashboardDto> {
     const inicioDoDia = new Date(new Date().setHours(0, 0, 0, 0));
     const fimDoDia = new Date(new Date().setHours(23, 59, 59, 999));
 
@@ -161,7 +179,9 @@ export class CorridaService {
 
     return {
       corridaDeHoje: corridaDeHoje ? this.mapEntityToDto(corridaDeHoje) : null,
-      proximasCorridas: proximasCorridas.map(entity => this.mapEntityToDto(entity)),
+      proximasCorridas: proximasCorridas.map((entity) =>
+        this.mapEntityToDto(entity),
+      ),
     };
   }
 
@@ -178,22 +198,21 @@ export class CorridaService {
       nomeMotorista: corridaEntity.motorista?.nome,
       idCarros: corridaEntity.idCarros,
       placaVeiculo: corridaEntity.carro?.placa,
-      situacao: corridaEntity.situacao,
     };
   }
 
   private mapDtoToEntity(corridaDto: CorridaDto): Partial<CorridasEntity> {
     const entity: Partial<CorridasEntity> = {
-        dataInicio: corridaDto.dataInicio,
-        dataTermino: corridaDto.dataTermino,
-        distanciaKm: corridaDto.distanciaKm,
-        itinerario: corridaDto.itinerario,
-        idMotorista: corridaDto.idMotorista,
-        idCarros: corridaDto.idCarros,
+      dataInicio: corridaDto.dataInicio,
+      dataTermino: corridaDto.dataTermino,
+      distanciaKm: corridaDto.distanciaKm,
+      itinerario: corridaDto.itinerario,
+      idMotorista: corridaDto.idMotorista,
+      idCarros: corridaDto.idCarros,
     };
 
     if (corridaDto.situacao) {
-        entity.situacao = corridaDto.situacao;
+      entity.situacao = corridaDto.situacao;
     }
 
     return entity;
