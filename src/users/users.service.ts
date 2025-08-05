@@ -6,7 +6,6 @@ import {
 } from '@nestjs/common';
 import { UsersDto, FindAllParameters } from './users.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-//adicionei o Like
 import { Repository, Equal, FindOptionsWhere, Like } from 'typeorm';
 import { UserEntity } from 'src/db/entities/users.entity';
 
@@ -18,22 +17,19 @@ export class UsersService {
   ) {}
   private readonly users: UsersDto[] = [];
 
-  // adicionei essa funcao para buscar pelo nome
   async findByName(nome: string): Promise<UsersDto[]> {
-    const usersFound = await this.UsersRepository.find({
-      where: {
-        // Busca por nomes que contenham o texto digitado
-        nome: Like(`%${nome}%`),
-        // A linha "permissao: 2," foi REMOVIDA daqui.
-      },
-    });
+    const usersFound = await this.UsersRepository
+      .createQueryBuilder('user')
+      .where('LOWER(user.nome) LIKE LOWER(:nome)', { nome: `%${nome}%` })
+      .getMany();
 
     if (!usersFound || usersFound.length === 0) {
       return [];
     }
 
     return usersFound.map((userEntity) => this.mapEntityToDto(userEntity));
-  }
+}
+
 
   async create(users: UsersDto) {
     const usersToSave: UserEntity = {
@@ -69,7 +65,6 @@ export class UsersService {
   }
 
   async permissaoAdm(idPessoaSingu: number): Promise<void> {
-    //busca o usuario no banco
     const foundUser = await this.UsersRepository.findOne({
       where: { idPessoaSingu },
     });

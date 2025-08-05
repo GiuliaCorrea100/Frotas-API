@@ -45,16 +45,46 @@ export class CorridaService {
     return conflitos.length > 0;
   }
 
+  async verificarConflitoDeCarro(
+    idCarros: number,
+    dataInicio: Date,
+    dataTermino: Date,
+  ): Promise<boolean> {
+    const conflitos = await this.corridaRepository.find({
+      where: {
+        idCarros,
+        situacao: 'AGENDADA',
+        dataInicio: LessThanOrEqual(dataTermino),
+        dataTermino: MoreThanOrEqual(dataInicio),
+      },
+    });
+
+    return conflitos.length > 0;
+  }
+
   async create(corrida: CorridaDto): Promise<CorridaDto> {
-    const existeConflito = await this.verificarConflitoDeCorrida(
+    const conflitoMotorista = await this.verificarConflitoDeCorrida(
       corrida.idMotorista,
       new Date(corrida.dataInicio),
       new Date(corrida.dataTermino),
     );
 
-    if (existeConflito) {
+    if (conflitoMotorista) {
       throw new HttpException(
         'Já existe uma corrida agendada para esse usuário nesse período!',
+        HttpStatus.CONFLICT,
+      );
+    }
+
+    const conflitoCarro = await this.verificarConflitoDeCarro(
+      corrida.idCarros,
+      new Date(corrida.dataInicio),
+      new Date(corrida.dataTermino),
+    );
+
+    if (conflitoCarro) {
+      throw new HttpException(
+        'O carro já está agendado para outra corrida nesse período!',
         HttpStatus.CONFLICT,
       );
     }
@@ -63,7 +93,6 @@ export class CorridaService {
     corridaToSave.situacao = 'AGENDADA';
 
     const insertResult = await this.corridaRepository.insert(corridaToSave);
-
     const identifiers = insertResult.identifiers as { idCorrida: number }[];
     const newId = identifiers[0].idCorrida;
 
@@ -103,7 +132,6 @@ export class CorridaService {
   }
 
   async emprestarChave(idCorrida: number): Promise<void> {
-    //busca a corrida no banco
     const foundCorrida = await this.corridaRepository.findOne({
       where: { idCorrida },
     });
@@ -209,6 +237,7 @@ export class CorridaService {
       itinerario: corridaDto.itinerario,
       idMotorista: corridaDto.idMotorista,
       idCarros: corridaDto.idCarros,
+      chaveEmprestada: corridaDto.chaveEmprestada || false,
     };
 
     if (corridaDto.situacao) {
