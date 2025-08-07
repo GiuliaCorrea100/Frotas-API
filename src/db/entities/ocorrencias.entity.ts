@@ -11,4 +11,7 @@ export class OcorrenciasEntity {
 
   @Column({ type: 'int', name: 'id_corrida', nullable: false })
   idCorrida: number;
+
+  @Column({ type: 'date', name: 'data_registro' })
+  dataRegistro: Date;
 }

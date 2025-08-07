@@ -20,7 +20,7 @@ export class OcorrenciasService {
     const entity = new OcorrenciasEntity();
     entity.descricao = ocorrencia.descricao;
     entity.idCorrida = ocorrencia.idCorrida;
-
+    entity.dataRegistro = ocorrencia.dataRegistro;
     return await this.ocorrenciaRepository.save(entity);
   }
 
@@ -60,7 +60,6 @@ export class OcorrenciasService {
 
     const ocorrenciaFound = await this.ocorrenciaRepository.find({
       where: searchParams,
-      //relations: ['idCorrida'],
     });
 
     return ocorrenciaFound.map((entity) => this.mapEntityToDto(entity));
@@ -100,6 +99,7 @@ export class OcorrenciasService {
       idOcorrencia: OcorrenciasEntity.idOcorrencias,
       descricao: OcorrenciasEntity.descricao,
       idCorrida: OcorrenciasEntity.idCorrida,
+      dataRegistro: OcorrenciasEntity.dataRegistro,
     };
   }
 
