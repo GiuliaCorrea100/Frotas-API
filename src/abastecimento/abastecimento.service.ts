@@ -16,25 +16,51 @@ export class AbastecimentoService {
   constructor(
     @InjectRepository(AbastecimentoEntity)
     private readonly abastecimentoRepository: Repository<AbastecimentoEntity>,
-  ) {}
+
+    @InjectRepository(TipoCombustivelEntity)
+    private readonly tipoCombustivelRepository: Repository<TipoCombustivelEntity>,
+  
+  @InjectRepository(CorridasEntity)
+    private readonly corridaRepository: Repository<CorridasEntity>,
+  )
+  {}
 
   private abastecimento: AbastecimentoDto[] = [];
 
   async create(abastecimento: AbastecimentoDto) {
+  // Verificar se o tipo de combustível existe
+    const tipoCombustivel = await this.tipoCombustivelRepository.findOne({
+      where: { id_tipo_combustivel: abastecimento.id_tipo_combustivel },
+    });
+
+    if (!tipoCombustivel) {
+      throw new NotFoundException(
+        `Tipo de combustível com id ${abastecimento.id_tipo_combustivel} não encontrado`,
+      );
+    }
+     const Corrida = await this.corridaRepository.findOne({
+      where: { id_corrida: abastecimento.id_corrida},
+    });
+
+      if (!Corrida) {
+        throw new NotFoundException(
+          `Id corrida com id ${abastecimento.id_corrida} não encontrado`,
+        );
+      }
+
     const abastecimentoToSave: AbastecimentoEntity = {
       litros: abastecimento.litros,
       codPagamento: abastecimento.codPagamento,
       precoFinal: abastecimento.precoFinal,
       dataAbastecimento: abastecimento.dataAbastecimento,
-
       valorUnitarioLitro: abastecimento.valorUnitarioLitro,
       valorMedioLitro: abastecimento.valorMedioLitro,
       valorUnitario: abastecimento.valorUnitario,
       valorMedio: abastecimento.valorMedio,
       justificativaAlteracao: abastecimento.justificativaAlteracao,
 
-      tipo_combustivel: new TipoCombustivelEntity(),
-      corrida: new CorridasEntity(),
+      tipo_combustivel: tipoCombustivel,
+      corrida: Corrida
     };
 
     return await this.abastecimentoRepository.save(abastecimentoToSave);
@@ -116,8 +142,9 @@ export class AbastecimentoService {
       valorUnitario: AbastecimentoEntity.valorUnitario,
       valorMedio: AbastecimentoEntity.valorMedio,
       justificativaAlteracao: AbastecimentoEntity.justificativaAlteracao,
-      tipo_combustivel: AbastecimentoEntity.tipo_combustivel,
-      corrida: AbastecimentoEntity.corrida,
+
+      id_tipo_combustivel: AbastecimentoEntity.tipo_combustivel?.id_tipo_combustivel,
+      id_corrida: AbastecimentoEntity.corrida?.id_corrida,
     };
   }
 
@@ -135,9 +162,6 @@ export class AbastecimentoService {
       valorUnitario: AbastecimentoDto.valorUnitario,
       valorMedio: AbastecimentoDto.valorMedio,
       justificativaAlteracao: AbastecimentoDto.justificativaAlteracao,
-
-      tipo_combustivel: AbastecimentoDto.tipo_combustivel,
-      corrida: AbastecimentoDto.corrida,
     };
   }
 }
