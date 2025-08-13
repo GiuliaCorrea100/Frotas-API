@@ -119,8 +119,8 @@ export class CorridaService {
   async findAll(params: FindAllParameters): Promise<CorridaDto[]> {
     const searchParams: FindOptionsWhere<CorridasEntity> = {};
 
-    if (params.itinerario) {
-      searchParams.itinerario = Like(`%${params.itinerario}%`);
+    if (params.local_de_saida) {
+      searchParams.local_de_saida = Like(`%${params.local_de_saida}%`);
     }
 
     const corridaFound = await this.corridaRepository.find({
@@ -219,7 +219,7 @@ export class CorridaService {
       dataInicio: corridaEntity.dataInicio,
       dataTermino: corridaEntity.dataTermino,
       distanciaKm: corridaEntity.distanciaKm,
-      itinerario: corridaEntity.itinerario,
+      local_de_saida: corridaEntity.local_de_saida,
       idMotorista: corridaEntity.idMotorista,
       chaveEmprestada: corridaEntity.chaveEmprestada,
       situacao: corridaEntity.situacao,
@@ -234,7 +234,7 @@ export class CorridaService {
       dataInicio: corridaDto.dataInicio,
       dataTermino: corridaDto.dataTermino,
       distanciaKm: corridaDto.distanciaKm,
-      itinerario: corridaDto.itinerario,
+      local_de_saida: corridaDto.local_de_saida,
       idMotorista: corridaDto.idMotorista,
       idCarros: corridaDto.idCarros,
       chaveEmprestada: corridaDto.chaveEmprestada || false,
