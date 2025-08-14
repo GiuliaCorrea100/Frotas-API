@@ -14,7 +14,6 @@ import { CorridasEntity } from 'src/db/entities/corrida.entity';
 import {
   FindOptionsWhere,
   Repository,
-  Like,
   Between,
   MoreThan,
   LessThanOrEqual,
@@ -116,12 +115,13 @@ export class CorridaService {
     return this.mapEntityToDto(foundCorrida);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async findAll(params: FindAllParameters): Promise<CorridaDto[]> {
     const searchParams: FindOptionsWhere<CorridasEntity> = {};
 
-    if (params.itinerario) {
-      searchParams.itinerario = Like(`%${params.itinerario}%`);
-    }
+    // if (params.itinerario) {
+    //   searchParams.itinerario = Like(`%${params.itinerario}%`);
+    // }
 
     const corridaFound = await this.corridaRepository.find({
       where: searchParams,
@@ -147,6 +147,43 @@ export class CorridaService {
     }
 
     await this.corridaRepository.save(foundCorrida);
+  }
+
+  // async salvarEdicaoModal(idCorrida: number) Promise<void> {
+  //   const foundCorrida = await this.corridaRepository.findOne({
+  //     where: { idCorrida },
+  //   });
+  // }
+
+  async salvarEdicaoModal(
+    idCorrida: number,
+    dados: {
+      dataInicio?: Date;
+      dataTermino?: Date;
+      idMotorista?: number;
+      idVeiculo?: number;
+    },
+  ) {
+    const corrida = await this.corridaRepository.findOne({
+      where: { idCorrida },
+    });
+
+    if (!corrida) {
+      throw new HttpException(
+        `Corrida ${idCorrida} não encontrada`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    // Atualiza apenas os campos enviados
+    await this.corridaRepository.update(idCorrida, {
+      dataInicio: dados.dataInicio ?? corrida.dataInicio,
+      dataTermino: dados.dataTermino ?? corrida.dataTermino,
+      idMotorista: dados.idMotorista ?? corrida.idMotorista,
+      //idCarros: dados.id ?? corrida.idVeiculo,
+    });
+
+    return { message: 'Edição salva com sucesso' };
   }
 
   async update(idCorrida: number, corrida: CorridaDto) {
@@ -219,7 +256,7 @@ export class CorridaService {
       dataInicio: corridaEntity.dataInicio,
       dataTermino: corridaEntity.dataTermino,
       distanciaKm: corridaEntity.distanciaKm,
-      itinerario: corridaEntity.itinerario,
+      //itinerario: corridaEntity.itinerario,
       idMotorista: corridaEntity.idMotorista,
       chaveEmprestada: corridaEntity.chaveEmprestada,
       situacao: corridaEntity.situacao,
@@ -234,7 +271,7 @@ export class CorridaService {
       dataInicio: corridaDto.dataInicio,
       dataTermino: corridaDto.dataTermino,
       distanciaKm: corridaDto.distanciaKm,
-      itinerario: corridaDto.itinerario,
+      //itinerario: corridaDto.itinerario,
       idMotorista: corridaDto.idMotorista,
       idCarros: corridaDto.idCarros,
       chaveEmprestada: corridaDto.chaveEmprestada || false,

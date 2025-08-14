@@ -48,6 +48,20 @@ export class CorridaController {
     await this.corridaService.emprestarChave(idCorrida);
   }
 
+  @Patch('/salvar-edicao-adm/:idCorrida')
+  async salvarEdicaoModal(
+    @Param('idCorrida') idCorrida: number,
+    @Body()
+    dados: {
+      dataInicio?: Date;
+      dataTermino?: Date;
+      idMotorista?: number;
+      idVeiculo?: number;
+    },
+  ) {
+    return this.corridaService.salvarEdicaoModal(idCorrida, dados);
+  }
+
   @Put('/:idCorrida')
   async update(
     @Param() params: CorridasRouteParameters,
