@@ -100,7 +100,7 @@ export class CorridaService {
       throw new Error('Falha ao criar a corrida, o ID não foi gerado.');
     }
 
-    await this.corridaRepository.save(corridaToSave);
+    await this.corridaRepository.save(corridaToSave); 
     return this.findById(newId);
   }
 
@@ -111,7 +111,7 @@ export class CorridaService {
     });
 
     if (!foundCorrida) {
-      throw new NotFoundException(`Item with id ${idCorrida} not found`);
+      throw new NotFoundException(`Item com id ${idCorrida} não encontrado`);
     }
     return this.mapEntityToDto(foundCorrida);
   }
@@ -137,14 +137,10 @@ export class CorridaService {
     });
 
     if (!foundCorrida) {
-      throw new NotFoundException(`Item with id ${idCorrida} not found`);
+      throw new NotFoundException(`Item com id ${idCorrida} não encontrado`);
     }
 
-    if (foundCorrida.chaveEmprestada == false) {
-      foundCorrida.chaveEmprestada = true;
-    } else {
-      foundCorrida.chaveEmprestada = false;
-    }
+    foundCorrida.chaveEmprestada = !foundCorrida.chaveEmprestada;
 
     await this.corridaRepository.save(foundCorrida);
   }
@@ -156,7 +152,7 @@ export class CorridaService {
 
     if (!foundCorrida) {
       throw new HttpException(
-        `Item with id ${idCorrida} not found`,
+        `Item com id ${idCorrida} não encontrado`,
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -170,9 +166,9 @@ export class CorridaService {
   async remove(idCorrida: number) {
     const result = await this.corridaRepository.delete(idCorrida);
 
-    if (!result.affected) {
+    if (!result.affected || result.affected === 0) {
       throw new HttpException(
-        `Item with id ${idCorrida} not found`,
+        `Item com id ${idCorrida} não encontrado`,
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -181,14 +177,19 @@ export class CorridaService {
   async getMotoristaDashboard(
     idMotorista: number,
   ): Promise<MotoristaDashboardDto> {
-    const inicioDoDia = new Date(new Date().setHours(0, 0, 0, 0));
-    const fimDoDia = new Date(new Date().setHours(23, 59, 59, 999));
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+    const amanha = new Date(hoje.getTime() + 86400000);
 
-    const corridaDeHoje = await this.corridaRepository.findOne({
+    const corridasEmAndamento = await this.corridaRepository.find({
       where: {
         idMotorista,
         situacao: 'AGENDADA',
-        dataInicio: Between(inicioDoDia, fimDoDia),
+        dataInicio: LessThanOrEqual(amanha),
+        dataTermino: MoreThanOrEqual(hoje),
+      },
+      order: {
+        dataInicio: 'ASC',
       },
       relations: ['carro'],
     });
@@ -197,7 +198,7 @@ export class CorridaService {
       where: {
         idMotorista,
         situacao: 'AGENDADA',
-        dataInicio: MoreThan(fimDoDia),
+        dataInicio: MoreThan(amanha),
       },
       order: {
         dataInicio: 'ASC',
@@ -205,11 +206,15 @@ export class CorridaService {
       relations: ['carro'],
     });
 
+    const corridaDeHoje =
+      corridasEmAndamento.length > 0 ? corridasEmAndamento[0] : null;
+
     return {
       corridaDeHoje: corridaDeHoje ? this.mapEntityToDto(corridaDeHoje) : null,
-      proximasCorridas: proximasCorridas.map((entity) =>
-        this.mapEntityToDto(entity),
-      ),
+      proximasCorridas: [
+        ...corridasEmAndamento.slice(1).map((entity) => this.mapEntityToDto(entity)),
+        ...proximasCorridas.map((entity) => this.mapEntityToDto(entity)),
+      ],
     };
   }
 
