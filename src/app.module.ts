@@ -13,6 +13,7 @@ import { AuthModule } from './auth/auth.module';
 import { UsersinguModule } from './usersingu/usersingu.module';
 import { TipoCombustivelModule } from './tipo_combustivel/tipo_combustivel.module';
 import { OcorrenciasModule } from './ocorrencias/ocorrencias.module';
+import { PercursoModule } from './percurso/percurso.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { OcorrenciasModule } from './ocorrencias/ocorrencias.module';
     UsersinguModule,
     TipoCombustivelModule,
     OcorrenciasModule,
+    PercursoModule,
   ],
   controllers: [AppController],
   providers: [AppService],
