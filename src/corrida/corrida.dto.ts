@@ -3,7 +3,7 @@ export class CorridaDto {
   dataInicio: Date;
   dataTermino: Date;
   distanciaKm?: string;
-  itinerario: string;
+  
   idMotorista: number;
 
   //true= emprestada(está com motorista)

@@ -24,8 +24,7 @@ export class CorridasEntity {
   @Column({ type: 'varchar', name: 'distancia_km' })
   distanciaKm: string;
 
-  @Column({ type: 'varchar', name: 'itinerario' })
-  itinerario: string;
+ 
 
   @Column({ type: 'int', name: 'id_carros', nullable: false })
   idCarros: number;
@@ -46,7 +45,6 @@ export class CorridasEntity {
   @ManyToOne(() => CarrosEntity)
   @JoinColumn({ name: 'id_carros', referencedColumnName: 'idCarros' }) 
   carro?: CarrosEntity;
-  id_corrida: number;
 
   // @OneToMany(() => OcorrenciasEntity, (ocorrencia) => ocorrencia.corrida)
   // ocorrencias?: OcorrenciasEntity[];

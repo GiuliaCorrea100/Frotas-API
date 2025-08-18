@@ -39,7 +39,7 @@ export class AbastecimentoService {
       );
     }
      const Corrida = await this.corridaRepository.findOne({
-      where: { id_corrida: abastecimento.id_corrida},
+      where: { idCorrida: abastecimento.id_corrida },
     });
 
       if (!Corrida) {
@@ -69,6 +69,7 @@ export class AbastecimentoService {
   async findById(idAbastecimento: number): Promise<AbastecimentoDto> {
     const foundAbastecimento = await this.abastecimentoRepository.findOne({
       where: { idAbastecimento },
+      relations: ['tipo_combustivel', 'corrida'],
     });
 
     if (!foundAbastecimento) {
@@ -91,6 +92,7 @@ export class AbastecimentoService {
 
     const abastecimentoFound = await this.abastecimentoRepository.find({
       where: searchParams,
+      relations: ['tipo_combustivel', 'corrida'],
     });
 
     return abastecimentoFound.map((AbastecimentoEntity) =>
@@ -144,7 +146,7 @@ export class AbastecimentoService {
       justificativaAlteracao: AbastecimentoEntity.justificativaAlteracao,
 
       id_tipo_combustivel: AbastecimentoEntity.tipo_combustivel?.id_tipo_combustivel,
-      id_corrida: AbastecimentoEntity.corrida?.id_corrida,
+      id_corrida: AbastecimentoEntity.corrida?.idCorrida,
     };
   }
 
