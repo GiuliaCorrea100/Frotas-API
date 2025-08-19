@@ -100,7 +100,7 @@ export class CorridaService {
       throw new Error('Falha ao criar a corrida, o ID não foi gerado.');
     }
 
-    await this.corridaRepository.save(corridaToSave); 
+    await this.corridaRepository.save(corridaToSave);
     return this.findById(newId);
   }
 
@@ -144,6 +144,36 @@ export class CorridaService {
 
     await this.corridaRepository.save(foundCorrida);
   }
+
+  async atualizarSituacao(idCorrida: number, situacao: string): Promise<void> {
+    const foundCorrida = await this.corridaRepository.findOne({
+      where: { idCorrida },
+    });
+
+    if (!foundCorrida) {
+      throw new NotFoundException(`Corrida com id ${idCorrida} não encontrada`);
+    }
+
+    const transicoesPermitidas = {
+      'AGENDADA': ['ANDAMENTO', 'CANCELADA'],
+      'ANDAMENTO': ['FINALIZADA', 'CANCELADA'],
+      'FINALIZADA': [],
+      'CANCELADA': []
+    };
+
+    const situacaoAtual = foundCorrida.situacao;
+
+    if (!transicoesPermitidas[situacaoAtual]?.includes(situacao)) {
+      throw new HttpException(
+        `Transição de situação de ${situacaoAtual} para ${situacao} não é permitida`,
+        HttpStatus.BAD_REQUEST
+      );
+    }
+
+    foundCorrida.situacao = situacao;
+    await this.corridaRepository.save(foundCorrida);
+  }
+
 
   async update(idCorrida: number, corrida: CorridaDto) {
     const foundCorrida = await this.corridaRepository.findOne({
