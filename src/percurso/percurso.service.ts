@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PercursoEntity } from '../db/entities/percurso.entity';
 import { Repository } from 'typeorm';
@@ -29,6 +29,42 @@ export class PercursoService {
 
     const created = await this.percursoRepository.save(percursoToSave);
     return this.mapEntityToDto(created);
+  }
+
+  async finalizarPercurso(idPercurso: number, chegadaOdometro: number): Promise<PercursoDto> {
+    const percurso = await this.percursoRepository.findOne({
+      where: { idPercurso }
+    });
+
+    if (!percurso) {
+      throw new NotFoundException('Percurso não encontrado');
+    }
+
+    if (percurso.chegadaHora) {
+      throw new Error('Este percurso já foi finalizado');
+    }
+
+    if (chegadaOdometro <= percurso.saidaOdometro) {
+      throw new Error('Odômetro de chegada deve ser maior que o odômetro de saída');
+    }
+
+    percurso.chegadaHora = new Date();
+    percurso.chegadaodometro = chegadaOdometro;
+
+    const updated = await this.percursoRepository.save(percurso);
+    return this.mapEntityToDto(updated);
+  }
+
+  async findByCorrida(idCorrida: number): Promise<PercursoDto> {
+    const percurso = await this.percursoRepository.findOne({
+      where: { idCorrida }
+    });
+
+    if (!percurso) {
+      throw new NotFoundException('Percurso não encontrado para esta corrida');
+    }
+
+    return this.mapEntityToDto(percurso);
   }
 
   private mapEntityToDto(entity: PercursoEntity): PercursoDto {
