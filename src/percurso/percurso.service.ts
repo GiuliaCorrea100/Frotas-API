@@ -39,7 +39,7 @@ export class PercursoService {
       saidaOdometro: entity.saidaOdometro,
       localDestino: entity.localDestino,
       chegadaHora: entity.chegadaHora,
-      chegadaHodometro: entity.chegadaHodometro,
+      chegadaodometro: entity.chegadaodometro,
       localOrigem: entity.localOrigem,
     };
   }

@@ -19,6 +19,7 @@ import {
   MoreThan,
   LessThanOrEqual,
   MoreThanOrEqual,
+  In,
 } from 'typeorm';
 
 @Injectable()
@@ -53,7 +54,7 @@ export class CorridaService {
     const conflitos = await this.corridaRepository.find({
       where: {
         idCarros,
-        situacao: 'AGENDADA',
+        situacao: In(['AGENDADA', 'ANDAMENTO']),
         dataInicio: LessThanOrEqual(dataTermino),
         dataTermino: MoreThanOrEqual(dataInicio),
       },
@@ -211,7 +212,7 @@ export class CorridaService {
     hoje.setHours(0, 0, 0, 0);
     const amanha = new Date(hoje.getTime() + 86400000);
 
-    const corridasEmAndamento = await this.corridaRepository.find({
+    const corridasAgendadasHoje = await this.corridaRepository.find({
       where: {
         idMotorista,
         situacao: 'AGENDADA',
@@ -220,6 +221,14 @@ export class CorridaService {
       },
       order: {
         dataInicio: 'ASC',
+      },
+      relations: ['carro'],
+    });
+
+    const corridasEmAndamento = await this.corridaRepository.find({
+      where: {
+        idMotorista,
+        situacao: 'ANDAMENTO',
       },
       relations: ['carro'],
     });
@@ -236,13 +245,14 @@ export class CorridaService {
       relations: ['carro'],
     });
 
-    const corridaDeHoje =
-      corridasEmAndamento.length > 0 ? corridasEmAndamento[0] : null;
+    const corridaAtiva = corridasEmAndamento.length > 0
+      ? corridasEmAndamento[0]
+      : (corridasAgendadasHoje.length > 0 ? corridasAgendadasHoje[0] : null);
 
     return {
-      corridaDeHoje: corridaDeHoje ? this.mapEntityToDto(corridaDeHoje) : null,
+      corridaDeHoje: corridaAtiva ? this.mapEntityToDto(corridaAtiva) : null,
       proximasCorridas: [
-        ...corridasEmAndamento.slice(1).map((entity) => this.mapEntityToDto(entity)),
+        ...corridasAgendadasHoje.slice(1).map((entity) => this.mapEntityToDto(entity)),
         ...proximasCorridas.map((entity) => this.mapEntityToDto(entity)),
       ],
     };
