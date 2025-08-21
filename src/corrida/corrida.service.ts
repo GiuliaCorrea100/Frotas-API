@@ -233,6 +233,18 @@ export class CorridaService {
       relations: ['carro'],
     });
 
+    const corridasFinalizadasHoje = await this.corridaRepository.find({
+      where: {
+        idMotorista,
+        situacao: 'FINALIZADA',
+        dataInicio: Between(hoje, amanha),
+      },
+      order: {
+        dataInicio: 'DESC',
+      },
+      relations: ['carro'],
+    });
+
     const proximasCorridas = await this.corridaRepository.find({
       where: {
         idMotorista,
@@ -245,9 +257,10 @@ export class CorridaService {
       relations: ['carro'],
     });
 
-    const corridaAtiva = corridasEmAndamento.length > 0
-      ? corridasEmAndamento[0]
-      : (corridasAgendadasHoje.length > 0 ? corridasAgendadasHoje[0] : null);
+    const corridaAtiva =
+      corridasEmAndamento.length > 0 ? corridasEmAndamento[0] :
+      corridasAgendadasHoje.length > 0 ? corridasAgendadasHoje[0] :
+      corridasFinalizadasHoje.length > 0 ? corridasFinalizadasHoje[0] : null;
 
     return {
       corridaDeHoje: corridaAtiva ? this.mapEntityToDto(corridaAtiva) : null,
