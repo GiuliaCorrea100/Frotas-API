@@ -157,9 +157,9 @@ export class CorridaService {
 
     const transicoesPermitidas = {
       'AGENDADA': ['ANDAMENTO', 'CANCELADA'],
-      'ANDAMENTO': ['AGENDADA', 'CANCELADA'],
-      'FINALIZADA': ['AGENDADA', 'ANDAMENTO'],
-      'CANCELADA': ['AGENDADA', 'ANDAMENTO']
+      'ANDAMENTO': ['FINALIZADA', 'CANCELADA'],
+      'FINALIZADA': [],
+      'CANCELADA': []
     };
 
     const situacaoAtual = foundCorrida.situacao;
@@ -174,7 +174,6 @@ export class CorridaService {
     foundCorrida.situacao = situacao;
     await this.corridaRepository.save(foundCorrida);
   }
-
 
   async update(idCorrida: number, corrida: CorridaDto) {
     const foundCorrida = await this.corridaRepository.findOne({
