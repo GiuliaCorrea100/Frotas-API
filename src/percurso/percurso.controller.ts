@@ -46,7 +46,7 @@ export class PercursoController {
   }
 
   @Get('corrida/:idCorrida')
-  async findByCorrida(@Param('idCorrida') idCorrida: number): Promise<PercursoDto> {
+  async findByCorrida(@Param('idCorrida') idCorrida: number): Promise<PercursoDto[]> {
     try {
       return await this.percursoService.findByCorrida(idCorrida);
     } catch (error: unknown) {
@@ -60,6 +60,46 @@ export class PercursoController {
         status: HttpStatus.NOT_FOUND,
         error: 'Ocorreu um erro desconhecido ao buscar o percurso',
       }, HttpStatus.NOT_FOUND);
+    }
+  }
+
+  @Get('corrida/:idCorrida/ativo')
+  async findUltimoAtivo(@Param('idCorrida') idCorrida: number): Promise<PercursoDto> {
+    try {
+      const percurso = await this.percursoService.findUltimoPercursoAtivo(idCorrida);
+      if (!percurso) {
+        throw new Error('Nenhum percurso ativo encontrado');
+      }
+      return percurso;
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw new HttpException({
+          status: HttpStatus.NOT_FOUND,
+          error: error.message,
+        }, HttpStatus.NOT_FOUND);
+      }
+      throw new HttpException({
+        status: HttpStatus.NOT_FOUND,
+        error: 'Ocorreu um erro desconhecido ao buscar o percurso ativo',
+      }, HttpStatus.NOT_FOUND);
+    }
+  }
+
+  @Get('corrida/:idCorrida/ativos/count')
+  async countPercursosAtivos(@Param('idCorrida') idCorrida: number): Promise<number> {
+    try {
+      return await this.percursoService.verificarPercursosAtivos(idCorrida);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw new HttpException({
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          error: error.message,
+        }, HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+      throw new HttpException({
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        error: 'Ocorreu um erro desconhecido',
+      }, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }

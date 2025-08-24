@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PercursoEntity } from '../db/entities/percurso.entity';
-import { Repository } from 'typeorm';
+import { Repository, IsNull } from 'typeorm';
 import { PercursoDto } from './percurso.dto';
 
 @Injectable()
@@ -12,14 +12,6 @@ export class PercursoService {
   ) {}
 
   async create(percurso: PercursoDto): Promise<PercursoDto> {
-    const existingPercurso = await this.percursoRepository.findOne({
-      where: { idCorrida: percurso.idCorrida },
-    });
-
-    if (existingPercurso) {
-      throw new Error('Esta corrida já foi iniciada');
-    }
-
     const percursoToSave = {
       ...percurso,
       saidaHora: new Date(),
@@ -55,16 +47,38 @@ export class PercursoService {
     return this.mapEntityToDto(updated);
   }
 
-  async findByCorrida(idCorrida: number): Promise<PercursoDto> {
-    const percurso = await this.percursoRepository.findOne({
-      where: { idCorrida }
+  async findByCorrida(idCorrida: number): Promise<PercursoDto[]> {
+    const percursos = await this.percursoRepository.find({
+      where: { idCorrida },
+      order: { saidaHora: 'DESC' }
     });
 
-    if (!percurso) {
-      throw new NotFoundException('Percurso não encontrado para esta corrida');
+    if (!percursos || percursos.length === 0) {
+      throw new NotFoundException('Nenhum percurso encontrado para esta corrida');
     }
 
-    return this.mapEntityToDto(percurso);
+    return percursos.map(this.mapEntityToDto);
+  }
+
+  async findUltimoPercursoAtivo(idCorrida: number): Promise<PercursoDto | null> {
+    const percurso = await this.percursoRepository.findOne({
+      where: { 
+        idCorrida,
+        chegadaHora: IsNull() 
+      },
+      order: { saidaHora: 'DESC' }
+    });
+
+    return percurso ? this.mapEntityToDto(percurso) : null;
+  }
+
+  async verificarPercursosAtivos(idCorrida: number): Promise<number> {
+    return await this.percursoRepository.count({
+      where: {  
+        idCorrida,
+        chegadaHora: IsNull()  
+      }
+    });
   }
 
   private mapEntityToDto(entity: PercursoEntity): PercursoDto {

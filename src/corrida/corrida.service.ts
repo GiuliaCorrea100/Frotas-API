@@ -157,9 +157,9 @@ export class CorridaService {
 
     const transicoesPermitidas = {
       'AGENDADA': ['ANDAMENTO', 'CANCELADA'],
-      'ANDAMENTO': ['FINALIZADA', 'CANCELADA'],
-      'FINALIZADA': [],
-      'CANCELADA': []
+      'ANDAMENTO': ['AGENDADA', 'CANCELADA'],
+      'FINALIZADA': ['AGENDADA', 'ANDAMENTO'],
+      'CANCELADA': ['AGENDADA', 'ANDAMENTO']
     };
 
     const situacaoAtual = foundCorrida.situacao;
