@@ -3,12 +3,13 @@ export class CorridaDto {
   dataInicio: Date;
   dataTermino: Date;
   distanciaKm?: string;
-  //itinerario: string;
   idMotorista: number;
 
   //true= emprestada(está com motorista)
   //false = não emprestada (não está com o motorista)
   chaveEmprestada: boolean;
+  datHoraRecebimentoChave: Date;
+  dataHoraLiberacaoChave: Date;
 
   idCarros: number;
 

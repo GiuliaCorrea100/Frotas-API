@@ -142,18 +142,14 @@ export class CorridaService {
 
     if (foundCorrida.chaveEmprestada == false) {
       foundCorrida.chaveEmprestada = true;
+      foundCorrida.dataHoraLiberacaoChave = new Date();
     } else {
       foundCorrida.chaveEmprestada = false;
+      foundCorrida.dataHoraRecebimentoChave = new Date();
     }
 
     await this.corridaRepository.save(foundCorrida);
   }
-
-  // async salvarEdicaoModal(idCorrida: number) Promise<void> {
-  //   const foundCorrida = await this.corridaRepository.findOne({
-  //     where: { idCorrida },
-  //   });
-  // }
 
   async salvarEdicaoModal(
     idCorrida: number,
@@ -263,6 +259,8 @@ export class CorridaService {
       nomeMotorista: corridaEntity.motorista?.nome,
       idCarros: corridaEntity.idCarros,
       placaVeiculo: corridaEntity.carro?.placa,
+      dataHoraLiberacaoChave: corridaEntity.dataHoraLiberacaoChave,
+      datHoraRecebimentoChave: corridaEntity.dataHoraRecebimentoChave,
     };
   }
 

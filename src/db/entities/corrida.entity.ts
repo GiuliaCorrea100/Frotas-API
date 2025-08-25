@@ -24,9 +24,6 @@ export class CorridasEntity {
   @Column({ type: 'varchar', name: 'distancia_km' })
   distanciaKm: string;
 
-  // @Column({ type: 'varchar', name: 'itinerario' })
-  // itinerario: string;
-
   @Column({ type: 'int', name: 'id_carros', nullable: false })
   idCarros: number;
 
@@ -47,6 +44,12 @@ export class CorridasEntity {
   @JoinColumn({ name: 'id_carros', referencedColumnName: 'idCarros' })
   carro?: CarrosEntity;
 
-  // @OneToMany(() => OcorrenciasEntity, (ocorrencia) => ocorrencia.corrida)
-  // ocorrencias?: OcorrenciasEntity[];
+  @CreateDateColumn({ type: 'timestamptz', name: 'data_hora_liberacao_chave' })
+  dataHoraLiberacaoChave: Date;
+
+  @CreateDateColumn({
+    type: 'timestamptz',
+    name: 'data_hora_recebimento_chave',
+  })
+  dataHoraRecebimentoChave: Date;
 }
