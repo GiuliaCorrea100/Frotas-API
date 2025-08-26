@@ -6,8 +6,8 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { CorridasEntity } from './corrida.entity';
 import { TipoCombustivelEntity } from './tipoCombustivel.entity';
+import { CorridasEntity } from './corrida.entity';
 
 @Entity({ name: 'abastecimento' })
 export class AbastecimentoEntity {
@@ -49,7 +49,12 @@ export class AbastecimentoEntity {
   @JoinColumn({ name: 'id_tipo_combustivel' })
   tipo_combustivel: TipoCombustivelEntity;
 
-  @ManyToOne(() => CorridasEntity)
-  @JoinColumn({ name: 'id_corrida' })
-  corrida: CorridasEntity;
+
+    @ManyToOne(() =>  CorridasEntity)
+    @JoinColumn({ name: 'id_corrida' })
+    corrida: CorridasEntity;
+
 }
+
+
+ 
