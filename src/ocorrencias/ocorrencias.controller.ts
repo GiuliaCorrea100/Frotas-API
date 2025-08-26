@@ -7,6 +7,7 @@ import {
   Param,
   Get,
   Query,
+  Patch,
 } from '@nestjs/common';
 import { OcorrenciasService } from './ocorrencias.service';
 import { FindAllParameters, OcorrenciasDto } from './ocorrencias.dto';
@@ -35,7 +36,7 @@ export class OcorrenciasController {
   @Get('buscar-por-corrida/:idCorrida')
   async findByIdCorrida(
     @Param('idCorrida') idCorrida: number,
-  ): Promise<OcorrenciasDto> {
+  ): Promise<OcorrenciasDto[]> {
     return this.ocorrenciasService.findByIdCorrida(idCorrida);
   }
 
@@ -45,6 +46,14 @@ export class OcorrenciasController {
     ocorrencia: OcorrenciasDto,
   ): Promise<void> {
     await this.ocorrenciasService.update(idOcorrencia, ocorrencia);
+  }
+
+  @Patch(':id/descricao')
+  async updateDescricao(
+    @Param('id') id: number,
+    @Body('descricao') descricao: string,
+  ) {
+    return this.ocorrenciasService.updateDescricao(id, descricao);
   }
 
   @Delete('/:idOcorrencia')
