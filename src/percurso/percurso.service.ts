@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PercursoEntity } from '../db/entities/percurso.entity';
-import { Repository, IsNull } from 'typeorm';
+import { Repository, IsNull, Not } from 'typeorm';
 import { PercursoDto } from './percurso.dto';
 
 @Injectable()
@@ -62,9 +62,9 @@ export class PercursoService {
 
   async findUltimoPercursoAtivo(idCorrida: number): Promise<PercursoDto | null> {
     const percurso = await this.percursoRepository.findOne({
-      where: { 
+      where: {
         idCorrida,
-        chegadaHora: IsNull() 
+        chegadaHora: IsNull()
       },
       order: { saidaHora: 'DESC' }
     });
@@ -72,11 +72,23 @@ export class PercursoService {
     return percurso ? this.mapEntityToDto(percurso) : null;
   }
 
+  async findUltimoPercursoFinalizado(idCorrida: number): Promise<PercursoDto | null> {
+    const percurso = await this.percursoRepository.findOne({
+      where: {
+        idCorrida,
+        chegadaHora: Not(IsNull())
+      },
+      order: { chegadaHora: 'DESC' }
+    });
+
+    return percurso ? this.mapEntityToDto(percurso) : null;
+  }
+
   async verificarPercursosAtivos(idCorrida: number): Promise<number> {
     return await this.percursoRepository.count({
-      where: {  
+      where: {
         idCorrida,
-        chegadaHora: IsNull()  
+        chegadaHora: IsNull()
       }
     });
   }

@@ -85,6 +85,28 @@ export class PercursoController {
     }
   }
 
+  @Get('corrida/:idCorrida/ultimo-finalizado')
+  async findUltimoFinalizado(@Param('idCorrida') idCorrida: number): Promise<PercursoDto> {
+    try {
+      const percurso = await this.percursoService.findUltimoPercursoFinalizado(idCorrida);
+      if (!percurso) {
+        throw new Error('Nenhum percurso finalizado encontrado');
+      }
+      return percurso;
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw new HttpException({
+          status: HttpStatus.NOT_FOUND,
+          error: error.message,
+        }, HttpStatus.NOT_FOUND);
+      }
+      throw new HttpException({
+        status: HttpStatus.NOT_FOUND,
+        error: 'Ocorreu um erro desconhecido',
+      }, HttpStatus.NOT_FOUND);
+    }
+  }
+
   @Get('corrida/:idCorrida/ativos/count')
   async countPercursosAtivos(@Param('idCorrida') idCorrida: number): Promise<number> {
     try {
