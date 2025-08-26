@@ -44,9 +44,15 @@ export class CorridasEntity {
   motorista?: UserEntity;
 
   @ManyToOne(() => CarrosEntity)
-  @JoinColumn({ name: 'id_carros', referencedColumnName: 'idCarros' }) 
+  @JoinColumn({ name: 'id_carros', referencedColumnName: 'idCarros' })
   carro?: CarrosEntity;
 
-  // @OneToMany(() => OcorrenciasEntity, (ocorrencia) => ocorrencia.corrida)
-  // ocorrencias?: OcorrenciasEntity[];
+  @CreateDateColumn({ type: 'timestamptz', name: 'data_hora_liberacao_chave' })
+  dataHoraLiberacaoChave: Date;
+
+  @CreateDateColumn({
+    type: 'timestamptz',
+    name: 'data_hora_recebimento_chave',
+  })
+  dataHoraRecebimentoChave: Date;
 }
