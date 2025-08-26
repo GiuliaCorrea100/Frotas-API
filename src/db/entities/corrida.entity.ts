@@ -24,8 +24,8 @@ export class CorridasEntity {
   @Column({ type: 'varchar', name: 'distancia_km' })
   distanciaKm: string;
 
-  @Column({ type: 'varchar', name: 'itinerario' })
-  itinerario: string;
+  @Column({ type: 'varchar', name: 'local_de_saida' })
+  local_de_saida: string;
 
   @Column({ type: 'int', name: 'id_carros', nullable: false })
   idCarros: number;
