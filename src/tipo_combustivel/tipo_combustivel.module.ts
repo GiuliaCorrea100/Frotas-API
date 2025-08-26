@@ -8,6 +8,6 @@ import { TipoCombustivelService } from './tipo_combustivel.service';
   imports: [TypeOrmModule.forFeature([TipoCombustivelEntity])],
   controllers: [TipoCombustivelController],
   providers: [TipoCombustivelService],
-  exports: [TipoCombustivelService, TypeOrmModule],
+  exports: [TipoCombustivelService, TypeOrmModule, TypeOrmModule],
 })
 export class TipoCombustivelModule {}

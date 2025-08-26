@@ -1,5 +1,3 @@
-import { CorridasEntity } from 'src/db/entities/corrida.entity';
-import { TipoCombustivelEntity } from 'src/db/entities/tipoCombustivel.entity';
 
 export class AbastecimentoDto {
   idAbastecimento?: number;
@@ -16,8 +14,8 @@ export class AbastecimentoDto {
   justificativaAlteracao?: string;
 
   //chave estrangeira
-  tipo_combustivel: TipoCombustivelEntity;
-  corrida: CorridasEntity;
+  id_tipo_combustivel?: number;
+  id_corrida?: number;
 }
 
 export interface FindAllParameters {
