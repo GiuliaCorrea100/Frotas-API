@@ -3,10 +3,9 @@ export class CorridaDto {
   dataInicio: Date;
   dataTermino: Date;
   distanciaKm?: string;
+  local_de_saida: string;
   idMotorista: number;
 
-  //true= emprestada(está com motorista)
-  //false = não emprestada (não está com o motorista)
   chaveEmprestada: boolean;
   datHoraRecebimentoChave: Date;
   dataHoraLiberacaoChave: Date;
@@ -24,7 +23,7 @@ export interface MotoristaDashboardDto {
 }
 
 export interface FindAllParameters {
-  itinerario: string;
+  local_de_saida: string;
 }
 
 export class CorridasRouteParameters {
