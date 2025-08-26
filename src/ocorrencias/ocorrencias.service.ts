@@ -36,15 +36,20 @@ export class OcorrenciasService {
     return this.mapEntityToDto(foundOcorrencia);
   }
 
-  async findByIdCorrida(idCorrida: number): Promise<OcorrenciasDto> {
-    const foundOcorrencia = await this.ocorrenciaRepository.findOne({
+  async findByIdCorrida(idCorrida: number): Promise<OcorrenciasDto[]> {
+    const foundOcorrencias = await this.ocorrenciaRepository.find({
       where: { idCorrida },
     });
 
-    if (!foundOcorrencia) {
-      throw new NotFoundException(`Item with id ${idCorrida} not found`);
+    if (!foundOcorrencias) {
+      throw new NotFoundException(
+        `Nenhuma ocorrência encontrada para corrida ${idCorrida}`,
+      );
     }
-    return this.mapEntityToDto(foundOcorrencia);
+
+    return foundOcorrencias.map((ocorrencia) =>
+      this.mapEntityToDto(ocorrencia),
+    );
   }
 
   async findAll(params: FindAllParameters): Promise<OcorrenciasDto[]> {
@@ -81,6 +86,22 @@ export class OcorrenciasService {
       idOcorrencias,
       this.mapDtoToEntity(ocorrencia),
     );
+  }
+
+  async updateDescricao(idOcorrencias: number, descricao: string) {
+    const foundOcorrencia = await this.ocorrenciaRepository.findOne({
+      where: { idOcorrencias },
+    });
+
+    if (!foundOcorrencia) {
+      throw new HttpException(
+        `Item with id ${idOcorrencias} not found`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    // Atualiza apenas o campo descricao
+    await this.ocorrenciaRepository.update(idOcorrencias, { descricao });
   }
 
   async remove(idOcorrencia: number) {
