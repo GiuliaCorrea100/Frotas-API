@@ -17,6 +17,7 @@ export class PercursoService {
       saidaHora: new Date(),
       localDestino: percurso.localDestino,
       saidaOdometro: percurso.saidaOdometro,
+      localOrigem: percurso.localOrigem || 'Não informado'
     };
 
     const created = await this.percursoRepository.save(percursoToSave);
