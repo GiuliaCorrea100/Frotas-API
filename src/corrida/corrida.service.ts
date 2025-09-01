@@ -19,6 +19,7 @@ import {
   LessThanOrEqual,
   MoreThanOrEqual,
   In,
+  Like,
 } from 'typeorm';
 
 @Injectable()
