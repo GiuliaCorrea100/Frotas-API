@@ -60,9 +60,6 @@ export class AbastecimentoService {
       idCorrida: corrida,
     };
 
-    console.log(corrida);
-    console.log(abastecimento);
-
     const savedEntity =
       await this.abastecimentoRepository.save(abastecimentoToSave);
     return this.mapEntityToDto(savedEntity);
@@ -84,14 +81,6 @@ export class AbastecimentoService {
   }
 
   async findByIdCorrida(idCorrida: number): Promise<AbastecimentoDto[]> {
-    console.log('entrando na função de buscar abastecimento');
-    // const foundAbastecimentos = await this.abastecimentoRepository.find({
-    //   where: {
-    //     idCorrida: { idCorrida },
-    //   },
-    //   relations: ['idTipoCombustivel', 'idCorrida'],
-    // });
-
     const foundAbastecimentos = await this.abastecimentoRepository
       .createQueryBuilder('abastecimento')
       .leftJoinAndSelect('abastecimento.idTipoCombustivel', 'combustivel')
@@ -104,7 +93,6 @@ export class AbastecimentoService {
         `Nenhum abastecimento encontrado para corrida ${idCorrida}`,
       );
     }
-    console.log(foundAbastecimentos);
     return foundAbastecimentos.map((entity) => this.mapEntityToDto(entity));
   }
 

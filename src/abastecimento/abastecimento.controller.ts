@@ -38,7 +38,6 @@ export class AbastecimentoController {
   async findByIdCorrida(
     @Param('idCorrida') idCorrida: number,
   ): Promise<AbastecimentoDto[]> {
-    console.log(idCorrida);
     return this.abastecimentoService.findByIdCorrida(idCorrida);
   }
 
