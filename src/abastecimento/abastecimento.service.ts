@@ -60,6 +60,7 @@ export class AbastecimentoService {
       idCorrida: corrida,
     };
 
+    console.log(corrida);
     console.log(abastecimento);
 
     const savedEntity =
@@ -98,7 +99,7 @@ export class AbastecimentoService {
       .where('abastecimento.idCorrida = :idCorrida', { idCorrida })
       .getMany();
 
-    if (!foundAbastecimentos || foundAbastecimentos.length === 0) {
+    if (!foundAbastecimentos) {
       throw new NotFoundException(
         `Nenhum abastecimento encontrado para corrida ${idCorrida}`,
       );
