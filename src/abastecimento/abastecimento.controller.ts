@@ -34,6 +34,14 @@ export class AbastecimentoController {
     return this.abastecimentoService.findById(idAbastecimento);
   }
 
+  @Get('buscar-por-corrida/:idCorrida')
+  async findByIdCorrida(
+    @Param('idCorrida') idCorrida: number,
+  ): Promise<AbastecimentoDto[]> {
+    console.log(idCorrida);
+    return this.abastecimentoService.findByIdCorrida(idCorrida);
+  }
+
   @Get()
   async findAll(
     @Query() params: FindAllParameters,

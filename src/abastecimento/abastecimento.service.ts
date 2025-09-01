@@ -19,34 +19,32 @@ export class AbastecimentoService {
 
     @InjectRepository(TipoCombustivelEntity)
     private readonly tipoCombustivelRepository: Repository<TipoCombustivelEntity>,
-  
-  @InjectRepository(CorridasEntity)
+
+    @InjectRepository(CorridasEntity)
     private readonly corridaRepository: Repository<CorridasEntity>,
-  )
-  {}
+  ) {}
 
-  private abastecimento: AbastecimentoDto[] = [];
-
-  async create(abastecimento: AbastecimentoDto) {
-  // Verificar se o tipo de combustível existe
+  async create(abastecimento: AbastecimentoDto): Promise<AbastecimentoDto> {
+    // Verificar se o tipo de combustível existe
     const tipoCombustivel = await this.tipoCombustivelRepository.findOne({
-      where: { id_tipo_combustivel: abastecimento.id_tipo_combustivel },
+      where: { id_tipo_combustivel: abastecimento.idTipoCombustivel },
     });
 
     if (!tipoCombustivel) {
       throw new NotFoundException(
-        `Tipo de combustível com id ${abastecimento.id_tipo_combustivel} não encontrado`,
+        `Tipo de combustível com id ${abastecimento.idTipoCombustivel} não encontrado`,
       );
     }
-     const Corrida = await this.corridaRepository.findOne({
-      where: { idCorrida: abastecimento.id_corrida },
+
+    const corrida = await this.corridaRepository.findOne({
+      where: { idCorrida: abastecimento.idCorrida },
     });
 
-      if (!Corrida) {
-        throw new NotFoundException(
-          `Id corrida com id ${abastecimento.id_corrida} não encontrado`,
-        );
-      }
+    if (!corrida) {
+      throw new NotFoundException(
+        `Corrida com id ${abastecimento.idCorrida} não encontrada`,
+      );
+    }
 
     const abastecimentoToSave: AbastecimentoEntity = {
       litros: abastecimento.litros,
@@ -58,46 +56,71 @@ export class AbastecimentoService {
       valorUnitario: abastecimento.valorUnitario,
       valorMedio: abastecimento.valorMedio,
       justificativaAlteracao: abastecimento.justificativaAlteracao,
-
-      tipo_combustivel: tipoCombustivel,
-      corrida: Corrida
+      idTipoCombustivel: tipoCombustivel,
+      idCorrida: corrida,
     };
 
-    return await this.abastecimentoRepository.save(abastecimentoToSave);
+    console.log(abastecimento);
+
+    const savedEntity =
+      await this.abastecimentoRepository.save(abastecimentoToSave);
+    return this.mapEntityToDto(savedEntity);
   }
 
   async findById(idAbastecimento: number): Promise<AbastecimentoDto> {
     const foundAbastecimento = await this.abastecimentoRepository.findOne({
       where: { idAbastecimento },
-      relations: ['tipo_combustivel', 'corrida'],
+      relations: ['idTipoCombustivel', 'idCorrida'],
     });
 
     if (!foundAbastecimento) {
-      throw new NotFoundException(`Item with id ${idAbastecimento} not found`);
+      throw new NotFoundException(
+        `Abastecimento com id ${idAbastecimento} não encontrado`,
+      );
     }
 
     return this.mapEntityToDto(foundAbastecimento);
+  }
+
+  async findByIdCorrida(idCorrida: number): Promise<AbastecimentoDto[]> {
+    console.log('entrando na função de buscar abastecimento');
+    // const foundAbastecimentos = await this.abastecimentoRepository.find({
+    //   where: {
+    //     idCorrida: { idCorrida },
+    //   },
+    //   relations: ['idTipoCombustivel', 'idCorrida'],
+    // });
+
+    const foundAbastecimentos = await this.abastecimentoRepository
+      .createQueryBuilder('abastecimento')
+      .leftJoinAndSelect('abastecimento.idTipoCombustivel', 'combustivel')
+      .leftJoinAndSelect('abastecimento.idCorrida', 'corrida')
+      .where('abastecimento.idCorrida = :idCorrida', { idCorrida })
+      .getMany();
+
+    if (!foundAbastecimentos || foundAbastecimentos.length === 0) {
+      throw new NotFoundException(
+        `Nenhum abastecimento encontrado para corrida ${idCorrida}`,
+      );
+    }
+    console.log(foundAbastecimentos);
+    return foundAbastecimentos.map((entity) => this.mapEntityToDto(entity));
   }
 
   async findAll(params: FindAllParameters): Promise<AbastecimentoDto[]> {
     const searchParams: FindOptionsWhere<AbastecimentoEntity> = {};
 
     if (params.dataAbastecimento) {
-      searchParams.dataAbastecimento = Like(`%${params.dataAbastecimento}`);
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+      searchParams.dataAbastecimento = Like(`%${params.dataAbastecimento}%`);
     }
 
-    //  if (params.tipoCombustivel) {
-    //   searchParams.tipo_combustivel = Like(`%${params.tipoCombustivel}`);
-    //}
-
-    const abastecimentoFound = await this.abastecimentoRepository.find({
+    const abastecimentosFound = await this.abastecimentoRepository.find({
       where: searchParams,
-      relations: ['tipo_combustivel', 'corrida'],
+      relations: ['idTipoCombustivel', 'idCorrida'],
     });
 
-    return abastecimentoFound.map((AbastecimentoEntity) =>
-      this.mapEntityToDto(AbastecimentoEntity),
-    );
+    return abastecimentosFound.map((entity) => this.mapEntityToDto(entity));
   }
 
   async update(idAbastecimento: number, abastecimento: AbastecimentoDto) {
@@ -107,15 +130,44 @@ export class AbastecimentoService {
 
     if (!foundAbastecimento) {
       throw new HttpException(
-        `Item with id ${abastecimento.idAbastecimento} not found`,
+        `Abastecimento com id ${idAbastecimento} não encontrado`,
         HttpStatus.BAD_REQUEST,
       );
     }
 
-    await this.abastecimentoRepository.update(
-      idAbastecimento,
-      this.mapDtoToentity(abastecimento),
-    );
+    // Verificar se precisa atualizar as relações
+    const updateData: Partial<AbastecimentoEntity> =
+      this.mapDtoToEntity(abastecimento);
+
+    // Se houver alteração no tipo de combustível, carregar a entidade
+    if (abastecimento.idTipoCombustivel !== undefined) {
+      const tipoCombustivel = await this.tipoCombustivelRepository.findOne({
+        where: { id_tipo_combustivel: abastecimento.idTipoCombustivel },
+      });
+
+      if (!tipoCombustivel) {
+        throw new NotFoundException(
+          `Tipo de combustível com id ${abastecimento.idTipoCombustivel} não encontrado`,
+        );
+      }
+      updateData.idTipoCombustivel = tipoCombustivel;
+    }
+
+    // Se houver alteração na corrida, carregar a entidade
+    if (abastecimento.idCorrida !== undefined) {
+      const corrida = await this.corridaRepository.findOne({
+        where: { idCorrida: abastecimento.idCorrida },
+      });
+
+      if (!corrida) {
+        throw new NotFoundException(
+          `Corrida com id ${abastecimento.idCorrida} não encontrada`,
+        );
+      }
+      updateData.idCorrida = corrida;
+    }
+
+    await this.abastecimentoRepository.update(idAbastecimento, updateData);
   }
 
   async remove(idAbastecimento: number) {
@@ -123,47 +175,41 @@ export class AbastecimentoService {
 
     if (!result.affected) {
       throw new HttpException(
-        `Item with id ${idAbastecimento} not found`,
+        `Abastecimento com id ${idAbastecimento} não encontrado`,
         HttpStatus.BAD_REQUEST,
       );
     }
   }
 
-  private mapEntityToDto(
-    AbastecimentoEntity: AbastecimentoEntity,
-  ): AbastecimentoDto {
+  private mapEntityToDto(entity: AbastecimentoEntity): AbastecimentoDto {
     return {
-      idAbastecimento: AbastecimentoEntity.idAbastecimento,
-      litros: AbastecimentoEntity.litros,
-      codPagamento: AbastecimentoEntity.codPagamento,
-      precoFinal: AbastecimentoEntity.precoFinal,
-      dataAbastecimento: AbastecimentoEntity.dataAbastecimento,
-
-      valorUnitarioLitro: AbastecimentoEntity.valorUnitarioLitro,
-      valorMedioLitro: AbastecimentoEntity.valorMedioLitro,
-      valorUnitario: AbastecimentoEntity.valorUnitario,
-      valorMedio: AbastecimentoEntity.valorMedio,
-      justificativaAlteracao: AbastecimentoEntity.justificativaAlteracao,
-
-      id_tipo_combustivel: AbastecimentoEntity.tipo_combustivel?.id_tipo_combustivel,
-      id_corrida: AbastecimentoEntity.corrida?.idCorrida,
+      idAbastecimento: entity.idAbastecimento,
+      litros: entity.litros,
+      codPagamento: entity.codPagamento,
+      precoFinal: entity.precoFinal,
+      dataAbastecimento: entity.dataAbastecimento,
+      valorUnitarioLitro: entity.valorUnitarioLitro,
+      valorMedioLitro: entity.valorMedioLitro,
+      valorUnitario: entity.valorUnitario,
+      valorMedio: entity.valorMedio,
+      justificativaAlteracao: entity.justificativaAlteracao,
+      idTipoCombustivel: entity.idTipoCombustivel?.id_tipo_combustivel,
+      idCorrida: entity.idCorrida?.idCorrida,
     };
   }
 
-  private mapDtoToentity(
-    AbastecimentoDto: AbastecimentoDto,
-  ): Partial<AbastecimentoEntity> {
+  private mapDtoToEntity(dto: AbastecimentoDto): Partial<AbastecimentoEntity> {
     return {
-      litros: AbastecimentoDto.litros,
-      codPagamento: AbastecimentoDto.codPagamento,
-      precoFinal: AbastecimentoDto.precoFinal,
-      dataAbastecimento: AbastecimentoDto.dataAbastecimento,
-
-      valorUnitarioLitro: AbastecimentoDto.valorUnitarioLitro,
-      valorMedioLitro: AbastecimentoDto.valorMedioLitro,
-      valorUnitario: AbastecimentoDto.valorUnitario,
-      valorMedio: AbastecimentoDto.valorMedio,
-      justificativaAlteracao: AbastecimentoDto.justificativaAlteracao,
+      litros: dto.litros,
+      codPagamento: dto.codPagamento,
+      precoFinal: dto.precoFinal,
+      dataAbastecimento: dto.dataAbastecimento,
+      valorUnitarioLitro: dto.valorUnitarioLitro,
+      valorMedioLitro: dto.valorMedioLitro,
+      valorUnitario: dto.valorUnitario,
+      valorMedio: dto.valorMedio,
+      justificativaAlteracao: dto.justificativaAlteracao,
+      // As relações (idTipoCombustivel e idCorrida) são tratadas separadamente no update
     };
   }
 }
