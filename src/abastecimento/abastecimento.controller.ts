@@ -5,6 +5,7 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Put,
   Query,
@@ -15,6 +16,7 @@ import {
   FindAllParameters,
 } from './abastecimento.dto';
 import { AbastecimentoService } from './abastecimento.service';
+//import { TipoCombustivelController } from 'src/tipo_combustivel/tipo_combustivel.controller';
 
 @Controller('abastecimento')
 export class AbastecimentoController {
@@ -48,6 +50,23 @@ export class AbastecimentoController {
     return this.abastecimentoService.findAll(params);
   }
 
+  @Patch(':id/abastecimento')
+  async updateAbastecimento(
+    @Param('id') idAbastecimento: number,
+    @Body('precoFinal') precoFinal: number,
+    @Body('valorUnitario') valorUnitario: number,
+    @Body('tipoCombustivel') TipoCombustivel: number,
+    @Body('litros') litros: number,
+  ) {
+    return this.abastecimentoService.updateAbastecimento(
+      idAbastecimento,
+      precoFinal,
+      valorUnitario,
+      TipoCombustivel,
+      litros,
+    );
+  }
+
   @Put('/:idAbastecimento')
   async update(
     @Param() params: AbastecimentoRouteParameters,
@@ -61,6 +80,7 @@ export class AbastecimentoController {
       abastecimento,
     );
   }
+
   @Delete('/:idAbastecimento')
   remove(@Param('idAbastecimento') idAbastecimento: number) {
     return this.abastecimentoService.remove(idAbastecimento);

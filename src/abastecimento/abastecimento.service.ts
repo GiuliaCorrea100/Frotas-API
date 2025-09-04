@@ -159,6 +159,31 @@ export class AbastecimentoService {
     await this.abastecimentoRepository.update(idAbastecimento, updateData);
   }
 
+  async updateAbastecimento(
+    idAbastecimento: number,
+    precoFinal: number,
+    valorUnitario: number,
+    TipoCombustivel: number,
+    litros: number,
+  ) {
+    const foundAbastecimento = await this.abastecimentoRepository.findOne({
+      where: { idAbastecimento },
+    });
+    if (!foundAbastecimento) {
+      throw new HttpException(
+        `Item with id ${idAbastecimento} not found`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    foundAbastecimento.litros = litros;
+    foundAbastecimento.precoFinal = precoFinal;
+    foundAbastecimento.valorUnitario = valorUnitario;
+    //foundAbastecimento.idTipoCombustivel = TipoCombustivel;
+
+    return await this.abastecimentoRepository.save(foundAbastecimento);
+  }
+
   async remove(idAbastecimento: number) {
     const result = await this.abastecimentoRepository.delete(idAbastecimento);
 
