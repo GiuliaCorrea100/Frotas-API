@@ -15,7 +15,7 @@ export class PercursoService {
     const percursoToSave = {
       ...percurso,
       saidaHora: new Date(),
-      localDestino: percurso.localDestino,
+      localDestino: percurso.localDestino.toUpperCase(),
       saidaOdometro: percurso.saidaOdometro,
       localOrigem: percurso.localOrigem || 'Não informado'
     };
