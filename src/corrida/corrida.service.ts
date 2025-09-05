@@ -64,6 +64,9 @@ export class CorridaService {
   }
 
   async create(corrida: CorridaDto): Promise<CorridaDto> {
+
+    corrida.local_de_saida = corrida.local_de_saida.toUpperCase();
+
     const conflitoMotorista = await this.verificarConflitoDeCorrida(
       corrida.idMotorista,
       new Date(corrida.dataInicio),
@@ -204,18 +207,19 @@ export class CorridaService {
       );
     }
 
-    // Atualiza apenas os campos enviados
     await this.corridaRepository.update(idCorrida, {
       dataInicio: dados.dataInicio ?? corrida.dataInicio,
       dataTermino: dados.dataTermino ?? corrida.dataTermino,
       idMotorista: dados.idMotorista ?? corrida.idMotorista,
-      //idCarros: dados.id ?? corrida.idVeiculo,
     });
 
     return { message: 'Edição salva com sucesso' };
   }
 
   async update(idCorrida: number, corrida: CorridaDto) {
+
+    corrida.local_de_saida = corrida.local_de_saida.toUpperCase();
+
     const foundCorrida = await this.corridaRepository.findOne({
       where: { idCorrida },
     });
