@@ -5,6 +5,7 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Put,
   Query,
@@ -34,11 +35,26 @@ export class AbastecimentoController {
     return this.abastecimentoService.findById(idAbastecimento);
   }
 
+  @Get('buscar-por-corrida/:idCorrida')
+  async findByIdCorrida(
+    @Param('idCorrida') idCorrida: number,
+  ): Promise<AbastecimentoDto[]> {
+    return this.abastecimentoService.findByIdCorrida(idCorrida);
+  }
+
   @Get()
   async findAll(
     @Query() params: FindAllParameters,
   ): Promise<AbastecimentoDto[]> {
     return this.abastecimentoService.findAll(params);
+  }
+
+  @Patch(':id/abastecimento')
+  async updateAbastecimento(
+    @Param('id') id: number,
+    @Body() abastecimento: AbastecimentoDto,
+  ) {
+    return this.abastecimentoService.updateAbastecimento(id, abastecimento);
   }
 
   @Put('/:idAbastecimento')
@@ -54,6 +70,7 @@ export class AbastecimentoController {
       abastecimento,
     );
   }
+
   @Delete('/:idAbastecimento')
   remove(@Param('idAbastecimento') idAbastecimento: number) {
     return this.abastecimentoService.remove(idAbastecimento);

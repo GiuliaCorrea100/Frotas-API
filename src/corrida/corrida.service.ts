@@ -120,10 +120,8 @@ export class CorridaService {
     return this.mapEntityToDto(foundCorrida);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async findAll(params: FindAllParameters): Promise<CorridaDto[]> {
     const searchParams: FindOptionsWhere<CorridasEntity> = {};
-
 
     if (params.local_de_saida) {
       searchParams.local_de_saida = Like(`%${params.local_de_saida}%`);
@@ -157,8 +155,7 @@ export class CorridaService {
     await this.corridaRepository.save(foundCorrida);
   }
 
-
- async atualizarSituacao(idCorrida: number, situacao: string): Promise<void> {
+  async atualizarSituacao(idCorrida: number, situacao: string): Promise<void> {
     const foundCorrida = await this.corridaRepository.findOne({
       where: { idCorrida },
     });
@@ -168,10 +165,10 @@ export class CorridaService {
     }
 
     const transicoesPermitidas = {
-      'AGENDADA': ['ANDAMENTO', 'CANCELADA'],
-      'ANDAMENTO': ['FINALIZADA', 'CANCELADA'],
-      'FINALIZADA': [],
-      'CANCELADA': []
+      AGENDADA: ['ANDAMENTO', 'CANCELADA'],
+      ANDAMENTO: ['FINALIZADA', 'CANCELADA'],
+      FINALIZADA: [],
+      CANCELADA: [],
     };
 
     const situacaoAtual = foundCorrida.situacao;
@@ -179,7 +176,7 @@ export class CorridaService {
     if (!transicoesPermitidas[situacaoAtual]?.includes(situacao)) {
       throw new HttpException(
         `Transição de situação de ${situacaoAtual} para ${situacao} não é permitida`,
-        HttpStatus.BAD_REQUEST
+        HttpStatus.BAD_REQUEST,
       );
     }
 
@@ -301,14 +298,20 @@ export class CorridaService {
     });
 
     const corridaAtiva =
-      corridasEmAndamento.length > 0 ? corridasEmAndamento[0] :
-      corridasAgendadasHoje.length > 0 ? corridasAgendadasHoje[0] :
-      corridasFinalizadasHoje.length > 0 ? corridasFinalizadasHoje[0] : null;
+      corridasEmAndamento.length > 0
+        ? corridasEmAndamento[0]
+        : corridasAgendadasHoje.length > 0
+          ? corridasAgendadasHoje[0]
+          : corridasFinalizadasHoje.length > 0
+            ? corridasFinalizadasHoje[0]
+            : null;
 
     return {
       corridaDeHoje: corridaAtiva ? this.mapEntityToDto(corridaAtiva) : null,
       proximasCorridas: [
-        ...corridasAgendadasHoje.slice(1).map((entity) => this.mapEntityToDto(entity)),
+        ...corridasAgendadasHoje
+          .slice(1)
+          .map((entity) => this.mapEntityToDto(entity)),
         ...proximasCorridas.map((entity) => this.mapEntityToDto(entity)),
       ],
     };
