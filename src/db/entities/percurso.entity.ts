@@ -20,7 +20,13 @@ export class PercursoEntity {
   @Column({ name: 'chegada_hora', nullable: true })
   chegadaHora?: Date;
 
-  @Column({ name: 'chegada_odometro', type: 'numeric', precision: 10, scale: 2, nullable: true })
+  @Column({
+    name: 'chegada_odometro',
+    type: 'numeric',
+    precision: 10,
+    scale: 2,
+    nullable: true,
+  })
   chegadaodometro?: number;
 
   @Column({ name: 'local_origem', nullable: true })

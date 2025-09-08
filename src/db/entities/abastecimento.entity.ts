@@ -47,14 +47,9 @@ export class AbastecimentoEntity {
   //CHAVE ESTRANGEIRA
   @ManyToOne(() => TipoCombustivelEntity)
   @JoinColumn({ name: 'id_tipo_combustivel' })
-  tipo_combustivel: TipoCombustivelEntity;
+  idTipoCombustivel: TipoCombustivelEntity;
 
-
-    @ManyToOne(() =>  CorridasEntity)
-    @JoinColumn({ name: 'id_corrida' })
-    corrida: CorridasEntity;
-
+  @ManyToOne(() => CorridasEntity)
+  @JoinColumn({ name: 'id_corrida' })
+  idCorrida: CorridasEntity;
 }
-
-
- 
