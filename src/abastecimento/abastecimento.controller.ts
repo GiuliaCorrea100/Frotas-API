@@ -16,7 +16,6 @@ import {
   FindAllParameters,
 } from './abastecimento.dto';
 import { AbastecimentoService } from './abastecimento.service';
-//import { TipoCombustivelController } from 'src/tipo_combustivel/tipo_combustivel.controller';
 
 @Controller('abastecimento')
 export class AbastecimentoController {
@@ -52,19 +51,10 @@ export class AbastecimentoController {
 
   @Patch(':id/abastecimento')
   async updateAbastecimento(
-    @Param('id') idAbastecimento: number,
-    @Body('precoFinal') precoFinal: number,
-    @Body('valorUnitario') valorUnitario: number,
-    @Body('tipoCombustivel') TipoCombustivel: number,
-    @Body('litros') litros: number,
+    @Param('id') id: number,
+    @Body() abastecimento: AbastecimentoDto,
   ) {
-    return this.abastecimentoService.updateAbastecimento(
-      idAbastecimento,
-      precoFinal,
-      valorUnitario,
-      TipoCombustivel,
-      litros,
-    );
+    return this.abastecimentoService.updateAbastecimento(id, abastecimento);
   }
 
   @Put('/:idAbastecimento')
