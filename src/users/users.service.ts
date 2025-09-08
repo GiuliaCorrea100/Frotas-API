@@ -18,8 +18,7 @@ export class UsersService {
   private readonly users: UsersDto[] = [];
 
   async findByName(nome: string): Promise<UsersDto[]> {
-    const usersFound = await this.UsersRepository
-      .createQueryBuilder('user')
+    const usersFound = await this.UsersRepository.createQueryBuilder('user')
       .where('LOWER(user.nome) LIKE LOWER(:nome)', { nome: `%${nome}%` })
       .getMany();
 
@@ -28,8 +27,7 @@ export class UsersService {
     }
 
     return usersFound.map((userEntity) => this.mapEntityToDto(userEntity));
-}
-
+  }
 
   async create(users: UsersDto) {
     const usersToSave: UserEntity = {
