@@ -192,7 +192,7 @@ export class PercursoController {
     }
   }
 
-  @Patch(':id/percurso')
+  @Patch(':id/atualizar-percurso')
   async updatePercurso(@Param('id') id: number, @Body() percuso: PercursoDto) {
     return this.percursoService.updatePercurso(id, percuso);
   }
