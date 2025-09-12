@@ -1,4 +1,3 @@
-
 export class AbastecimentoDto {
   idAbastecimento?: number;
   litros: number;
@@ -14,8 +13,8 @@ export class AbastecimentoDto {
   justificativaAlteracao?: string;
 
   //chave estrangeira
-  id_tipo_combustivel?: number;
-  id_corrida?: number;
+  idTipoCombustivel?: number;
+  idCorrida?: number;
 }
 
 export interface FindAllParameters {
