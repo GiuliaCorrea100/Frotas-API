@@ -96,3 +96,34 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+
+
+
+## Test Docker Deploy
+
+- Remove paths
+```
+rm -rf node_modules/ && rm -rf dist
+```
+
+- Emulate build step (original is .gitlab-ci.yaml)
+```sh
+docker run --rm \
+-w /usr/src/app \
+-v $(pwd):/usr/src/app \
+node:20.19.3-alpine3.22 \
+sh -c "npm ci && npm run build"
+```
+
+- Emulate step build (original is .gitlab-ci.yaml)
+```sh
+docker build -t gitlab.unir.br/cdsis/frotas-api:manual .
+```
+
+- Emulate step run (original is server)
+```sh
+docker run --rm \
+-p 3000:3000 \
+--env-file .env \
+gitlab.unir.br/cdsis/frotas-api:manual
+```
