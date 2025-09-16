@@ -56,7 +56,7 @@ export class CorridaController {
       dataInicio?: Date;
       dataTermino?: Date;
       idMotorista?: number;
-      idVeiculo?: number;
+      idCarros?: number;
     },
   ) {
     return this.corridaService.salvarEdicaoModal(idCorrida, dados);

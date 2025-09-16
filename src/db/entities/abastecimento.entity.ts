@@ -44,10 +44,13 @@ export class AbastecimentoEntity {
   @Column({ type: 'varchar', name: 'justificativa_alteracao', nullable: true })
   justificativaAlteracao?: string;
 
+  @Column({ type: 'int', name: 'id_tipo_combustivel' })
+  idTipoCombustivel: number;
+
   //CHAVE ESTRANGEIRA
   @ManyToOne(() => TipoCombustivelEntity)
   @JoinColumn({ name: 'id_tipo_combustivel' })
-  idTipoCombustivel: TipoCombustivelEntity;
+  tipoCombustivel?: TipoCombustivelEntity;
 
   @ManyToOne(() => CorridasEntity)
   @JoinColumn({ name: 'id_corrida' })

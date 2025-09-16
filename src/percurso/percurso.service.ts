@@ -32,12 +32,6 @@ export class PercursoService {
     idCorrida: number,
     percurso: PercursoDto,
   ): Promise<PercursoDto> {
-    // const corrida = await this.corridaRepository.findOne({
-    //   where: { idCorrida },
-    // });
-    // if (!corrida) {
-    //   throw new NotFoundException(`Corrida ${idCorrida} não encontrada`);
-    // }
     const entity = new PercursoEntity();
     entity.idCorrida = idCorrida;
     entity.localOrigem = percurso.localOrigem;

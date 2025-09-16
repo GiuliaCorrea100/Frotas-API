@@ -64,7 +64,6 @@ export class CorridaService {
   }
 
   async create(corrida: CorridaDto): Promise<CorridaDto> {
-
     corrida.local_de_saida = corrida.local_de_saida.toUpperCase();
 
     const conflitoMotorista = await this.verificarConflitoDeCorrida(
@@ -173,6 +172,7 @@ export class CorridaService {
 
     const situacaoAtual = foundCorrida.situacao;
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     if (!transicoesPermitidas[situacaoAtual]?.includes(situacao)) {
       throw new HttpException(
         `Transição de situação de ${situacaoAtual} para ${situacao} não é permitida`,
@@ -190,7 +190,7 @@ export class CorridaService {
       dataInicio?: Date;
       dataTermino?: Date;
       idMotorista?: number;
-      idVeiculo?: number;
+      idCarros?: number;
     },
   ) {
     const corrida = await this.corridaRepository.findOne({
@@ -208,13 +208,13 @@ export class CorridaService {
       dataInicio: dados.dataInicio ?? corrida.dataInicio,
       dataTermino: dados.dataTermino ?? corrida.dataTermino,
       idMotorista: dados.idMotorista ?? corrida.idMotorista,
+      idCarros: dados.idCarros,
     });
 
     return { message: 'Edição salva com sucesso' };
   }
 
   async update(idCorrida: number, corrida: CorridaDto) {
-
     corrida.local_de_saida = corrida.local_de_saida.toUpperCase();
 
     const foundCorrida = await this.corridaRepository.findOne({
