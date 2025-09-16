@@ -26,9 +26,11 @@ export class AbastecimentoService {
 
   async create(abastecimento: AbastecimentoDto): Promise<AbastecimentoDto> {
     // Verificar se o tipo de combustível existe
+    //arrumar essa busca aqui
     const tipoCombustivel = await this.tipoCombustivelRepository.findOne({
       where: { id_tipo_combustivel: abastecimento.idTipoCombustivel },
     });
+    console.log(tipoCombustivel);
 
     if (!tipoCombustivel) {
       throw new NotFoundException(
@@ -56,7 +58,7 @@ export class AbastecimentoService {
       valorUnitario: abastecimento.valorUnitario,
       valorMedio: abastecimento.valorMedio,
       justificativaAlteracao: abastecimento.justificativaAlteracao,
-      idTipoCombustivel: tipoCombustivel,
+      idTipoCombustivel: tipoCombustivel, //aqui ta salvando a relação inteira e ta dando problema de relacionar o id (numero) com o objeto inteiro
       idCorrida: corrida,
     };
 
