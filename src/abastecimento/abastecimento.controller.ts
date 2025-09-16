@@ -28,6 +28,11 @@ export class AbastecimentoController {
     return await this.abastecimentoService.create(abastecimento);
   }
 
+  @Get('gastos-por-campus/')
+  async getGastosPorCampus() {
+    return this.abastecimentoService.getGastosPorCampus();
+  }
+
   @Get('/:idAbastecimento')
   async findById(
     @Param('idAbastecimento') idAbastecimento: number,
@@ -75,4 +80,7 @@ export class AbastecimentoController {
   remove(@Param('idAbastecimento') idAbastecimento: number) {
     return this.abastecimentoService.remove(idAbastecimento);
   }
+
+ 
+
 }
