@@ -61,6 +61,19 @@ export class CarrosService {
     return this.mapEntityToDto(foundCarro);
   }
 
+  async findByPlaca(placa: string): Promise<CarrosDto[]> {
+    const carroFound = await this.carrosRepository
+      .createQueryBuilder('carro')
+      .where('LOWER(carro.placa) LIKE LOWER(:placa)', { placa: `%${placa}%` })
+      .getMany();
+
+    if (!carroFound || carroFound.length === 0) {
+      return [];
+    }
+
+    return carroFound.map((CarrosEntity) => this.mapEntityToDto(CarrosEntity));
+  }
+
   async findAll(params: FindAllParameters): Promise<CarrosDto[]> {
     const searchParams: FindOptionsWhere<CarrosEntity> = {};
 

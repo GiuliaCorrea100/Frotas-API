@@ -26,9 +26,11 @@ export class AbastecimentoService {
 
   async create(abastecimento: AbastecimentoDto): Promise<AbastecimentoDto> {
     // Verificar se o tipo de combustível existe
+    //arrumar essa busca aqui
     const tipoCombustivel = await this.tipoCombustivelRepository.findOne({
       where: { id_tipo_combustivel: abastecimento.idTipoCombustivel },
     });
+    console.log(tipoCombustivel);
 
     if (!tipoCombustivel) {
       throw new NotFoundException(
@@ -46,6 +48,7 @@ export class AbastecimentoService {
       );
     }
 
+    console.log('abastecimento vindo do front:', abastecimento);
     const abastecimentoToSave: AbastecimentoEntity = {
       litros: abastecimento.litros,
       codPagamento: abastecimento.codPagamento,
@@ -56,9 +59,11 @@ export class AbastecimentoService {
       valorUnitario: abastecimento.valorUnitario,
       valorMedio: abastecimento.valorMedio,
       justificativaAlteracao: abastecimento.justificativaAlteracao,
-      idTipoCombustivel: tipoCombustivel,
+      idTipoCombustivel: abastecimento.idTipoCombustivel, //aqui ta salvando a relação inteira e ta dando problema de relacionar o id (numero)
       idCorrida: corrida,
     };
+
+    console.log('abastecimento indo salvar: ', abastecimento);
 
     const savedEntity =
       await this.abastecimentoRepository.save(abastecimentoToSave);
@@ -68,7 +73,7 @@ export class AbastecimentoService {
   async findById(idAbastecimento: number): Promise<AbastecimentoDto> {
     const foundAbastecimento = await this.abastecimentoRepository.findOne({
       where: { idAbastecimento },
-      relations: ['idTipoCombustivel', 'idCorrida'],
+      relations: ['tipoCombustivel', 'idCorrida'],
     });
 
     if (!foundAbastecimento) {
@@ -83,7 +88,7 @@ export class AbastecimentoService {
   async findByIdCorrida(idCorrida: number): Promise<AbastecimentoDto[]> {
     const foundAbastecimentos = await this.abastecimentoRepository
       .createQueryBuilder('abastecimento')
-      .leftJoinAndSelect('abastecimento.idTipoCombustivel', 'combustivel')
+      .leftJoinAndSelect('abastecimento.tipoCombustivel', 'combustivel')
       .leftJoinAndSelect('abastecimento.idCorrida', 'corrida')
       .where('abastecimento.idCorrida = :idCorrida', { idCorrida })
       .getMany();
@@ -106,7 +111,7 @@ export class AbastecimentoService {
 
     const abastecimentosFound = await this.abastecimentoRepository.find({
       where: searchParams,
-      relations: ['idTipoCombustivel', 'idCorrida'],
+      relations: ['tipoCombustivel', 'idCorrida'],
     });
 
     return abastecimentosFound.map((entity) => this.mapEntityToDto(entity));
@@ -139,7 +144,7 @@ export class AbastecimentoService {
           `Tipo de combustível com id ${abastecimento.idTipoCombustivel} não encontrado`,
         );
       }
-      updateData.idTipoCombustivel = tipoCombustivel;
+      updateData.idTipoCombustivel = abastecimento.idTipoCombustivel;
     }
 
     // Se houver alteração na corrida, carregar a entidade
@@ -201,7 +206,7 @@ export class AbastecimentoService {
       valorUnitario: entity.valorUnitario,
       valorMedio: entity.valorMedio,
       justificativaAlteracao: entity.justificativaAlteracao,
-      idTipoCombustivel: entity.idTipoCombustivel?.id_tipo_combustivel,
+      idTipoCombustivel: entity.idTipoCombustivel,
       idCorrida: entity.idCorrida?.idCorrida,
     };
   }

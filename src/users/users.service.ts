@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { UsersDto, FindAllParameters } from './users.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Equal, FindOptionsWhere, Like } from 'typeorm';
+import { Repository, Equal, FindOptionsWhere } from 'typeorm';
 import { UserEntity } from 'src/db/entities/users.entity';
 
 @Injectable()

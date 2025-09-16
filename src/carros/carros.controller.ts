@@ -30,6 +30,11 @@ export class CarrosController {
     return this.carrosService.findById(idCarros);
   }
 
+  @Get('/buscar-placa/:placa')
+  async findByPlaca(@Param('placa') placa: string): Promise<CarrosDto[]> {
+    return this.carrosService.findByPlaca(placa);
+  }
+
   @Get()
   async findAll(@Query() params: FindAllParameters): Promise<CarrosDto[]> {
     return this.carrosService.findAll(params);
