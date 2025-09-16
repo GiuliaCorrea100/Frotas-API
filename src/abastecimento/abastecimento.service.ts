@@ -189,6 +189,22 @@ export class AbastecimentoService {
     }
   }
 
+ async getGastosPorCampus(): Promise<{ campus: string; totalGasto: number }[]> {
+    const gastos = await this.abastecimentoRepository
+      .createQueryBuilder('abastecimento')
+      .innerJoin('abastecimento.idCorrida', 'corrida')
+      .innerJoin('corrida.carro', 'carro')
+      .groupBy('carro.localidade_fisica')
+      .select('carro.localidade_fisica', 'campus')
+      .addSelect('SUM(abastecimento.precoFinal)', 'totalGasto')
+      .getRawMany();
+
+    return gastos.map((item) => ({
+      campus: item.campus,
+      totalGasto: parseFloat(item.totalGasto),
+    }));
+  }
+
   private mapEntityToDto(entity: AbastecimentoEntity): AbastecimentoDto {
     return {
       idAbastecimento: entity.idAbastecimento,
