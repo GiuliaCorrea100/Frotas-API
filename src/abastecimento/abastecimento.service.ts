@@ -58,7 +58,7 @@ export class AbastecimentoService {
       valorUnitario: abastecimento.valorUnitario,
       valorMedio: abastecimento.valorMedio,
       justificativaAlteracao: abastecimento.justificativaAlteracao,
-      idTipoCombustivel: tipoCombustivel, //aqui ta salvando a relação inteira e ta dando problema de relacionar o id (numero) com o objeto inteiro
+      idTipoCombustivel: tipoCombustivel, //aqui ta salvando a relação inteira e ta dando problema de relacionar o id (numero)
       idCorrida: corrida,
     };
 
