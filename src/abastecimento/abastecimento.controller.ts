@@ -28,10 +28,10 @@ export class AbastecimentoController {
     return await this.abastecimentoService.create(abastecimento);
   }
 
-  @Get('gastos-por-campus/')
-  async getGastosPorCampus() {
-    return this.abastecimentoService.getGastosPorCampus();
-  }
+  @Get('consumo-medio-campus/')
+async getConsumoMedioPorCampus() {
+    return this.abastecimentoService.getConsumoMedioPorCampus();
+}
 
   @Get('/:idAbastecimento')
   async findById(
