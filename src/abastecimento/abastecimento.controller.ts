@@ -28,9 +28,9 @@ export class AbastecimentoController {
     return await this.abastecimentoService.create(abastecimento);
   }
 
-  @Get('consumo-medio-campus/')
-async getConsumoMedioPorCampus() {
-    return this.abastecimentoService.getConsumoMedioPorCampus();
+  @Get('consumoPorCampus/')
+  async ConsumoPorCampus() {
+    return this.abastecimentoService.ConsumoPorCampus();
 }
 
   @Get('/:idAbastecimento')

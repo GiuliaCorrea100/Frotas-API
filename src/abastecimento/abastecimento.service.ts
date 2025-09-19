@@ -194,31 +194,24 @@ export class AbastecimentoService {
     }
   }
 
- async getConsumoMedioPorCampus(): Promise<{ campus: string; consumoMedio: number; quilometragemTotal: number; litrosTotal: number }[]> {
+ async ConsumoPorCampus(): Promise<{ campus: string;  litrosTotal: number }[]> {
     try {
         const detalhesPorCampus = await this.abastecimentoRepository
             .createQueryBuilder('abastecimento')
             .innerJoin('abastecimento.idCorrida', 'corrida')
             .innerJoin('corrida.carro', 'carro')
             .where('abastecimento.litros > 0')
-            .andWhere('corrida.odometro_inicio IS NOT NULL')
-            .andWhere('corrida.odometro_fim IS NOT NULL')
-            .andWhere('corrida.odometro_fim > corrida.odometro_inicio')
             .groupBy('carro.localidade_fisica')
             .select('carro.localidade_fisica', 'campus')
-            .addSelect('SUM(corrida.odometro_fim - corrida.odometro_inicio)', 'quilometragemTotal')
             .addSelect('SUM(abastecimento.litros)', 'litrosTotal')
-            .addSelect('SUM(corrida.odometro_fim - corrida.odometro_inicio) / SUM(abastecimento.litros)', 'consumoMedio')
             .getRawMany();
 
         return detalhesPorCampus.map((item) => ({
             campus: item.campus || 'Não especificado',
-            consumoMedio: parseFloat(item.consumoMedio) || 0,
-            quilometragemTotal: parseFloat(item.quilometragemTotal) || 0,
             litrosTotal: parseFloat(item.litrosTotal) || 0
         }));
     } catch (error) {
-        console.error('Erro ao calcular consumo médio por campus:', error);
+        console.error('Erro ao calcular consumo por campus:', error);
         throw new HttpException(
             'Erro ao gerar relatório de consumo',
             HttpStatus.INTERNAL_SERVER_ERROR
