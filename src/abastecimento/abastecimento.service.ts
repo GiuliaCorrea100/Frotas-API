@@ -194,7 +194,8 @@ export class AbastecimentoService {
     }
   }
 
- async ConsumoPorCampus(): Promise<{ campus: string;  litrosTotal: number }[]> {
+// No backend - AbastecimentoService, atualize a função para aceitar ano
+async ConsumoPorCampus(): Promise<{ campus: string; litrosTotal: number }[]> {
     try {
         const detalhesPorCampus = await this.abastecimentoRepository
             .createQueryBuilder('abastecimento')
