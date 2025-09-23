@@ -130,6 +130,7 @@ export class OcorrenciasService {
     return {
       descricao: ocorrenciasDto.descricao,
       idCorrida: ocorrenciasDto.idCorrida,
-    };
+    dataRegistro: ocorrenciasDto.dataRegistro,  
+   };
   }
 }
