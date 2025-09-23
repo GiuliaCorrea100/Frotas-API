@@ -54,7 +54,7 @@ export class AbastecimentoController {
     return this.abastecimentoService.findAll(params);
   }
 
-  @Patch(':id/abastecimento')
+  @Patch(':id/edicao-abastecimento')
   async updateAbastecimento(
     @Param('id') id: number,
     @Body() abastecimento: AbastecimentoDto,
@@ -80,7 +80,4 @@ export class AbastecimentoController {
   remove(@Param('idAbastecimento') idAbastecimento: number) {
     return this.abastecimentoService.remove(idAbastecimento);
   }
-
- 
-
 }

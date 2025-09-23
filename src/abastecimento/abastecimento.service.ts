@@ -26,11 +26,10 @@ export class AbastecimentoService {
 
   async create(abastecimento: AbastecimentoDto): Promise<AbastecimentoDto> {
     // Verificar se o tipo de combustível existe
-    //arrumar essa busca aqui
+
     const tipoCombustivel = await this.tipoCombustivelRepository.findOne({
       where: { id_tipo_combustivel: abastecimento.idTipoCombustivel },
     });
-    console.log(tipoCombustivel);
 
     if (!tipoCombustivel) {
       throw new NotFoundException(
@@ -47,8 +46,6 @@ export class AbastecimentoService {
         `Corrida com id ${abastecimento.idCorrida} não encontrada`,
       );
     }
-
-    console.log('abastecimento vindo do front:', abastecimento);
     const abastecimentoToSave: AbastecimentoEntity = {
       litros: abastecimento.litros,
       codPagamento: abastecimento.codPagamento,
@@ -62,8 +59,6 @@ export class AbastecimentoService {
       idTipoCombustivel: abastecimento.idTipoCombustivel, //aqui ta salvando a relação inteira e ta dando problema de relacionar o id (numero)
       idCorrida: corrida,
     };
-
-    console.log('abastecimento indo salvar: ', abastecimento);
 
     const savedEntity =
       await this.abastecimentoRepository.save(abastecimentoToSave);
@@ -179,6 +174,7 @@ export class AbastecimentoService {
     foundAbastecimento.litros = abastecimento.litros;
     foundAbastecimento.precoFinal = abastecimento.precoFinal;
     foundAbastecimento.valorUnitario = abastecimento.valorUnitario;
+    foundAbastecimento.dataAbastecimento = abastecimento.dataAbastecimento;
 
     return await this.abastecimentoRepository.save(foundAbastecimento);
   }
@@ -233,6 +229,7 @@ async ConsumoPorCampus(): Promise<{ campus: string; litrosTotal: number }[]> {
       valorMedio: entity.valorMedio,
       justificativaAlteracao: entity.justificativaAlteracao,
       idTipoCombustivel: entity.idTipoCombustivel,
+      nomeTipoCombustivel: entity.tipoCombustivel?.nome ?? null,
       idCorrida: entity.idCorrida?.idCorrida,
     };
   }
