@@ -12,6 +12,8 @@ export class AbastecimentoDto {
   valorMedio: number;
   justificativaAlteracao?: string;
 
+  nomeTipoCombustivel?: string;
+
   //chave estrangeira
   idTipoCombustivel?: number;
   idCorrida?: number;
