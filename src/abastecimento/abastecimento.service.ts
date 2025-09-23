@@ -190,23 +190,31 @@ export class AbastecimentoService {
     }
   }
 
-  async getGastosPorCampus(): Promise<
-    { campus: string; totalGasto: number }[]
-  > {
-    const gastos = await this.abastecimentoRepository
-      .createQueryBuilder('abastecimento')
-      .innerJoin('abastecimento.idCorrida', 'corrida')
-      .innerJoin('corrida.carro', 'carro')
-      .groupBy('carro.localidade_fisica')
-      .select('carro.localidade_fisica', 'campus')
-      .addSelect('SUM(abastecimento.precoFinal)', 'totalGasto')
-      .getRawMany();
+// No backend - AbastecimentoService, atualize a função para aceitar ano
+async ConsumoPorCampus(): Promise<{ campus: string; litrosTotal: number }[]> {
+    try {
+        const detalhesPorCampus = await this.abastecimentoRepository
+            .createQueryBuilder('abastecimento')
+            .innerJoin('abastecimento.idCorrida', 'corrida')
+            .innerJoin('corrida.carro', 'carro')
+            .where('abastecimento.litros > 0')
+            .groupBy('carro.localidade_fisica')
+            .select('carro.localidade_fisica', 'campus')
+            .addSelect('SUM(abastecimento.litros)', 'litrosTotal')
+            .getRawMany();
 
-    return gastos.map((item) => ({
-      campus: item.campus,
-      totalGasto: parseFloat(item.totalGasto),
-    }));
-  }
+        return detalhesPorCampus.map((item) => ({
+            campus: item.campus || 'Não especificado',
+            litrosTotal: parseFloat(item.litrosTotal) || 0
+        }));
+    } catch (error) {
+        console.error('Erro ao calcular consumo por campus:', error);
+        throw new HttpException(
+            'Erro ao gerar relatório de consumo',
+            HttpStatus.INTERNAL_SERVER_ERROR
+        );
+    }
+}
 
   private mapEntityToDto(entity: AbastecimentoEntity): AbastecimentoDto {
     return {

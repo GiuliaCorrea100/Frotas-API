@@ -26,12 +26,12 @@ export class AbastecimentoController {
     @Body() abastecimento: AbastecimentoDto,
   ): Promise<AbastecimentoDto> {
     return await this.abastecimentoService.create(abastecimento);
-  }
+  }''
 
-  @Get('gastos-por-campus/')
-  async getGastosPorCampus() {
-    return this.abastecimentoService.getGastosPorCampus();
-  }
+  @Get('consumoPorCampus')
+  async ConsumoPorCampus() {
+    return this.abastecimentoService.ConsumoPorCampus();
+}
 
   @Get('/:idAbastecimento')
   async findById(
