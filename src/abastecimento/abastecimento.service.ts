@@ -51,10 +51,7 @@ export class AbastecimentoService {
       codPagamento: abastecimento.codPagamento,
       precoFinal: abastecimento.precoFinal,
       dataAbastecimento: abastecimento.dataAbastecimento,
-      valorUnitarioLitro: abastecimento.valorUnitarioLitro,
-      valorMedioLitro: abastecimento.valorMedioLitro,
       valorUnitario: abastecimento.valorUnitario,
-      valorMedio: abastecimento.valorMedio,
       justificativaAlteracao: abastecimento.justificativaAlteracao,
       idTipoCombustivel: abastecimento.idTipoCombustivel, //aqui ta salvando a relação inteira e ta dando problema de relacionar o id (numero)
       idCorrida: corrida,
@@ -190,31 +187,31 @@ export class AbastecimentoService {
     }
   }
 
-// No backend - AbastecimentoService, atualize a função para aceitar ano
-async ConsumoPorCampus(): Promise<{ campus: string; litrosTotal: number }[]> {
+  // No backend - AbastecimentoService, atualize a função para aceitar ano
+  async ConsumoPorCampus(): Promise<{ campus: string; litrosTotal: number }[]> {
     try {
-        const detalhesPorCampus = await this.abastecimentoRepository
-            .createQueryBuilder('abastecimento')
-            .innerJoin('abastecimento.idCorrida', 'corrida')
-            .innerJoin('corrida.carro', 'carro')
-            .where('abastecimento.litros > 0')
-            .groupBy('carro.localidade_fisica')
-            .select('carro.localidade_fisica', 'campus')
-            .addSelect('SUM(abastecimento.litros)', 'litrosTotal')
-            .getRawMany();
+      const detalhesPorCampus = await this.abastecimentoRepository
+        .createQueryBuilder('abastecimento')
+        .innerJoin('abastecimento.idCorrida', 'corrida')
+        .innerJoin('corrida.carro', 'carro')
+        .where('abastecimento.litros > 0')
+        .groupBy('carro.localidade_fisica')
+        .select('carro.localidade_fisica', 'campus')
+        .addSelect('SUM(abastecimento.litros)', 'litrosTotal')
+        .getRawMany();
 
-        return detalhesPorCampus.map((item) => ({
-            campus: item.campus || 'Não especificado',
-            litrosTotal: parseFloat(item.litrosTotal) || 0
-        }));
+      return detalhesPorCampus.map((item) => ({
+        campus: item.campus || 'Não especificado',
+        litrosTotal: parseFloat(item.litrosTotal) || 0,
+      }));
     } catch (error) {
-        console.error('Erro ao calcular consumo por campus:', error);
-        throw new HttpException(
-            'Erro ao gerar relatório de consumo',
-            HttpStatus.INTERNAL_SERVER_ERROR
-        );
+      console.error('Erro ao calcular consumo por campus:', error);
+      throw new HttpException(
+        'Erro ao gerar relatório de consumo',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
-}
+  }
 
   private mapEntityToDto(entity: AbastecimentoEntity): AbastecimentoDto {
     return {
@@ -223,10 +220,7 @@ async ConsumoPorCampus(): Promise<{ campus: string; litrosTotal: number }[]> {
       codPagamento: entity.codPagamento,
       precoFinal: entity.precoFinal,
       dataAbastecimento: entity.dataAbastecimento,
-      valorUnitarioLitro: entity.valorUnitarioLitro,
-      valorMedioLitro: entity.valorMedioLitro,
       valorUnitario: entity.valorUnitario,
-      valorMedio: entity.valorMedio,
       justificativaAlteracao: entity.justificativaAlteracao,
       idTipoCombustivel: entity.idTipoCombustivel,
       nomeTipoCombustivel: entity.tipoCombustivel?.nome ?? null,
@@ -240,10 +234,7 @@ async ConsumoPorCampus(): Promise<{ campus: string; litrosTotal: number }[]> {
       codPagamento: dto.codPagamento,
       precoFinal: dto.precoFinal,
       dataAbastecimento: dto.dataAbastecimento,
-      valorUnitarioLitro: dto.valorUnitarioLitro,
-      valorMedioLitro: dto.valorMedioLitro,
       valorUnitario: dto.valorUnitario,
-      valorMedio: dto.valorMedio,
       justificativaAlteracao: dto.justificativaAlteracao,
       // As relações (idTipoCombustivel e idCorrida) são tratadas separadamente no update
     };

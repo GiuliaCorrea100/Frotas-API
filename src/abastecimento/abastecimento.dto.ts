@@ -6,10 +6,7 @@ export class AbastecimentoDto {
   dataAbastecimento: string;
 
   // adicionei as colunas
-  valorUnitarioLitro: number;
-  valorMedioLitro: number;
   valorUnitario: number;
-  valorMedio: number;
   justificativaAlteracao?: string;
 
   nomeTipoCombustivel?: string;
