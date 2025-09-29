@@ -25,6 +25,7 @@ export class MultasService {
       placaVeiculo: multas.placaVeiculo,
       data: multas.data,
       numAutoInfracao: multas.numAutoInfracao,
+      deletada: multas.deletada,
     };
 
     return await this.MultasRepository.save(multasToSave);
@@ -78,6 +79,20 @@ export class MultasService {
     await this.MultasRepository.update(idMultas, this.mapDtoToEntity(multas));
   }
 
+  async softRemove(idMultas: number) {
+    const foundMulta = await this.MultasRepository.findOne({
+      where: { idMultas },
+    });
+
+    if (!foundMulta) {
+      throw new NotFoundException(`Item with id ${idMultas} not found`);
+    }
+
+    foundMulta.deletada = true;
+
+    await this.MultasRepository.save(foundMulta);
+  }
+
   async remove(idMultas: number) {
     const result = await this.MultasRepository.delete(idMultas);
 
@@ -98,6 +113,7 @@ export class MultasService {
       placaVeiculo: MultasEntity.placaVeiculo,
       data: MultasEntity.data,
       numAutoInfracao: MultasEntity.numAutoInfracao,
+      deletada: MultasEntity.deletada,
     };
   }
 
