@@ -7,6 +7,7 @@ import {
   Put,
   Delete,
   Query,
+  Patch,
 } from '@nestjs/common';
 import {
   MultasDto,
@@ -40,6 +41,11 @@ export class MultasController {
     @Body() multas: MultasDto,
   ) {
     await this.multasService.update(params.idMultas, multas);
+  }
+
+  @Patch('/deletar-multa/:idMultas')
+  async softRemove(@Param() idMultas: number): Promise<void> {
+    return this.multasService.softRemove(idMultas);
   }
 
   @Delete('/:idMultas')

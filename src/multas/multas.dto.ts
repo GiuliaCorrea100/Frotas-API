@@ -6,6 +6,7 @@ export class MultasDto {
   placaVeiculo: string;
   data: Date;
   numAutoInfracao: number;
+  deletada: boolean;
 }
 
 export interface FindAllParameters {

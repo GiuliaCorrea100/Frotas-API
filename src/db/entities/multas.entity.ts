@@ -19,6 +19,9 @@ export class MultasEntity {
   @Column({ type: 'varchar', name: 'valor' })
   valor: string;
 
+  @Column({ type: 'bool', name: 'deletada' })
+  deletada: boolean;
+
   @Column({ type: 'varchar', name: 'placa' })
   placaVeiculo: string;
 
