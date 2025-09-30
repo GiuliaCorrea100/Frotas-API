@@ -14,14 +14,11 @@ export class AbastecimentoEntity {
   @PrimaryGeneratedColumn({ type: 'int', name: 'id_abastecimento' })
   idAbastecimento?: number;
 
-  @Column({ type: 'int', name: 'litros' })
-  litros: number;
+  @Column({ type: 'int', name: 'id_tipo_combustivel' })
+  idTipoCombustivel: number;
 
-  @Column({ type: 'decimal', name: 'cod_pagamento' })
-  codPagamento: number;
-
-  @Column({ type: 'decimal', name: 'preco_final' })
-  precoFinal: number;
+  @Column({ type: 'varchar', name: 'codigo_pagamento' })
+  codigoPagamento: string;
 
   @CreateDateColumn({
     type: 'timestamp without time zone',
@@ -29,23 +26,17 @@ export class AbastecimentoEntity {
   })
   dataAbastecimento: string;
 
-  @Column({ type: 'decimal', name: 'valor_unitario_litro' })
-  valorUnitarioLitro: number;
-
-  @Column({ type: 'decimal', name: 'valor_medio_litro' })
-  valorMedioLitro: number;
+  @Column({ type: 'int', name: 'quantidade' })
+  quantidade: number;
 
   @Column({ type: 'decimal', name: 'valor_unitario' })
   valorUnitario: number;
 
-  @Column({ type: 'decimal', name: 'valor_medio' })
-  valorMedio: number;
+  @Column({ type: 'decimal', name: 'valor_total' })
+  valorTotal: number;
 
   @Column({ type: 'varchar', name: 'justificativa_alteracao', nullable: true })
   justificativaAlteracao?: string;
-
-  @Column({ type: 'int', name: 'id_tipo_combustivel' })
-  idTipoCombustivel: number;
 
   //CHAVE ESTRANGEIRA
   @ManyToOne(() => TipoCombustivelEntity)
