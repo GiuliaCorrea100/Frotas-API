@@ -3,7 +3,7 @@ export class AbastecimentoDto {
   litros: number;
   codPagamento: number;
   precoFinal: number;
-  dataAbastecimento: string;
+  dataAbastecimento: Date;
 
   // adicionei as colunas
   valorUnitario: number;
