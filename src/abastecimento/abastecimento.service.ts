@@ -47,14 +47,14 @@ export class AbastecimentoService {
       );
     }
     const abastecimentoToSave: AbastecimentoEntity = {
-      litros: abastecimento.litros,
-      codPagamento: abastecimento.codPagamento,
-      precoFinal: abastecimento.precoFinal,
-      dataAbastecimento: abastecimento.dataAbastecimento,
-      valorUnitario: abastecimento.valorUnitario,
-      justificativaAlteracao: abastecimento.justificativaAlteracao,
-      idTipoCombustivel: abastecimento.idTipoCombustivel, //aqui ta salvando a relação inteira e ta dando problema de relacionar o id (numero)
+      idTipoCombustivel: abastecimento.idTipoCombustivel,
       idCorrida: corrida,
+      codigoPagamento: abastecimento.codigoPagamento,
+      dataAbastecimento: abastecimento.dataAbastecimento,
+      quantidade: abastecimento.quantidade,
+      valorUnitario: abastecimento.valorUnitario,
+      valorTotal: abastecimento.valorTotal,
+      justificativaAlteracao: abastecimento.justificativaAlteracao,
     };
 
     const savedEntity =
@@ -168,8 +168,8 @@ export class AbastecimentoService {
       );
     }
 
-    foundAbastecimento.litros = abastecimento.litros;
-    foundAbastecimento.precoFinal = abastecimento.precoFinal;
+    foundAbastecimento.quantidade = abastecimento.quantidade;
+    foundAbastecimento.valorTotal = abastecimento.valorTotal;
     foundAbastecimento.valorUnitario = abastecimento.valorUnitario;
     foundAbastecimento.dataAbastecimento = abastecimento.dataAbastecimento;
 
@@ -216,9 +216,9 @@ export class AbastecimentoService {
   private mapEntityToDto(entity: AbastecimentoEntity): AbastecimentoDto {
     return {
       idAbastecimento: entity.idAbastecimento,
-      litros: entity.litros,
-      codPagamento: entity.codPagamento,
-      precoFinal: entity.precoFinal,
+      quantidade: entity.quantidade,
+      codigoPagamento: entity.codigoPagamento,
+      valorTotal: entity.valorTotal,
       dataAbastecimento: entity.dataAbastecimento,
       valorUnitario: entity.valorUnitario,
       justificativaAlteracao: entity.justificativaAlteracao,
@@ -230,9 +230,9 @@ export class AbastecimentoService {
 
   private mapDtoToEntity(dto: AbastecimentoDto): Partial<AbastecimentoEntity> {
     return {
-      litros: dto.litros,
-      codPagamento: dto.codPagamento,
-      precoFinal: dto.precoFinal,
+      quantidade: dto.quantidade,
+      codigoPagamento: dto.codigoPagamento,
+      valorTotal: dto.valorTotal,
       dataAbastecimento: dto.dataAbastecimento,
       valorUnitario: dto.valorUnitario,
       justificativaAlteracao: dto.justificativaAlteracao,
