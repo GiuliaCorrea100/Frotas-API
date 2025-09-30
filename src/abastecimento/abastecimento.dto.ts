@@ -6,7 +6,7 @@ export class AbastecimentoDto {
   idCorrida?: number;
 
   codigoPagamento: string;
-  dataAbastecimento: string;
+  dataAbastecimento: Date;
   quantidade: number;
   valorUnitario: number;
   valorTotal: number;

@@ -24,7 +24,7 @@ export class AbastecimentoEntity {
     type: 'timestamp without time zone',
     name: 'data_abastecimento',
   })
-  dataAbastecimento: string;
+  dataAbastecimento: Date;
 
   @Column({ type: 'int', name: 'quantidade' })
   quantidade: number;

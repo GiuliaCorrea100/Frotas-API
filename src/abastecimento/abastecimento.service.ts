@@ -8,7 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { AbastecimentoEntity } from 'src/db/entities/abastecimento.entity';
 import { CorridasEntity } from 'src/db/entities/corrida.entity';
 import { TipoCombustivelEntity } from 'src/db/entities/tipoCombustivel.entity';
-import { FindOptionsWhere, Like, Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { AbastecimentoDto, FindAllParameters } from './abastecimento.dto';
 
 @Injectable()
@@ -97,8 +97,7 @@ export class AbastecimentoService {
     const searchParams: FindOptionsWhere<AbastecimentoEntity> = {};
 
     if (params.dataAbastecimento) {
-      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-      searchParams.dataAbastecimento = Like(`%${params.dataAbastecimento}%`);
+      searchParams.dataAbastecimento = new Date(params.dataAbastecimento);
     }
 
     const abastecimentosFound = await this.abastecimentoRepository.find({
@@ -194,10 +193,10 @@ export class AbastecimentoService {
         .createQueryBuilder('abastecimento')
         .innerJoin('abastecimento.idCorrida', 'corrida')
         .innerJoin('corrida.carro', 'carro')
-        .where('abastecimento.litros > 0')
+        .where('abastecimento.quantidade > 0')
         .groupBy('carro.localidade_fisica')
         .select('carro.localidade_fisica', 'campus')
-        .addSelect('SUM(abastecimento.litros)', 'litrosTotal')
+        .addSelect('SUM(abastecimento.quantidade)', 'litrosTotal')
         .getRawMany();
 
       return detalhesPorCampus.map((item) => ({
