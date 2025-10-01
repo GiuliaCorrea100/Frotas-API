@@ -35,6 +35,13 @@ export class CarrosController {
     return this.carrosService.findByPlaca(placa);
   }
 
+  @Get('/buscar-modelo-placa/:modeloPlaca')
+  async findByModeloPlaca(
+    @Param('modeloPlaca') modeloPlaca: string,
+  ): Promise<CarrosDto[]> {
+    return this.carrosService.findByModeloPlaca(modeloPlaca);
+  }
+
   @Get()
   async findAll(@Query() params: FindAllParameters): Promise<CarrosDto[]> {
     return this.carrosService.findAll(params);

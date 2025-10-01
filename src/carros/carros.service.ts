@@ -74,6 +74,24 @@ export class CarrosService {
     return carroFound.map((CarrosEntity) => this.mapEntityToDto(CarrosEntity));
   }
 
+  async findByModeloPlaca(modeloPlaca: string): Promise<CarrosDto[]> {
+    if (!modeloPlaca || modeloPlaca.trim() === '') {
+      return [];
+    }
+
+    const searchTerm = `%${modeloPlaca.trim()}%`;
+
+    const carrosFound = await this.carrosRepository
+      .createQueryBuilder('carro')
+      .where('carro.modelo ILIKE :modeloPlaca', { modeloPlaca: searchTerm })
+      .orWhere('carro.placa ILIKE :modeloPlaca', { modeloPlaca: searchTerm })
+      .orderBy('carro.modelo', 'ASC')
+      .take(10)
+      .getMany();
+
+    return carrosFound.map((carroEntity) => this.mapEntityToDto(carroEntity));
+  }
+
   async findAll(params: FindAllParameters): Promise<CarrosDto[]> {
     const searchParams: FindOptionsWhere<CarrosEntity> = {};
 
