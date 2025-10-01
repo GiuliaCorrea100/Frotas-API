@@ -8,29 +8,29 @@ import {
 @Entity({ name: 'multas' })
 export class MultasEntity {
   @PrimaryGeneratedColumn({ type: 'int', name: 'id_multa' })
-  idMultas?: number;
+  idMulta?: number;
 
-  @Column({ type: 'varchar', name: 'cod_infracao' })
-  codInfracao: string;
+  @Column({ type: 'int', name: 'codigo_infracao' })
+  codigoInfracao: number;
 
-  @Column({ type: 'varchar', name: 'class_infracao' })
-  classInfracao: string;
+  @Column({ type: 'varchar', name: 'classificacao' })
+  classificacao: string;
 
-  @Column({ type: 'varchar', name: 'valor' })
-  valor: string;
+  @Column({ type: 'decimal', name: 'valor_infracao' })
+  valorInfracao: number;
 
-  @Column({ type: 'bool', name: 'deletada' })
-  deletada: boolean;
+  @Column({ type: 'boolean', name: 'deletada' })
+  deletada?: boolean;
 
-  @Column({ type: 'varchar', name: 'placa' })
+  @Column({ type: 'varchar', name: 'placa_veiculo' })
   placaVeiculo: string;
 
   @CreateDateColumn({
     type: 'timestamp without time zone',
     name: 'data_infracao',
   })
-  data: Date;
+  dataInfracao: Date;
 
   @Column({ type: 'int', name: 'num_auto_infracao' })
-  numAutoInfracao: number;
+  autoInfracao: number;
 }

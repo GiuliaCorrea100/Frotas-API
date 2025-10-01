@@ -40,11 +40,11 @@ export class MultasController {
     @Param() params: MultasRouteParameters,
     @Body() multas: MultasDto,
   ) {
-    await this.multasService.update(params.idMultas, multas);
+    await this.multasService.update(params.idMulta, multas);
   }
 
   @Patch('/deletar-multa/:idMultas')
-  async softRemove(@Param() idMultas: number): Promise<void> {
+  async softRemove(@Param('idMultas') idMultas: number): Promise<void> {
     return this.multasService.softRemove(idMultas);
   }
 
