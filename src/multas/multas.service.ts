@@ -39,7 +39,7 @@ export class MultasService {
 
     const logData: LogDto = {
       nomeTabela: 'multas',
-      idRegistro: savedMulta.idMultas,
+      idRegistro: savedMulta.idMulta,
       operacao: 'INSERT',
       dadosAntigos: null,
       dadosNovos: savedMulta,
