@@ -87,6 +87,7 @@ export class CarrosService {
 
     const carrosFound = await this.carrosRepository.find({
       where: searchParams,
+      relations: ['tipo_combustivel'],
     });
 
     return carrosFound.map((CarrosEntity) => this.mapEntityToDto(CarrosEntity));
@@ -158,6 +159,8 @@ export class CarrosService {
       localidade_fisica: CarrosEntity.localidade_fisica,
       situacao: CarrosEntity.situacao,
       ativo: CarrosEntity.ativo,
+
+      nomeTipoCombustivel: CarrosEntity.tipo_combustivel?.nome,
       id_tipo_combustivel: CarrosEntity.tipo_combustivel?.id_tipo_combustivel,
     };
   }
