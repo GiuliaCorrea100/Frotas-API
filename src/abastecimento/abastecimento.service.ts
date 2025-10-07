@@ -10,6 +10,8 @@ import { CorridasEntity } from 'src/db/entities/corrida.entity';
 import { TipoCombustivelEntity } from 'src/db/entities/tipoCombustivel.entity';
 import { FindOptionsWhere, Repository } from 'typeorm';
 import { AbastecimentoDto, FindAllParameters } from './abastecimento.dto';
+import { LogService } from '../log/log.service';
+import { LogDto } from '../log/log.dto';
 
 @Injectable()
 export class AbastecimentoService {
@@ -22,11 +24,15 @@ export class AbastecimentoService {
 
     @InjectRepository(CorridasEntity)
     private readonly corridaRepository: Repository<CorridasEntity>,
+
+    private readonly logService: LogService,
   ) {}
 
-  async create(abastecimento: AbastecimentoDto): Promise<AbastecimentoDto> {
-    // Verificar se o tipo de combustível existe
-
+  async create(
+    abastecimento: AbastecimentoDto,
+    currentUserId?: number,
+    currentUserName?: string
+  ): Promise<AbastecimentoDto> {
     const tipoCombustivel = await this.tipoCombustivelRepository.findOne({
       where: { id_tipo_combustivel: abastecimento.idTipoCombustivel },
     });
@@ -46,6 +52,7 @@ export class AbastecimentoService {
         `Corrida com id ${abastecimento.idCorrida} não encontrada`,
       );
     }
+
     const abastecimentoToSave: AbastecimentoEntity = {
       idTipoCombustivel: abastecimento.idTipoCombustivel,
       idCorrida: corrida,
@@ -59,6 +66,19 @@ export class AbastecimentoService {
 
     const savedEntity =
       await this.abastecimentoRepository.save(abastecimentoToSave);
+    
+    const logData: LogDto = {
+      nomeTabela: 'abastecimento',
+      idRegistro: savedEntity.idAbastecimento,
+      operacao: 'INSERT',
+      dadosAntigos: null,
+      dadosNovos: savedEntity,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    await this.logService.logChange(logData);
+
     return this.mapEntityToDto(savedEntity);
   }
 
@@ -108,7 +128,12 @@ export class AbastecimentoService {
     return abastecimentosFound.map((entity) => this.mapEntityToDto(entity));
   }
 
-  async update(idAbastecimento: number, abastecimento: AbastecimentoDto) {
+  async update(
+    idAbastecimento: number,
+    abastecimento: AbastecimentoDto,
+    currentUserId?: number,
+    currentUserName?: string
+  ) {
     const foundAbastecimento = await this.abastecimentoRepository.findOne({
       where: { idAbastecimento },
     });
@@ -120,11 +145,11 @@ export class AbastecimentoService {
       );
     }
 
-    // Verificar se precisa atualizar as relações
+    const dadosAntigos = { ...foundAbastecimento };
+
     const updateData: Partial<AbastecimentoEntity> =
       this.mapDtoToEntity(abastecimento);
 
-    // Se houver alteração no tipo de combustível, carregar a entidade
     if (abastecimento.idTipoCombustivel !== undefined) {
       const tipoCombustivel = await this.tipoCombustivelRepository.findOne({
         where: { id_tipo_combustivel: abastecimento.idTipoCombustivel },
@@ -138,7 +163,6 @@ export class AbastecimentoService {
       updateData.idTipoCombustivel = abastecimento.idTipoCombustivel;
     }
 
-    // Se houver alteração na corrida, carregar a entidade
     if (abastecimento.idCorrida !== undefined) {
       const corrida = await this.corridaRepository.findOne({
         where: { idCorrida: abastecimento.idCorrida },
@@ -153,9 +177,30 @@ export class AbastecimentoService {
     }
 
     await this.abastecimentoRepository.update(idAbastecimento, updateData);
+
+    const updatedAbastecimento = await this.abastecimentoRepository.findOne({
+      where: { idAbastecimento },
+    });
+
+    const logData: LogDto = {
+      nomeTabela: 'abastecimento',
+      idRegistro: idAbastecimento,
+      operacao: 'UPDATE',
+      dadosAntigos: dadosAntigos,
+      dadosNovos: updatedAbastecimento,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    await this.logService.logChange(logData);
   }
 
-  async updateAbastecimento(id: number, abastecimento: AbastecimentoDto) {
+  async updateAbastecimento(
+    id: number,
+    abastecimento: AbastecimentoDto,
+    currentUserId?: number,
+    currentUserName?: string
+  ) {
     const foundAbastecimento = await this.abastecimentoRepository.findOne({
       where: { idAbastecimento: id },
     });
@@ -167,15 +212,49 @@ export class AbastecimentoService {
       );
     }
 
+    const dadosAntigos = { ...foundAbastecimento };
+
     foundAbastecimento.quantidade = abastecimento.quantidade;
     foundAbastecimento.valorTotal = abastecimento.valorTotal;
     foundAbastecimento.valorUnitario = abastecimento.valorUnitario;
     foundAbastecimento.dataAbastecimento = abastecimento.dataAbastecimento;
 
-    return await this.abastecimentoRepository.save(foundAbastecimento);
+    const savedAbastecimento =
+      await this.abastecimentoRepository.save(foundAbastecimento);
+
+    const logData: LogDto = {
+      nomeTabela: 'abastecimento',
+      idRegistro: id,
+      operacao: 'UPDATE',
+      dadosAntigos: dadosAntigos,
+      dadosNovos: savedAbastecimento,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    await this.logService.logChange(logData);
+
+    return savedAbastecimento;
   }
 
-  async remove(idAbastecimento: number) {
+  async remove(
+    idAbastecimento: number,
+    currentUserId?: number,
+    currentUserName?: string
+  ) {
+    const abastecimentoToDelete = await this.abastecimentoRepository.findOne({
+      where: { idAbastecimento },
+    });
+
+    if (!abastecimentoToDelete) {
+      throw new HttpException(
+        `Abastecimento com id ${idAbastecimento} não encontrado`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const dadosAntigos = { ...abastecimentoToDelete };
+
     const result = await this.abastecimentoRepository.delete(idAbastecimento);
 
     if (!result.affected) {
@@ -184,9 +263,20 @@ export class AbastecimentoService {
         HttpStatus.BAD_REQUEST,
       );
     }
+
+    const logData: LogDto = {
+      nomeTabela: 'abastecimento',
+      idRegistro: idAbastecimento,
+      operacao: 'DELETE',
+      dadosAntigos: dadosAntigos,
+      dadosNovos: null,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    await this.logService.logChange(logData);
   }
 
-  // No backend - AbastecimentoService, atualize a função para aceitar ano
   async ConsumoPorCampus(): Promise<{ campus: string; litrosTotal: number }[]> {
     try {
       const detalhesPorCampus = await this.abastecimentoRepository
@@ -235,7 +325,6 @@ export class AbastecimentoService {
       dataAbastecimento: dto.dataAbastecimento,
       valorUnitario: dto.valorUnitario,
       justificativaAlteracao: dto.justificativaAlteracao,
-      // As relações (idTipoCombustivel e idCorrida) são tratadas separadamente no update
     };
   }
 }

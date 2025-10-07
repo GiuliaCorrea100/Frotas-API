@@ -4,11 +4,13 @@ import { OcorrenciasService } from './ocorrencias.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { OcorrenciasEntity } from 'src/db/entities/ocorrencias.entity';
 import { CorridaModule } from 'src/corrida/corrida.module';
+import { LogModule } from 'src/log/log.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([OcorrenciasEntity]),
     forwardRef(() => CorridaModule),
+    LogModule,
   ],
   controllers: [OcorrenciasController],
   providers: [OcorrenciasService],

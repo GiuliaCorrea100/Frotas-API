@@ -5,6 +5,7 @@ import { AbastecimentoEntity } from 'src/db/entities/abastecimento.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TipoCombustivelEntity } from 'src/db/entities/tipoCombustivel.entity';
 import { CorridasEntity } from 'src/db/entities/corrida.entity';
+import { LogModule } from 'src/log/log.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { CorridasEntity } from 'src/db/entities/corrida.entity';
       TipoCombustivelEntity,
       CorridasEntity,
     ]),
+    LogModule,
   ],
   controllers: [AbastecimentoController],
   providers: [AbastecimentoService],
