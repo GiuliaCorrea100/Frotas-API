@@ -8,15 +8,22 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PercursoEntity } from '../db/entities/percurso.entity';
 import { Repository, IsNull, Not } from 'typeorm';
 import { PercursoDto } from './percurso.dto';
+import { LogService } from '../log/log.service';
+import { LogDto } from '../log/log.dto';
 
 @Injectable()
 export class PercursoService {
   constructor(
     @InjectRepository(PercursoEntity)
     private readonly percursoRepository: Repository<PercursoEntity>,
+    private readonly logService: LogService,
   ) {}
 
-  async create(percurso: PercursoDto): Promise<PercursoDto> {
+  async create(
+    percurso: PercursoDto,
+    currentUserId?: number,
+    currentUserName?: string,
+  ): Promise<PercursoDto> {
     const percursoToSave = {
       ...percurso,
       saidaHora: new Date(),
@@ -26,11 +33,26 @@ export class PercursoService {
     };
 
     const created = await this.percursoRepository.save(percursoToSave);
+
+    const logData: LogDto = {
+      nomeTabela: 'percurso',
+      idRegistro: created.idPercurso,
+      operacao: 'INSERT',
+      dadosAntigos: null,
+      dadosNovos: created,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+    await this.logService.logChange(logData);
+
     return this.mapEntityToDto(created);
   }
+
   async inserirPercursoCompleto(
     idCorrida: number,
     percurso: PercursoDto,
+    currentUserId?: number,
+    currentUserName?: string,
   ): Promise<PercursoDto> {
     const entity = new PercursoEntity();
     entity.idCorrida = idCorrida;
@@ -41,12 +63,27 @@ export class PercursoService {
     entity.saidaOdometro = percurso.saidaOdometro;
     entity.chegadaodometro = percurso.chegadaodometro;
 
-    return await this.percursoRepository.save(entity);
+    const created = await this.percursoRepository.save(entity);
+
+    const logData: LogDto = {
+      nomeTabela: 'percurso',
+      idRegistro: created.idPercurso,
+      operacao: 'INSERT',
+      dadosAntigos: null,
+      dadosNovos: created,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+    await this.logService.logChange(logData);
+
+    return created;
   }
 
   async finalizarPercurso(
     idPercurso: number,
     chegadaOdometro: number,
+    currentUserId?: number,
+    currentUserName?: string,
   ): Promise<PercursoDto> {
     const percurso = await this.percursoRepository.findOne({
       where: { idPercurso },
@@ -66,10 +103,24 @@ export class PercursoService {
       );
     }
 
+    const dadosAntigos = { ...percurso };
+
     percurso.chegadaHora = new Date();
     percurso.chegadaodometro = chegadaOdometro;
 
     const updated = await this.percursoRepository.save(percurso);
+
+    const logData: LogDto = {
+      nomeTabela: 'percurso',
+      idRegistro: idPercurso,
+      operacao: 'UPDATE',
+      dadosAntigos: dadosAntigos,
+      dadosNovos: updated,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+    await this.logService.logChange(logData);
+
     return this.mapEntityToDto(updated);
   }
 
@@ -84,8 +135,7 @@ export class PercursoService {
         'Nenhum percurso encontrado para esta corrida',
       );
     }
-
-    // eslint-disable-next-line @typescript-eslint/unbound-method
+    
     return percursos.map(this.mapEntityToDto);
   }
 
@@ -126,7 +176,12 @@ export class PercursoService {
     });
   }
 
-  async updatePercurso(id: number, percurso: PercursoDto) {
+  async updatePercurso(
+    id: number,
+    percurso: PercursoDto,
+    currentUserId?: number,
+    currentUserName?: string,
+  ) {
     const foundPercurso = await this.percursoRepository.findOne({
       where: { idPercurso: id },
     });
@@ -138,6 +193,8 @@ export class PercursoService {
       );
     }
 
+    const dadosAntigos = { ...foundPercurso };
+
     foundPercurso.chegadaHora = percurso.chegadaHora;
     foundPercurso.chegadaodometro = percurso.chegadaodometro;
     foundPercurso.localDestino = percurso.localDestino;
@@ -145,7 +202,20 @@ export class PercursoService {
     foundPercurso.saidaHora = percurso.saidaHora;
     foundPercurso.saidaOdometro = percurso.saidaOdometro;
 
-    return await this.percursoRepository.save(foundPercurso);
+    const updated = await this.percursoRepository.save(foundPercurso);
+
+    const logData: LogDto = {
+      nomeTabela: 'percurso',
+      idRegistro: id,
+      operacao: 'UPDATE',
+      dadosAntigos: dadosAntigos,
+      dadosNovos: updated,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+    await this.logService.logChange(logData);
+
+    return updated;
   }
 
   private mapEntityToDto(entity: PercursoEntity): PercursoDto {

@@ -8,17 +8,24 @@ import { FindAllParameters, CnhDto } from './cnh.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CnhEntity } from 'src/db/entities/cnh.entity';
 import { FindOptionsWhere, Repository, Like } from 'typeorm';
+import { LogService } from '../log/log.service';
+import { LogDto } from '../log/log.dto';
 
 @Injectable()
 export class CnhService {
   constructor(
     @InjectRepository(CnhEntity)
     private readonly cnhRepository: Repository<CnhEntity>,
+    private readonly logService: LogService,
   ) {}
 
   private cnh: CnhDto[] = [];
 
-  async create(cnh: CnhDto) {
+  async create(
+    cnh: CnhDto,
+    currentUserId?: number,
+    currentUserName?: string
+  ) {
     const cnhToSave: CnhEntity = {
       nome: cnh.nome,
       classificacao: cnh.classificacao,
@@ -26,7 +33,21 @@ export class CnhService {
       dataValidade: cnh.dataValidade,
     };
 
-    return await this.cnhRepository.save(cnhToSave);
+    const savedCnh = await this.cnhRepository.save(cnhToSave);
+
+    const logData: LogDto = {
+      nomeTabela: 'cnh',
+      idRegistro: savedCnh.idCnh,
+      operacao: 'INSERT',
+      dadosAntigos: null,
+      dadosNovos: savedCnh,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    await this.logService.logChange(logData);
+
+    return savedCnh;
   }
 
   async findById(idCnh: number): Promise<CnhDto> {
@@ -57,7 +78,12 @@ export class CnhService {
     return cnhFound.map((CnhEntity) => this.mapEntityToDto(CnhEntity));
   }
 
-  async update(idCnh: number, cnh: CnhDto) {
+  async update(
+    idCnh: number,
+    cnh: CnhDto,
+    currentUserId?: number,
+    currentUserName?: string
+  ) {
     const foundCnh = await this.cnhRepository.findOne({
       where: { idCnh },
     });
@@ -68,10 +94,46 @@ export class CnhService {
         HttpStatus.BAD_REQUEST,
       );
     }
+
+    const dadosAntigos = { ...foundCnh };
+
     await this.cnhRepository.update(idCnh, this.mapDtoToEntity(cnh));
+
+    const updatedCnh = await this.cnhRepository.findOne({
+      where: { idCnh },
+    });
+
+    const logData: LogDto = {
+      nomeTabela: 'cnh',
+      idRegistro: idCnh,
+      operacao: 'UPDATE',
+      dadosAntigos: dadosAntigos,
+      dadosNovos: updatedCnh,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    await this.logService.logChange(logData);
   }
 
-  async remove(idCnh: number) {
+  async remove(
+    idCnh: number,
+    currentUserId?: number,
+    currentUserName?: string
+  ) {
+    const cnhToDelete = await this.cnhRepository.findOne({
+      where: { idCnh },
+    });
+
+    if (!cnhToDelete) {
+      throw new HttpException(
+        `Item with id ${idCnh} not found`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const dadosAntigos = { ...cnhToDelete };
+
     const result = await this.cnhRepository.delete(idCnh);
 
     if (!result.affected) {
@@ -80,6 +142,18 @@ export class CnhService {
         HttpStatus.BAD_REQUEST,
       );
     }
+
+    const logData: LogDto = {
+      nomeTabela: 'cnh',
+      idRegistro: idCnh,
+      operacao: 'DELETE',
+      dadosAntigos: dadosAntigos,
+      dadosNovos: null,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    await this.logService.logChange(logData);
   }
 
   private mapEntityToDto(CnhEntity: CnhEntity): CnhDto {

@@ -8,6 +8,8 @@ import {
   Post,
   Put,
   Query,
+  Request,
+  UseGuards,
 } from '@nestjs/common';
 import {
   CarrosDto,
@@ -15,14 +17,18 @@ import {
   FindAllParameters,
 } from './carros.dto';
 import { CarrosService } from './carros.service';
+import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('carros')
+@UseGuards(AuthGuard)
 export class CarrosController {
   constructor(private readonly carrosService: CarrosService) {}
 
   @Post()
-  async create(@Body() carros: CarrosDto): Promise<CarrosDto> {
-    return await this.carrosService.create(carros);
+  async create(@Body() carros: CarrosDto, @Request() req: any): Promise<CarrosDto> {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+    return await this.carrosService.create(carros, currentUserId, currentUserName);
   }
 
   @Get('/:idCarros')
@@ -49,17 +55,29 @@ export class CarrosController {
   async update(
     @Param() params: CarrosRouteParameters,
     @Body() carros: CarrosDto,
+    @Request() req: any,
   ) {
-    await this.carrosService.update(params.idCarros, carros);
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+    await this.carrosService.update(
+      params.idCarros,
+      carros,
+      currentUserId,
+      currentUserName
+    );
   }
 
   @Delete('/:idCarros')
-  remove(@Param('idCarros') idCarros: number) {
-    return this.carrosService.remove(idCarros);
+  remove(@Param('idCarros') idCarros: number, @Request() req: any) {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+    return this.carrosService.remove(idCarros, currentUserId, currentUserName);
   }
 
   @Patch(':id/inativar')
-  async inativar(@Param('id') id: number) {
-    return this.carrosService.inativar(id);
+  async inativar(@Param('id') id: number, @Request() req: any) {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+    return this.carrosService.inativar(id, currentUserId, currentUserName);
   }
 }

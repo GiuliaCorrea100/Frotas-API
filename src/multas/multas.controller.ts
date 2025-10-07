@@ -7,6 +7,8 @@ import {
   Put,
   Delete,
   Query,
+  Request,
+  UseGuards,
 } from '@nestjs/common';
 import {
   MultasDto,
@@ -14,16 +16,13 @@ import {
   MultasRouteParameters,
 } from './multas.dto';
 import { MultasService } from './multas.service';
+import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('multas')
 export class MultasController {
   constructor(private readonly multasService: MultasService) {}
 
-  @Post()
-  async create(@Body() multas: MultasDto): Promise<MultasDto> {
-    return await this.multasService.create(multas);
-  }
-
+  // Rotas públicas (sem AuthGuard)
   @Get('/:idMultas')
   async findById(@Param('idMultas') idMultas: number): Promise<MultasDto> {
     return this.multasService.findById(idMultas);
@@ -34,16 +33,37 @@ export class MultasController {
     return this.multasService.findAll(params);
   }
 
+  // Rotas protegidas (com AuthGuard)
+  @Post()
+  @UseGuards(AuthGuard)
+  async create(@Body() multas: MultasDto, @Request() req: any): Promise<MultasDto> {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+    return await this.multasService.create(multas, currentUserId, currentUserName);
+  }
+
   @Put('/:idMultas')
+  @UseGuards(AuthGuard)
   async update(
     @Param() params: MultasRouteParameters,
     @Body() multas: MultasDto,
+    @Request() req: any,
   ) {
-    await this.multasService.update(params.idMultas, multas);
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+    await this.multasService.update(
+      params.idMultas,
+      multas,
+      currentUserId,
+      currentUserName,
+    );
   }
 
   @Delete('/:idMultas')
-  remove(@Param('idMultas') idMultas: number) {
-    return this.multasService.remove(idMultas);
+  @UseGuards(AuthGuard)
+  remove(@Param('idMultas') idMultas: number, @Request() req: any) {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+    return this.multasService.remove(idMultas, currentUserId, currentUserName);
   }
 }

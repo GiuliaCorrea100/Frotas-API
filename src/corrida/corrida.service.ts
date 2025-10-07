@@ -21,12 +21,15 @@ import {
   In,
   Like,
 } from 'typeorm';
+import { LogService } from '../log/log.service';
+import { LogDto } from '../log/log.dto';
 
 @Injectable()
 export class CorridaService {
   constructor(
     @InjectRepository(CorridasEntity)
     private readonly corridaRepository: Repository<CorridasEntity>,
+    private readonly logService: LogService,
   ) {}
 
   async verificarConflitoDeCorrida(
@@ -63,7 +66,11 @@ export class CorridaService {
     return conflitos.length > 0;
   }
 
-  async create(corrida: CorridaDto): Promise<CorridaDto> {
+  async create(
+    corrida: CorridaDto,
+    currentUserId?: number,
+    currentUserName?: string
+  ): Promise<CorridaDto> {
     corrida.local_de_saida = corrida.local_de_saida.toUpperCase();
 
     const conflitoMotorista = await this.verificarConflitoDeCorrida(
@@ -104,7 +111,22 @@ export class CorridaService {
     }
 
     await this.corridaRepository.save(corridaToSave);
-    return this.findById(newId);
+    
+    const savedCorrida = await this.findById(newId);
+
+    const logData: LogDto = {
+      nomeTabela: 'corridas',
+      idRegistro: newId,
+      operacao: 'INSERT',
+      dadosAntigos: null,
+      dadosNovos: savedCorrida,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    await this.logService.logChange(logData);
+
+    return savedCorrida;
   }
 
   async findById(idCorrida: number): Promise<CorridaDto> {
@@ -134,7 +156,11 @@ export class CorridaService {
     return corridaFound.map((entity) => this.mapEntityToDto(entity));
   }
 
-  async emprestarChave(idCorrida: number): Promise<void> {
+  async emprestarChave(
+    idCorrida: number,
+    currentUserId?: number,
+    currentUserName?: string
+  ): Promise<void> {
     const foundCorrida = await this.corridaRepository.findOne({
       where: { idCorrida },
     });
@@ -142,6 +168,8 @@ export class CorridaService {
     if (!foundCorrida) {
       throw new NotFoundException(`Item with id ${idCorrida} not found`);
     }
+
+    const dadosAntigos = { ...foundCorrida };
 
     if (foundCorrida.chaveEmprestada == false) {
       foundCorrida.chaveEmprestada = true;
@@ -152,9 +180,26 @@ export class CorridaService {
     }
 
     await this.corridaRepository.save(foundCorrida);
+
+    const logData: LogDto = {
+      nomeTabela: 'corridas',
+      idRegistro: idCorrida,
+      operacao: 'UPDATE',
+      dadosAntigos: dadosAntigos,
+      dadosNovos: foundCorrida,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    await this.logService.logChange(logData);
   }
 
-  async atualizarSituacao(idCorrida: number, situacao: string): Promise<void> {
+  async atualizarSituacao(
+    idCorrida: number,
+    situacao: string,
+    currentUserId?: number,
+    currentUserName?: string
+  ): Promise<void> {
     const foundCorrida = await this.corridaRepository.findOne({
       where: { idCorrida },
     });
@@ -172,7 +217,6 @@ export class CorridaService {
 
     const situacaoAtual = foundCorrida.situacao;
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     if (!transicoesPermitidas[situacaoAtual]?.includes(situacao)) {
       throw new HttpException(
         `Transição de situação de ${situacaoAtual} para ${situacao} não é permitida`,
@@ -180,8 +224,22 @@ export class CorridaService {
       );
     }
 
+    const dadosAntigos = { ...foundCorrida };
+
     foundCorrida.situacao = situacao;
     await this.corridaRepository.save(foundCorrida);
+
+    const logData: LogDto = {
+      nomeTabela: 'corridas',
+      idRegistro: idCorrida,
+      operacao: 'UPDATE',
+      dadosAntigos: dadosAntigos,
+      dadosNovos: foundCorrida,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    await this.logService.logChange(logData);
   }
 
   async salvarEdicaoModal(
@@ -192,6 +250,8 @@ export class CorridaService {
       idMotorista?: number;
       idCarros?: number;
     },
+    currentUserId?: number,
+    currentUserName?: string
   ) {
     const corrida = await this.corridaRepository.findOne({
       where: { idCorrida },
@@ -204,17 +264,40 @@ export class CorridaService {
       );
     }
 
+    const dadosAntigos = { ...corrida };
+
     await this.corridaRepository.update(idCorrida, {
       dataInicio: dados.dataInicio ?? corrida.dataInicio,
       dataTermino: dados.dataTermino ?? corrida.dataTermino,
       idMotorista: dados.idMotorista ?? corrida.idMotorista,
-      idCarros: dados.idCarros,
+      idCarros: dados.idCarros ?? corrida.idCarros,
     });
+
+    const updatedCorrida = await this.corridaRepository.findOne({
+      where: { idCorrida },
+    });
+
+    const logData: LogDto = {
+      nomeTabela: 'corridas',
+      idRegistro: idCorrida,
+      operacao: 'UPDATE',
+      dadosAntigos: dadosAntigos,
+      dadosNovos: updatedCorrida,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    await this.logService.logChange(logData);
 
     return { message: 'Edição salva com sucesso' };
   }
 
-  async update(idCorrida: number, corrida: CorridaDto) {
+  async update(
+    idCorrida: number,
+    corrida: CorridaDto,
+    currentUserId?: number,
+    currentUserName?: string
+  ) {
     corrida.local_de_saida = corrida.local_de_saida.toUpperCase();
 
     const foundCorrida = await this.corridaRepository.findOne({
@@ -228,13 +311,48 @@ export class CorridaService {
       );
     }
 
+    const dadosAntigos = { ...foundCorrida };
+
     await this.corridaRepository.update(
       idCorrida,
       this.mapDtoToEntity(corrida),
     );
+
+    const updatedCorrida = await this.corridaRepository.findOne({
+      where: { idCorrida },
+    });
+
+    const logData: LogDto = {
+      nomeTabela: 'corridas',
+      idRegistro: idCorrida,
+      operacao: 'UPDATE',
+      dadosAntigos: dadosAntigos,
+      dadosNovos: updatedCorrida,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    await this.logService.logChange(logData);
   }
 
-  async remove(idCorrida: number) {
+  async remove(
+    idCorrida: number,
+    currentUserId?: number,
+    currentUserName?: string
+  ) {
+    const corridaToDelete = await this.corridaRepository.findOne({
+      where: { idCorrida },
+    });
+
+    if (!corridaToDelete) {
+      throw new HttpException(
+        `Item com id ${idCorrida} não encontrado`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const dadosAntigos = { ...corridaToDelete };
+
     const result = await this.corridaRepository.delete(idCorrida);
 
     if (!result.affected || result.affected === 0) {
@@ -243,6 +361,18 @@ export class CorridaService {
         HttpStatus.BAD_REQUEST,
       );
     }
+
+    const logData: LogDto = {
+      nomeTabela: 'corridas',
+      idRegistro: idCorrida,
+      operacao: 'DELETE',
+      dadosAntigos: dadosAntigos,
+      dadosNovos: null,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    await this.logService.logChange(logData);
   }
 
   async getMotoristaDashboard(

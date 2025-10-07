@@ -9,6 +9,8 @@ import {
   Post,
   Put,
   Query,
+  Request,
+  UseGuards,
 } from '@nestjs/common';
 import {
   AbastecimentoDto,
@@ -16,18 +18,26 @@ import {
   FindAllParameters,
 } from './abastecimento.dto';
 import { AbastecimentoService } from './abastecimento.service';
+import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('abastecimento')
+@UseGuards(AuthGuard)
 export class AbastecimentoController {
   constructor(private readonly abastecimentoService: AbastecimentoService) {}
 
   @Post()
   async create(
     @Body() abastecimento: AbastecimentoDto,
+    @Request() req: any,
   ): Promise<AbastecimentoDto> {
-    return await this.abastecimentoService.create(abastecimento);
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+    return await this.abastecimentoService.create(
+      abastecimento,
+      currentUserId,
+      currentUserName
+    );
   }
-  '';
 
   @Get('consumoPorCampus')
   async ConsumoPorCampus() {
@@ -59,26 +69,48 @@ export class AbastecimentoController {
   async updateAbastecimento(
     @Param('id') id: number,
     @Body() abastecimento: AbastecimentoDto,
+    @Request() req: any,
   ) {
-    return this.abastecimentoService.updateAbastecimento(id, abastecimento);
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+    return this.abastecimentoService.updateAbastecimento(
+      id,
+      abastecimento,
+      currentUserId,
+      currentUserName
+    );
   }
 
   @Put('/:idAbastecimento')
   async update(
     @Param() params: AbastecimentoRouteParameters,
     @Body() abastecimento: AbastecimentoDto,
+    @Request() req: any,
   ) {
     if (!abastecimento || Object.keys(abastecimento).length === 0) {
       throw new BadRequestException('Nenhum dado enviado para atualização.');
     }
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
     await this.abastecimentoService.update(
       params.idAbastecimento,
       abastecimento,
+      currentUserId,
+      currentUserName
     );
   }
 
   @Delete('/:idAbastecimento')
-  remove(@Param('idAbastecimento') idAbastecimento: number) {
-    return this.abastecimentoService.remove(idAbastecimento);
+  remove(
+    @Param('idAbastecimento') idAbastecimento: number,
+    @Request() req: any,
+  ) {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+    return this.abastecimentoService.remove(
+      idAbastecimento,
+      currentUserId,
+      currentUserName
+    );
   }
 }
