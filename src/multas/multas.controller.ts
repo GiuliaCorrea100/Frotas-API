@@ -35,12 +35,9 @@ export class MultasController {
     return this.multasService.findAll(params);
   }
 
-  @Put('/:idMultas')
-  async update(
-    @Param() params: MultasRouteParameters,
-    @Body() multas: MultasDto,
-  ) {
-    await this.multasService.update(params.idMulta, multas);
+  @Put('/:idMulta')
+  async update(@Param('idMulta') idMulta: number, @Body() multas: MultasDto) {
+    await this.multasService.update(idMulta, multas);
   }
 
   @Patch('/deletar-multa/:idMultas')
@@ -48,8 +45,8 @@ export class MultasController {
     return this.multasService.softRemove(idMultas);
   }
 
-  @Delete('/:idMultas')
-  remove(@Param('idMultas') idMultas: number) {
-    return this.multasService.remove(idMultas);
+  @Delete('/:idMulta')
+  remove(@Param('idMulta') idMulta: number) {
+    return this.multasService.remove(idMulta);
   }
 }
