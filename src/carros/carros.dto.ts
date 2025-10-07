@@ -11,6 +11,8 @@ export class CarrosDto {
   situacao: string;
   ativo: boolean;
   id_tipo_combustivel?: number;
+
+  nomeTipoCombustivel?: string;
 }
 
 export interface FindAllParameters {
