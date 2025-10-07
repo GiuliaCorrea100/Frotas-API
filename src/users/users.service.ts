@@ -8,14 +8,16 @@ import { UsersDto, FindAllParameters } from './users.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Equal, FindOptionsWhere } from 'typeorm';
 import { UserEntity } from 'src/db/entities/users.entity';
+import { LogService } from '../log/log.service';
+import { LogDto } from '../log/log.dto';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly UsersRepository: Repository<UserEntity>,
+    private readonly logService: LogService,
   ) {}
-  private readonly users: UsersDto[] = [];
 
   async findByName(nome: string): Promise<UsersDto[]> {
     const usersFound = await this.UsersRepository.createQueryBuilder('user')
@@ -29,14 +31,34 @@ export class UsersService {
     return usersFound.map((userEntity) => this.mapEntityToDto(userEntity));
   }
 
-  async create(users: UsersDto) {
+  async create(users: UsersDto, currentUserId?: number, currentUserName?: string) {
     const usersToSave: UserEntity = {
       idPessoaSingu: users.idPessoaSingu,
       permissao: users.permissao,
       nome: users.nome,
     };
 
-    return await this.UsersRepository.save(usersToSave);
+    const savedUser = await this.UsersRepository.save(usersToSave);
+
+    console.log('Dados do log (create):', {
+      currentUserId,
+      currentUserName,
+      idRegistro: savedUser.idUsuario
+    });
+
+    const logData: LogDto = {
+      nomeTabela: 'users',
+      idRegistro: savedUser.idUsuario,
+      operacao: 'INSERT',
+      dadosAntigos: null,
+      dadosNovos: savedUser,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    await this.logService.logChange(logData);
+
+    return savedUser;
   }
 
   async findById(idPessoaSingu: number): Promise<UsersDto> {
@@ -62,7 +84,7 @@ export class UsersService {
     return usersFound.map((UserEntity) => this.mapEntityToDto(UserEntity));
   }
 
-  async permissaoAdm(idPessoaSingu: number): Promise<void> {
+  async permissaoAdm(idPessoaSingu: number, currentUserId?: number, currentUserName?: string): Promise<void> {
     const foundUser = await this.UsersRepository.findOne({
       where: { idPessoaSingu },
     });
@@ -71,13 +93,33 @@ export class UsersService {
       throw new NotFoundException(`Item with id ${idPessoaSingu} not found`);
     }
 
+    const dadosAntigos = { ...foundUser };
+
     if (foundUser.permissao == 2) {
       foundUser.permissao = 1;
     } else {
       foundUser.permissao = 2;
     }
 
-    await this.UsersRepository.save(foundUser);
+    const updatedUser = await this.UsersRepository.save(foundUser);
+
+    console.log('Dados do log (permissaoAdm):', {
+      currentUserId,
+      currentUserName,
+      idRegistro: updatedUser.idUsuario
+    });
+
+    const logData: LogDto = {
+      nomeTabela: 'users',
+      idRegistro: updatedUser.idUsuario,
+      operacao: 'UPDATE',
+      dadosAntigos: dadosAntigos,
+      dadosNovos: updatedUser,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    await this.logService.logChange(logData);
   }
 
   async findUserSingu(idUsuario: number): Promise<number> {
@@ -91,7 +133,7 @@ export class UsersService {
     return foundUser.idPessoaSingu;
   }
 
-  async update(idUsuario: number, users: UsersDto) {
+  async update(idUsuario: number, users: UsersDto, currentUserId?: number, currentUserName?: string) {
     const foundUser = await this.UsersRepository.findOne({
       where: { idUsuario },
     });
@@ -103,10 +145,45 @@ export class UsersService {
       );
     }
 
+    const dadosAntigos = { ...foundUser };
+
     await this.UsersRepository.update(idUsuario, this.mapDtoToEntity(users));
+
+    const updatedUser = await this.UsersRepository.findOne({
+      where: { idUsuario },
+    });
+
+    console.log('Dados do log (update):', {
+      currentUserId,
+      currentUserName,
+      idRegistro: idUsuario
+    });
+
+    const logData: LogDto = {
+      nomeTabela: 'users',
+      idRegistro: idUsuario,
+      operacao: 'UPDATE',
+      dadosAntigos: dadosAntigos,
+      dadosNovos: updatedUser,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    await this.logService.logChange(logData);
   }
 
-  async remove(idUsuario: number) {
+  async remove(idUsuario: number, currentUserId?: number, currentUserName?: string) {
+    const userToDelete = await this.UsersRepository.findOne({
+      where: { idUsuario },
+    });
+
+    if (!userToDelete) {
+      throw new HttpException(
+        `Item with id ${idUsuario} not found`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     const result = await this.UsersRepository.delete(idUsuario);
 
     if (!result.affected) {
@@ -115,6 +192,24 @@ export class UsersService {
         HttpStatus.BAD_REQUEST,
       );
     }
+    
+    console.log('Dados do log (remove):', {
+      currentUserId,
+      currentUserName,
+      idRegistro: idUsuario
+    });
+
+    const logData: LogDto = {
+      nomeTabela: 'users',
+      idRegistro: idUsuario,
+      operacao: 'DELETE',
+      dadosAntigos: userToDelete,
+      dadosNovos: null,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    await this.logService.logChange(logData);
   }
 
   private mapEntityToDto(UserEntity: UserEntity): UsersDto {

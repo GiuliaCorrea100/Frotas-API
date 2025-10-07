@@ -12,3 +12,9 @@ export interface FindAllParameters {
 export class UsersRouteParameters {
   idUsuario: number;
 }
+
+export class UserActionDto {
+  userData: UsersDto;
+  currentUserId: number;
+  currentUserName: string;
+}

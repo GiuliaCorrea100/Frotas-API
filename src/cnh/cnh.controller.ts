@@ -7,17 +7,23 @@ import {
   Put,
   Delete,
   Query,
+  Request,
+  UseGuards,
 } from '@nestjs/common';
 import { CnhService } from './cnh.service';
 import { CnhDto, FindAllParameters, CnhRouteParameters } from './cnh.dto';
+import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('cnh')
+@UseGuards(AuthGuard)
 export class CnhController {
   constructor(private readonly cnhService: CnhService) {}
 
   @Post()
-  async create(@Body() cnh: CnhDto): Promise<CnhDto> {
-    return await this.cnhService.create(cnh);
+  async create(@Body() cnh: CnhDto, @Request() req: any): Promise<CnhDto> {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+    return await this.cnhService.create(cnh, currentUserId, currentUserName);
   }
 
   @Get('/:idCnh')
@@ -31,12 +37,25 @@ export class CnhController {
   }
 
   @Put('/:idCnh')
-  async update(@Param() params: CnhRouteParameters, @Body() cnh: CnhDto) {
-    await this.cnhService.update(params.idCnh, cnh);
+  async update(
+    @Param() params: CnhRouteParameters,
+    @Body() cnh: CnhDto,
+    @Request() req: any
+  ) {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+    await this.cnhService.update(
+      params.idCnh,
+      cnh,
+      currentUserId,
+      currentUserName
+    );
   }
 
   @Delete('/:idCnh')
-  remove(@Param('idCnh') idCnh: number) {
-    return this.cnhService.remove(idCnh);
+  remove(@Param('idCnh') idCnh: number, @Request() req: any) {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+    return this.cnhService.remove(idCnh, currentUserId, currentUserName);
   }
 }

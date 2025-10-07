@@ -8,26 +8,53 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, FindOptionsWhere, Like } from 'typeorm';
 import { OcorrenciasEntity } from 'src/db/entities/ocorrencias.entity';
 import { FindAllParameters, OcorrenciasDto } from './ocorrencias.dto';
+import { LogService } from '../log/log.service';
+import { LogDto } from '../log/log.dto';
 
 @Injectable()
 export class OcorrenciasService {
   constructor(
     @InjectRepository(OcorrenciasEntity)
     private readonly ocorrenciaRepository: Repository<OcorrenciasEntity>,
+    private readonly logService: LogService,
   ) {}
 
-  async create(ocorrencia: OcorrenciasDto): Promise<OcorrenciasEntity> {
+  async create(
+    ocorrencia: OcorrenciasDto,
+    currentUserId?: number,
+    currentUserName?: string,
+  ): Promise<OcorrenciasEntity> {
     const entity = new OcorrenciasEntity();
     entity.descricao = ocorrencia.descricao;
     entity.idCorrida = ocorrencia.idCorrida;
     entity.dataRegistro = ocorrencia.dataRegistro;
-    return await this.ocorrenciaRepository.save(entity);
+
+    const savedOcorrencia = await this.ocorrenciaRepository.save(entity);
+
+    const logData: LogDto = {
+      nomeTabela: 'ocorrencias',
+      idRegistro: savedOcorrencia.idOcorrencias,
+      operacao: 'INSERT',
+      dadosAntigos: null,
+      dadosNovos: savedOcorrencia,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    console.log('Dados do log (ocorrencias):', {
+      currentUserId,
+      currentUserName,
+      idRegistro: savedOcorrencia.idOcorrencias,
+    });
+
+    await this.logService.logChange(logData);
+
+    return savedOcorrencia;
   }
 
   async findById(idOcorrencias: number): Promise<OcorrenciasDto> {
     const foundOcorrencia = await this.ocorrenciaRepository.findOne({
       where: { idOcorrencias },
-      //relations: ['motorista', 'carro'],
     });
 
     if (!foundOcorrencia) {
@@ -41,10 +68,8 @@ export class OcorrenciasService {
       where: { idCorrida },
     });
 
-    if (!foundOcorrencias) {
-      throw new NotFoundException(
-        `Nenhuma ocorrência encontrada para corrida ${idCorrida}`,
-      );
+    if (!foundOcorrencias || foundOcorrencias.length === 0) {
+      return [];
     }
 
     return foundOcorrencias.map((ocorrencia) =>
@@ -70,7 +95,12 @@ export class OcorrenciasService {
     return ocorrenciaFound.map((entity) => this.mapEntityToDto(entity));
   }
 
-  async update(idOcorrencias: number, ocorrencia: OcorrenciasDto) {
+  async update(
+    idOcorrencias: number,
+    ocorrencia: OcorrenciasDto,
+    currentUserId?: number,
+    currentUserName?: string,
+  ) {
     const foundOcorrencia = await this.ocorrenciaRepository.findOne({
       where: { idOcorrencias },
     });
@@ -82,13 +112,36 @@ export class OcorrenciasService {
       );
     }
 
+    const dadosAntigos = { ...foundOcorrencia };
+
     await this.ocorrenciaRepository.update(
       idOcorrencias,
       this.mapDtoToEntity(ocorrencia),
     );
+
+    const updatedOcorrencia = await this.ocorrenciaRepository.findOne({
+      where: { idOcorrencias },
+    });
+
+    const logData: LogDto = {
+      nomeTabela: 'ocorrencias',
+      idRegistro: idOcorrencias,
+      operacao: 'UPDATE',
+      dadosAntigos: dadosAntigos,
+      dadosNovos: updatedOcorrencia,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    await this.logService.logChange(logData);
   }
 
-  async updateDescricao(idOcorrencias: number, descricao: string) {
+  async updateDescricao(
+    idOcorrencias: number,
+    descricao: string,
+    currentUserId?: number,
+    currentUserName?: string,
+  ) {
     const foundOcorrencia = await this.ocorrenciaRepository.findOne({
       where: { idOcorrencias },
     });
@@ -100,11 +153,45 @@ export class OcorrenciasService {
       );
     }
 
-    // Atualiza apenas o campo descricao
+    const dadosAntigos = { ...foundOcorrencia };
+
     await this.ocorrenciaRepository.update(idOcorrencias, { descricao });
+
+    const updatedOcorrencia = await this.ocorrenciaRepository.findOne({
+      where: { idOcorrencias },
+    });
+
+    const logData: LogDto = {
+      nomeTabela: 'ocorrencias',
+      idRegistro: idOcorrencias,
+      operacao: 'UPDATE',
+      dadosAntigos: dadosAntigos,
+      dadosNovos: updatedOcorrencia,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    await this.logService.logChange(logData);
   }
 
-  async remove(idOcorrencia: number) {
+  async remove(
+    idOcorrencia: number,
+    currentUserId?: number,
+    currentUserName?: string,
+  ) {
+    const ocorrenciaToDelete = await this.ocorrenciaRepository.findOne({
+      where: { idOcorrencias: idOcorrencia },
+    });
+
+    if (!ocorrenciaToDelete) {
+      throw new HttpException(
+        `Item with id ${idOcorrencia} not found`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const dadosAntigos = { ...ocorrenciaToDelete };
+
     const result = await this.ocorrenciaRepository.delete(idOcorrencia);
 
     if (!result.affected) {
@@ -113,6 +200,18 @@ export class OcorrenciasService {
         HttpStatus.BAD_REQUEST,
       );
     }
+
+    const logData: LogDto = {
+      nomeTabela: 'ocorrencias',
+      idRegistro: idOcorrencia,
+      operacao: 'DELETE',
+      dadosAntigos: dadosAntigos,
+      dadosNovos: null,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    await this.logService.logChange(logData);
   }
 
   private mapEntityToDto(OcorrenciasEntity: OcorrenciasEntity): OcorrenciasDto {
@@ -130,7 +229,7 @@ export class OcorrenciasService {
     return {
       descricao: ocorrenciasDto.descricao,
       idCorrida: ocorrenciasDto.idCorrida,
-    dataRegistro: ocorrenciasDto.dataRegistro,  
-   };
+      dataRegistro: ocorrenciasDto.dataRegistro,
+    };
   }
 }

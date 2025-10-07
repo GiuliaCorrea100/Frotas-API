@@ -39,12 +39,14 @@ export class AuthService {
     if (!usuarioFrota) {
       throw new UnauthorizedException('Usuário não cadastrado no Frotas');
     }
-
+    
 
     const payload = {
-      sub: usuarioFrota.idUsuario, 
+      sub: usuarioFrota.idUsuario,
       login: loginFound.login,
-      permissao: usuarioFrota.permissao, 
+      nome: loginFound.nome,
+      permissao: usuarioFrota.permissao,
+      idUsuario: usuarioFrota.idUsuario,
     };
 
     const token = this.jwtService.sign(payload, {

@@ -9,6 +9,8 @@ import { CarrosEntity } from 'src/db/entities/carros.entity';
 import { TipoCombustivelEntity } from 'src/db/entities/tipoCombustivel.entity';
 import { Equal, FindOptionsWhere, Like, Repository } from 'typeorm';
 import { CarrosDto, FindAllParameters } from './carros.dto';
+import { LogService } from '../log/log.service';
+import { LogDto } from '../log/log.dto';
 
 @Injectable()
 export class CarrosService {
@@ -18,10 +20,15 @@ export class CarrosService {
 
     @InjectRepository(TipoCombustivelEntity)
     private readonly tipoCombustivelRepository: Repository<TipoCombustivelEntity>,
+
+    private readonly logService: LogService,
   ) {}
 
-  async create(carros: CarrosDto) {
-    // Verificar se o tipo de combustível existe
+  async create(
+    carros: CarrosDto,
+    currentUserId?: number,
+    currentUserName?: string
+  ) {
     const tipoCombustivel = await this.tipoCombustivelRepository.findOne({
       where: { id_tipo_combustivel: carros.id_tipo_combustivel },
     });
@@ -42,16 +49,30 @@ export class CarrosService {
       localidade_fisica: carros.localidade_fisica,
       situacao: carros.situacao,
       ativo: carros.ativo,
-      tipo_combustivel: tipoCombustivel, // Usar a entidade completa
+      tipo_combustivel: tipoCombustivel,
     };
 
-    return await this.carrosRepository.save(carrosToSave);
+    const savedCarro = await this.carrosRepository.save(carrosToSave);
+
+    const logData: LogDto = {
+      nomeTabela: 'carros',
+      idRegistro: savedCarro.idCarros,
+      operacao: 'INSERT',
+      dadosAntigos: null,
+      dadosNovos: savedCarro,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    await this.logService.logChange(logData);
+
+    return savedCarro;
   }
 
   async findById(idCarros: number): Promise<CarrosDto> {
     const foundCarro = await this.carrosRepository.findOne({
       where: { idCarros },
-      relations: ['tipo_combustivel'], // Incluindo a relação com tipo_combustivel
+      relations: ['tipo_combustivel'],
     });
 
     if (!foundCarro) {
@@ -106,7 +127,12 @@ export class CarrosService {
     return this.mapEntityToDto(foundCarro);
   }
 
-  async update(idCarros: number, carros: CarrosDto) {
+  async update(
+    idCarros: number,
+    carros: CarrosDto,
+    currentUserId?: number,
+    currentUserName?: string
+  ) {
     const foundCarro = await this.carrosRepository.findOne({
       where: { idCarros },
     });
@@ -118,10 +144,45 @@ export class CarrosService {
       );
     }
 
+    const dadosAntigos = { ...foundCarro };
+
     await this.carrosRepository.update(idCarros, this.mapDtoToentity(carros));
+
+    const updatedCarro = await this.carrosRepository.findOne({
+      where: { idCarros },
+    });
+
+    const logData: LogDto = {
+      nomeTabela: 'carros',
+      idRegistro: idCarros,
+      operacao: 'UPDATE',
+      dadosAntigos: dadosAntigos,
+      dadosNovos: updatedCarro,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    await this.logService.logChange(logData);
   }
 
-  async remove(idCarros: number) {
+  async remove(
+    idCarros: number,
+    currentUserId?: number,
+    currentUserName?: string
+  ) {
+    const carroToDelete = await this.carrosRepository.findOne({
+      where: { idCarros },
+    });
+
+    if (!carroToDelete) {
+      throw new HttpException(
+        `Item with id ${idCarros} not found`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const dadosAntigos = { ...carroToDelete };
+
     const result = await this.carrosRepository.delete(idCarros);
 
     if (!result.affected) {
@@ -130,19 +191,49 @@ export class CarrosService {
         HttpStatus.BAD_REQUEST,
       );
     }
+
+    const logData: LogDto = {
+      nomeTabela: 'carros',
+      idRegistro: idCarros,
+      operacao: 'DELETE',
+      dadosAntigos: dadosAntigos,
+      dadosNovos: null,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    await this.logService.logChange(logData);
   }
 
-  // ativar carro/inativar carro
-  async inativar(idCarros: number): Promise<CarrosDto> {
+  async inativar(
+    idCarros: number,
+    currentUserId?: number,
+    currentUserName?: string
+  ): Promise<CarrosDto> {
     const carro = await this.carrosRepository.findOne({ where: { idCarros } });
 
     if (!carro) {
       throw new NotFoundException(`Carro com ID ${idCarros} não encontrado`);
     }
 
+    const dadosAntigos = { ...carro };
+
     carro.ativo = !carro.ativo;
 
     const carroAtualizado = await this.carrosRepository.save(carro);
+
+    const logData: LogDto = {
+      nomeTabela: 'carros',
+      idRegistro: idCarros,
+      operacao: 'UPDATE',
+      dadosAntigos: dadosAntigos,
+      dadosNovos: carroAtualizado,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    await this.logService.logChange(logData);
+
     return this.mapEntityToDto(carroAtualizado);
   }
 

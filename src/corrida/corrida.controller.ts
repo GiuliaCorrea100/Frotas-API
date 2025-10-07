@@ -8,6 +8,8 @@ import {
   Delete,
   Query,
   Patch,
+  Request,
+  UseGuards,
 } from '@nestjs/common';
 import {
   CorridaDto,
@@ -16,15 +18,11 @@ import {
   MotoristaDashboardDto,
 } from './corrida.dto';
 import { CorridaService } from './corrida.service';
+import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('corrida')
 export class CorridaController {
   constructor(private readonly corridaService: CorridaService) {}
-
-  @Post()
-  async create(@Body() corrida: CorridaDto): Promise<CorridaDto> {
-    return await this.corridaService.create(corrida);
-  }
 
   @Get('/:idCorrida')
   async findById(@Param('idCorrida') idCorrida: number): Promise<CorridaDto> {
@@ -43,12 +41,24 @@ export class CorridaController {
     return this.corridaService.getMotoristaDashboard(idMotorista);
   }
 
+  @Post()
+  @UseGuards(AuthGuard)
+  async create(@Body() corrida: CorridaDto, @Request() req: any): Promise<CorridaDto> {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+    return await this.corridaService.create(corrida, currentUserId, currentUserName);
+  }
+
   @Patch('/emprestar-chave/:idCorrida')
-  async emprestarChave(@Param('idCorrida') idCorrida: number): Promise<void> {
-    await this.corridaService.emprestarChave(idCorrida);
+  @UseGuards(AuthGuard)
+  async emprestarChave(@Param('idCorrida') idCorrida: number, @Request() req: any): Promise<void> {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+    await this.corridaService.emprestarChave(idCorrida, currentUserId, currentUserName);
   }
 
   @Patch('/salvar-edicao-adm/:idCorrida')
+  @UseGuards(AuthGuard)
   async salvarEdicaoModal(
     @Param('idCorrida') idCorrida: number,
     @Body()
@@ -58,27 +68,47 @@ export class CorridaController {
       idMotorista?: number;
       idCarros?: number;
     },
+    @Request() req: any,
   ) {
-    return this.corridaService.salvarEdicaoModal(idCorrida, dados);
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+    return this.corridaService.salvarEdicaoModal(idCorrida, dados, currentUserId, currentUserName);
   }
+
   @Patch('/:idCorrida/situacao')
+  @UseGuards(AuthGuard)
   async atualizarSituacao(
     @Param('idCorrida') idCorrida: number,
     @Body() body: { situacao: string },
+    @Request() req: any,
   ): Promise<void> {
-    await this.corridaService.atualizarSituacao(idCorrida, body.situacao);
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+    await this.corridaService.atualizarSituacao(idCorrida, body.situacao, currentUserId, currentUserName);
   }
 
   @Put('/:idCorrida')
+  @UseGuards(AuthGuard)
   async update(
     @Param() params: CorridasRouteParameters,
     @Body() corrida: CorridaDto,
+    @Request() req: any,
   ) {
-    await this.corridaService.update(params.idCorrida, corrida);
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+    await this.corridaService.update(
+      params.idCorrida,
+      corrida,
+      currentUserId,
+      currentUserName
+    );
   }
 
   @Delete('/:idCorrida')
-  remove(@Param('idCorrida') idCorrida: number) {
-    return this.corridaService.remove(idCorrida);
+  @UseGuards(AuthGuard)
+  remove(@Param('idCorrida') idCorrida: number, @Request() req: any) {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+    return this.corridaService.remove(idCorrida, currentUserId, currentUserName);
   }
 }

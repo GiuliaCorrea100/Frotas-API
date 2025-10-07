@@ -8,17 +8,23 @@ import {
   Delete,
   Query,
   Patch,
+  Request,
+  UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { FindAllParameters, UsersDto, UsersRouteParameters } from './users.dto';
+import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('usuarios')
+@UseGuards(AuthGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  async create(@Body() user: UsersDto): Promise<UsersDto> {
-    return await this.usersService.create(user);
+  async create(@Body() user: UsersDto, @Request() req: any): Promise<UsersDto> {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+    return await this.usersService.create(user, currentUserId, currentUserName);
   }
 
   @Get('/:idUsuario')
@@ -31,7 +37,6 @@ export class UsersController {
     return this.usersService.findAll(params);
   }
 
-  //adicionei esse get natly
   @Get('/buscar-por-nome/:nome')
   async findByName(@Param('nome') nome: string): Promise<UsersDto[]> {
     return this.usersService.findByName(nome);
@@ -45,17 +50,37 @@ export class UsersController {
   @Patch('/mudar-permissao/:idPessoaSingu')
   async permissaoAdm(
     @Param('idPessoaSingu') idPessoaSingu: number,
+    @Request() req: any,
   ): Promise<void> {
-    await this.usersService.permissaoAdm(idPessoaSingu);
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+    await this.usersService.permissaoAdm(
+      idPessoaSingu,
+      currentUserId,
+      currentUserName,
+    );
   }
 
   @Put('/:idUsuario')
-  async update(@Param() params: UsersRouteParameters, @Body() users: UsersDto) {
-    await this.usersService.update(params.idUsuario, users);
+  async update(
+    @Param() params: UsersRouteParameters,
+    @Body() users: UsersDto,
+    @Request() req: any,
+  ) {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+    await this.usersService.update(
+      params.idUsuario,
+      users,
+      currentUserId,
+      currentUserName,
+    );
   }
 
   @Delete('/:idUsuario')
-  remove(@Param('idUsuario') idUsuario: number) {
-    return this.usersService.remove(idUsuario);
+  remove(@Param('idUsuario') idUsuario: number, @Request() req: any) {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+    return this.usersService.remove(idUsuario, currentUserId, currentUserName);
   }
 }
