@@ -26,12 +26,13 @@ export class MultasService {
     currentUserName?: string,
   ) {
     const multasToSave: MultasEntity = {
-      codInfracao: multas.codInfracao,
-      classInfracao: multas.classInfracao,
-      valor: multas.valor,
+      codigoInfracao: multas.codigoInfracao,
+      classificacao: multas.classificacao,
+      valorInfracao: multas.valorInfracao,
       placaVeiculo: multas.placaVeiculo,
-      data: multas.data,
-      numAutoInfracao: multas.numAutoInfracao,
+      dataInfracao: multas.dataInfracao,
+      autoInfracao: multas.autoInfracao,
+      //deletada: multas.deletada,
     };
 
     const savedMulta = await this.MultasRepository.save(multasToSave);
@@ -51,13 +52,13 @@ export class MultasService {
     return savedMulta;
   }
 
-  async findById(idMultas: number): Promise<MultasDto> {
+  async findById(idMulta: number): Promise<MultasDto> {
     const foundMulta = await this.MultasRepository.findOne({
-      where: { idMultas },
+      where: { idMulta },
     });
 
     if (!foundMulta) {
-      throw new NotFoundException(`Item with id ${idMultas} not found`);
+      throw new NotFoundException(`Item with id ${idMulta} not found`);
     }
     return this.mapEntityToDto(foundMulta);
   }
@@ -65,16 +66,24 @@ export class MultasService {
   async findAll(params: FindAllParameters): Promise<MultasDto[]> {
     const searchParams: FindOptionsWhere<MultasEntity> = {};
 
-    if (params.classInfracao) {
-      searchParams.classInfracao = Like(`%${params.classInfracao}%`);
+    if (params.classificacao) {
+      searchParams.classificacao = Like(`%${params.classificacao}%`);
     }
 
-    if (params.codInfracao) {
-      searchParams.codInfracao = Like(`%${params.codInfracao}%`);
+    if (params.codigoInfracao) {
+      searchParams.codigoInfracao = params.codigoInfracao;
     }
 
     if (params.placaVeiculo) {
       searchParams.placaVeiculo = Like(`%${params.placaVeiculo}%`);
+    }
+
+    if (params.valorInfracao) {
+      searchParams.valorInfracao = params.valorInfracao;
+    }
+
+    if (params.dataInfracao) {
+      searchParams.dataInfracao = params.dataInfracao;
     }
 
     const multasFound = await this.MultasRepository.find({
@@ -84,33 +93,47 @@ export class MultasService {
     return multasFound.map((MultasEntity) => this.mapEntityToDto(MultasEntity));
   }
 
+  async softRemove(idMulta: number) {
+    const foundMulta = await this.MultasRepository.findOne({
+      where: { idMulta },
+    });
+
+    if (!foundMulta) {
+      throw new NotFoundException(`Item with id ${idMulta} not found`);
+    }
+
+    foundMulta.deletada = true;
+
+    await this.MultasRepository.save(foundMulta);
+  }
+
   async update(
-    idMultas: number,
-    multas: MultasDto,
+    idMulta: number,
+    multa: MultasDto,
     currentUserId?: number,
     currentUserName?: string,
   ) {
     const foundMulta = await this.MultasRepository.findOne({
-      where: { idMultas },
+      where: { idMulta },
     });
 
     if (!foundMulta) {
       throw new HttpException(
-        `Item with id ${idMultas} not found`,
+        `Item with id ${multa.idMulta} not found`,
         HttpStatus.BAD_REQUEST,
       );
     }
     
     const dadosAntigos = { ...foundMulta };
 
-    const updateData = this.mapDtoToEntity(multas);
+    const updateData = this.mapDtoToEntity(multa);
     const mergedEntity = this.MultasRepository.merge(foundMulta, updateData);
 
     const updatedMulta = await this.MultasRepository.save(mergedEntity);
 
     const logData: LogDto = {
       nomeTabela: 'multas',
-      idRegistro: idMultas,
+      idRegistro: idMulta,
       operacao: 'UPDATE',
       dadosAntigos: dadosAntigos,
       dadosNovos: updatedMulta,
@@ -119,68 +142,31 @@ export class MultasService {
     };
 
     await this.logService.logChange(logData);
-  }
 
-  async remove(
-    idMultas: number,
-    currentUserId?: number,
-    currentUserName?: string,
-  ) {
-    const multaToDelete = await this.MultasRepository.findOne({
-      where: { idMultas },
-    });
-
-    if (!multaToDelete) {
-      throw new HttpException(
-        `Item with id ${idMultas} not found`,
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-    
-    const dadosAntigos = { ...multaToDelete };
-
-    const result = await this.MultasRepository.delete(idMultas);
-
-    if (!result.affected) {
-      throw new HttpException(
-        `Item with id ${idMultas} not found`,
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-    
-    const logData: LogDto = {
-      nomeTabela: 'multas',
-      idRegistro: idMultas,
-      operacao: 'DELETE',
-      dadosAntigos: dadosAntigos,
-      dadosNovos: null,
-      idUsuario: currentUserId,
-      usuario: currentUserName,
-    };
-
-    await this.logService.logChange(logData);
   }
 
   private mapEntityToDto(MultasEntity: MultasEntity): MultasDto {
     return {
-      idMultas: MultasEntity.idMultas,
-      codInfracao: MultasEntity.codInfracao,
-      classInfracao: MultasEntity.classInfracao,
-      valor: MultasEntity.valor,
+      idMulta: MultasEntity.idMulta,
+      codigoInfracao: MultasEntity.codigoInfracao,
+      classificacao: MultasEntity.classificacao,
+      valorInfracao: MultasEntity.valorInfracao,
       placaVeiculo: MultasEntity.placaVeiculo,
-      data: MultasEntity.data,
-      numAutoInfracao: MultasEntity.numAutoInfracao,
+      dataInfracao: MultasEntity.dataInfracao,
+      autoInfracao: MultasEntity.autoInfracao,
+      deletada: MultasEntity.deletada,
     };
   }
 
   private mapDtoToEntity(MultasDto: MultasDto): Partial<MultasEntity> {
     return {
-      codInfracao: MultasDto.codInfracao,
-      classInfracao: MultasDto.classInfracao,
-      valor: MultasDto.valor,
+      codigoInfracao: MultasDto.codigoInfracao,
+      classificacao: MultasDto.classificacao,
+      valorInfracao: MultasDto.valorInfracao,
       placaVeiculo: MultasDto.placaVeiculo,
-      data: MultasDto.data,
-      numAutoInfracao: MultasDto.numAutoInfracao,
+      dataInfracao: MultasDto.dataInfracao,
+      autoInfracao: MultasDto.autoInfracao,
+      deletada: MultasDto.deletada,
     };
   }
 }
