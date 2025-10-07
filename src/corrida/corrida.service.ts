@@ -151,6 +151,9 @@ export class CorridaService {
     const corridaFound = await this.corridaRepository.find({
       where: searchParams,
       relations: ['motorista', 'carro'],
+      order: {
+        dataInicio: 'DESC',
+      },
     });
 
     return corridaFound.map((entity) => this.mapEntityToDto(entity));
