@@ -47,7 +47,7 @@ export class UsersService {
     });
 
     const logData: LogDto = {
-      nomeTabela: 'users',
+      nomeTabela: 'usuario',
       idRegistro: savedUser.idUsuario,
       operacao: 'INSERT',
       dadosAntigos: null,
@@ -110,7 +110,7 @@ export class UsersService {
     });
 
     const logData: LogDto = {
-      nomeTabela: 'users',
+      nomeTabela: 'usuario',
       idRegistro: updatedUser.idUsuario,
       operacao: 'UPDATE',
       dadosAntigos: dadosAntigos,
@@ -160,7 +160,7 @@ export class UsersService {
     });
 
     const logData: LogDto = {
-      nomeTabela: 'users',
+      nomeTabela: 'usuario',
       idRegistro: idUsuario,
       operacao: 'UPDATE',
       dadosAntigos: dadosAntigos,
@@ -200,7 +200,7 @@ export class UsersService {
     });
 
     const logData: LogDto = {
-      nomeTabela: 'users',
+      nomeTabela: 'usuario',
       idRegistro: idUsuario,
       operacao: 'DELETE',
       dadosAntigos: userToDelete,

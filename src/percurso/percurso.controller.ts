@@ -8,18 +8,32 @@ import {
   Param,
   Get,
   Patch,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { PercursoDto } from './percurso.dto';
 import { PercursoService } from './percurso.service';
+import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('percurso')
 export class PercursoController {
   constructor(private readonly percursoService: PercursoService) {}
 
   @Post()
-  async create(@Body() percurso: PercursoDto): Promise<PercursoDto> {
+  @UseGuards(AuthGuard)
+  async create(
+    @Body() percurso: PercursoDto,
+    @Request() req: any,
+  ): Promise<PercursoDto> {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+
     try {
-      return await this.percursoService.create(percurso);
+      return await this.percursoService.create(
+        percurso,
+        currentUserId,
+        currentUserName,
+      );
     } catch (error: unknown) {
       if (error instanceof Error) {
         throw new HttpException(
@@ -41,22 +55,39 @@ export class PercursoController {
   }
 
   @Post('percurso-completo/:idCorrida')
+  @UseGuards(AuthGuard)
   async inserirPercursoCompleto(
     @Param('idCorrida') idCorrida: number,
     @Body() percurso: PercursoDto,
+    @Request() req: any,
   ) {
-    return this.percursoService.inserirPercursoCompleto(idCorrida, percurso);
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+
+    return this.percursoService.inserirPercursoCompleto(
+      idCorrida,
+      percurso,
+      currentUserId,
+      currentUserName,
+    );
   }
 
   @Put(':id/finalizar')
+  @UseGuards(AuthGuard)
   async finalizarPercurso(
     @Param('id') id: number,
     @Body() finalizacaoData: { chegadaOdometro: number },
+    @Request() req: any,
   ): Promise<PercursoDto> {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+
     try {
       return await this.percursoService.finalizarPercurso(
         id,
         finalizacaoData.chegadaOdometro,
+        currentUserId,
+        currentUserName,
       );
     } catch (error: unknown) {
       if (error instanceof Error) {
@@ -193,7 +224,20 @@ export class PercursoController {
   }
 
   @Patch(':id/atualizar-percurso')
-  async updatePercurso(@Param('id') id: number, @Body() percuso: PercursoDto) {
-    return this.percursoService.updatePercurso(id, percuso);
+  @UseGuards(AuthGuard)
+  async updatePercurso(
+    @Param('id') id: number,
+    @Body() percurso: PercursoDto,
+    @Request() req: any,
+  ) {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+
+    return this.percursoService.updatePercurso(
+      id,
+      percurso,
+      currentUserId,
+      currentUserName,
+    );
   }
 }
