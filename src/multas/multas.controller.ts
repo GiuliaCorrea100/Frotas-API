@@ -29,6 +29,11 @@ export class MultasController {
     return this.multasService.findById(idMultas);
   }
 
+  @Patch('/deletar-multa/:idMultas')
+  async softRemove(@Param('idMultas') idMultas: number): Promise<void> {
+    return this.multasService.softRemove(idMultas);
+  }
+
   @Get()
   async findAll(@Query() params: FindAllParameters): Promise<MultasDto[]> {
     return this.multasService.findAll(params);
@@ -36,10 +41,17 @@ export class MultasController {
   // Rotas protegidas (com AuthGuard)
   @Post()
   @UseGuards(AuthGuard)
-  async create(@Body() multas: MultasDto, @Request() req: any): Promise<MultasDto> {
+  async create(
+    @Body() multas: MultasDto,
+    @Request() req: any,
+  ): Promise<MultasDto> {
     const currentUserId = req.user?.sub;
     const currentUserName = req.user?.login;
-    return await this.multasService.create(multas, currentUserId, currentUserName);
+    return await this.multasService.create(
+      multas,
+      currentUserId,
+      currentUserName,
+    );
   }
 
   @Put('/:idMulta')
@@ -58,5 +70,4 @@ export class MultasController {
       currentUserName,
     );
   }
-
 }
