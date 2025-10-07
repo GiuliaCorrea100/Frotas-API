@@ -7,6 +7,7 @@ import {
   Put,
   Delete,
   Query,
+  Patch,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -32,7 +33,6 @@ export class MultasController {
   async findAll(@Query() params: FindAllParameters): Promise<MultasDto[]> {
     return this.multasService.findAll(params);
   }
-
   // Rotas protegidas (com AuthGuard)
   @Post()
   @UseGuards(AuthGuard)
@@ -42,28 +42,21 @@ export class MultasController {
     return await this.multasService.create(multas, currentUserId, currentUserName);
   }
 
-  @Put('/:idMultas')
+  @Put('/:idMulta')
   @UseGuards(AuthGuard)
   async update(
     @Param() params: MultasRouteParameters,
-    @Body() multas: MultasDto,
+    @Body() multa: MultasDto,
     @Request() req: any,
   ) {
     const currentUserId = req.user?.sub;
     const currentUserName = req.user?.login;
     await this.multasService.update(
-      params.idMultas,
-      multas,
+      params.idMulta,
+      multa,
       currentUserId,
       currentUserName,
     );
   }
 
-  @Delete('/:idMultas')
-  @UseGuards(AuthGuard)
-  remove(@Param('idMultas') idMultas: number, @Request() req: any) {
-    const currentUserId = req.user?.sub;
-    const currentUserName = req.user?.login;
-    return this.multasService.remove(idMultas, currentUserId, currentUserName);
-  }
 }
