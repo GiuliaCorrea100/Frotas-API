@@ -8,16 +8,23 @@ import { MultasDto, FindAllParameters } from './multas.dto';
 import { MultasEntity } from 'src/db/entities/multas.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like, FindOptionsWhere } from 'typeorm';
+import { LogService } from '../log/log.service';
+import { LogDto } from '../log/log.dto';
 
 @Injectable()
 export class MultasService {
   constructor(
     @InjectRepository(MultasEntity)
     private readonly MultasRepository: Repository<MultasEntity>,
+    private readonly logService: LogService,
   ) {}
   private multas: MultasDto[] = [];
 
-  async create(multas: MultasDto) {
+  async create(
+    multas: MultasDto,
+    currentUserId?: number,
+    currentUserName?: string,
+  ) {
     const multasToSave: MultasEntity = {
       codigoInfracao: multas.codigoInfracao,
       classificacao: multas.classificacao,
@@ -28,7 +35,21 @@ export class MultasService {
       //deletada: multas.deletada,
     };
 
-    return await this.MultasRepository.save(multasToSave);
+    const savedMulta = await this.MultasRepository.save(multasToSave);
+
+    const logData: LogDto = {
+      nomeTabela: 'multas',
+      idRegistro: savedMulta.idMultas,
+      operacao: 'INSERT',
+      dadosAntigos: null,
+      dadosNovos: savedMulta,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    await this.logService.logChange(logData);
+
+    return savedMulta;
   }
 
   async findById(idMulta: number): Promise<MultasDto> {
@@ -72,21 +93,6 @@ export class MultasService {
     return multasFound.map((MultasEntity) => this.mapEntityToDto(MultasEntity));
   }
 
-  async update(idMulta: number, multa: MultasDto) {
-    const foundMulta = await this.MultasRepository.findOne({
-      where: { idMulta },
-    });
-
-    if (!foundMulta) {
-      throw new HttpException(
-        `Item with id ${multa.idMulta} not found`,
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    await this.MultasRepository.update(idMulta, this.mapDtoToEntity(multa));
-  }
-
   async softRemove(idMulta: number) {
     const foundMulta = await this.MultasRepository.findOne({
       where: { idMulta },
@@ -101,16 +107,42 @@ export class MultasService {
     await this.MultasRepository.save(foundMulta);
   }
 
-  async remove(idMulta: number) {
-    // Corrigido nome do parâmetro
-    const result = await this.MultasRepository.delete(idMulta);
+  async update(
+    idMulta: number,
+    multa: MultasDto,
+    currentUserId?: number,
+    currentUserName?: string,
+  ) {
+    const foundMulta = await this.MultasRepository.findOne({
+      where: { idMulta },
+    });
 
-    if (!result.affected) {
+    if (!foundMulta) {
       throw new HttpException(
-        `Item with id ${idMulta} not found`,
+        `Item with id ${multa.idMulta} not found`,
         HttpStatus.BAD_REQUEST,
       );
     }
+    
+    const dadosAntigos = { ...foundMulta };
+
+    const updateData = this.mapDtoToEntity(multa);
+    const mergedEntity = this.MultasRepository.merge(foundMulta, updateData);
+
+    const updatedMulta = await this.MultasRepository.save(mergedEntity);
+
+    const logData: LogDto = {
+      nomeTabela: 'multas',
+      idRegistro: idMulta,
+      operacao: 'UPDATE',
+      dadosAntigos: dadosAntigos,
+      dadosNovos: updatedMulta,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    await this.logService.logChange(logData);
+
   }
 
   private mapEntityToDto(MultasEntity: MultasEntity): MultasDto {

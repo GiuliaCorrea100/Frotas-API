@@ -8,18 +8,16 @@ import {
   Get,
   Query,
   Patch,
+  Request,
+  UseGuards,
 } from '@nestjs/common';
 import { OcorrenciasService } from './ocorrencias.service';
 import { FindAllParameters, OcorrenciasDto } from './ocorrencias.dto';
+import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('ocorrencias')
 export class OcorrenciasController {
   constructor(private readonly ocorrenciasService: OcorrenciasService) {}
-
-  @Post()
-  async create(@Body() ocorrencia: OcorrenciasDto): Promise<OcorrenciasDto> {
-    return await this.ocorrenciasService.create(ocorrencia);
-  }
 
   @Get()
   async findAll(@Query() params: FindAllParameters): Promise<OcorrenciasDto[]> {
@@ -40,24 +38,43 @@ export class OcorrenciasController {
     return this.ocorrenciasService.findByIdCorrida(idCorrida);
   }
 
+  @Post()
+  @UseGuards(AuthGuard)
+  async create(@Body() ocorrencia: OcorrenciasDto, @Request() req: any): Promise<OcorrenciasDto> {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+    return await this.ocorrenciasService.create(ocorrencia, currentUserId, currentUserName);
+  }
+
   @Put('/:idOcorrencia')
+  @UseGuards(AuthGuard)
   async update(
-    idOcorrencia: number,
-    ocorrencia: OcorrenciasDto,
+    @Param('idOcorrencia') idOcorrencia: number,
+    @Body() ocorrencia: OcorrenciasDto,
+    @Request() req: any,
   ): Promise<void> {
-    await this.ocorrenciasService.update(idOcorrencia, ocorrencia);
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+    await this.ocorrenciasService.update(idOcorrencia, ocorrencia, currentUserId, currentUserName);
   }
 
   @Patch(':id/descricao')
+  @UseGuards(AuthGuard)
   async updateDescricao(
     @Param('id') id: number,
     @Body('descricao') descricao: string,
+    @Request() req: any,
   ) {
-    return this.ocorrenciasService.updateDescricao(id, descricao);
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+    return this.ocorrenciasService.updateDescricao(id, descricao, currentUserId, currentUserName);
   }
 
   @Delete('/:idOcorrencia')
-  remove(@Param('idOcorrencia') idOcorrencia: number) {
-    return this.ocorrenciasService.remove(idOcorrencia);
+  @UseGuards(AuthGuard)
+  remove(@Param('idOcorrencia') idOcorrencia: number, @Request() req: any) {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+    return this.ocorrenciasService.remove(idOcorrencia, currentUserId, currentUserName);
   }
 }

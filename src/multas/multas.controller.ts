@@ -8,6 +8,8 @@ import {
   Delete,
   Query,
   Patch,
+  Request,
+  UseGuards,
 } from '@nestjs/common';
 import {
   MultasDto,
@@ -15,16 +17,13 @@ import {
   MultasRouteParameters,
 } from './multas.dto';
 import { MultasService } from './multas.service';
+import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('multas')
 export class MultasController {
   constructor(private readonly multasService: MultasService) {}
 
-  @Post()
-  async create(@Body() multas: MultasDto): Promise<MultasDto> {
-    return await this.multasService.create(multas);
-  }
-
+  // Rotas públicas (sem AuthGuard)
   @Get('/:idMultas')
   async findById(@Param('idMultas') idMultas: number): Promise<MultasDto> {
     return this.multasService.findById(idMultas);
@@ -34,19 +33,30 @@ export class MultasController {
   async findAll(@Query() params: FindAllParameters): Promise<MultasDto[]> {
     return this.multasService.findAll(params);
   }
+  // Rotas protegidas (com AuthGuard)
+  @Post()
+  @UseGuards(AuthGuard)
+  async create(@Body() multas: MultasDto, @Request() req: any): Promise<MultasDto> {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+    return await this.multasService.create(multas, currentUserId, currentUserName);
+  }
 
   @Put('/:idMulta')
-  async update(@Param('idMulta') idMulta: number, @Body() multas: MultasDto) {
-    await this.multasService.update(idMulta, multas);
+  @UseGuards(AuthGuard)
+  async update(
+    @Param() params: MultasRouteParameters,
+    @Body() multa: MultasDto,
+    @Request() req: any,
+  ) {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+    await this.multasService.update(
+      params.idMulta,
+      multa,
+      currentUserId,
+      currentUserName,
+    );
   }
 
-  @Patch('/deletar-multa/:idMultas')
-  async softRemove(@Param('idMultas') idMultas: number): Promise<void> {
-    return this.multasService.softRemove(idMultas);
-  }
-
-  @Delete('/:idMulta')
-  remove(@Param('idMulta') idMulta: number) {
-    return this.multasService.remove(idMulta);
-  }
 }
