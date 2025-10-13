@@ -230,7 +230,9 @@ export class PercursoController {
     @Body() percurso: PercursoDto,
     @Request() req: any,
   ) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const currentUserId = req.user?.sub;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const currentUserName = req.user?.login;
 
     return this.percursoService.updatePercurso(

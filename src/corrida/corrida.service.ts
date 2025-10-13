@@ -50,13 +50,13 @@ export class CorridaService {
   }
 
   async verificarConflitoDeCarro(
-    idCarros: number,
+    idCarro: number,
     dataInicio: Date,
     dataTermino: Date,
   ): Promise<boolean> {
     const conflitos = await this.corridaRepository.find({
       where: {
-        idCarros,
+        idCarro,
         situacao: In(['AGENDADA', 'ANDAMENTO']),
         dataInicio: LessThanOrEqual(dataTermino),
         dataTermino: MoreThanOrEqual(dataInicio),
@@ -69,9 +69,9 @@ export class CorridaService {
   async create(
     corrida: CorridaDto,
     currentUserId?: number,
-    currentUserName?: string
+    currentUserName?: string,
   ): Promise<CorridaDto> {
-    corrida.local_de_saida = corrida.local_de_saida.toUpperCase();
+    corrida.localDeSaida = corrida.localDeSaida.toUpperCase();
 
     const conflitoMotorista = await this.verificarConflitoDeCorrida(
       corrida.idMotorista,
@@ -87,7 +87,7 @@ export class CorridaService {
     }
 
     const conflitoCarro = await this.verificarConflitoDeCarro(
-      corrida.idCarros,
+      corrida.idCarro,
       new Date(corrida.dataInicio),
       new Date(corrida.dataTermino),
     );
@@ -111,7 +111,7 @@ export class CorridaService {
     }
 
     await this.corridaRepository.save(corridaToSave);
-    
+
     const savedCorrida = await this.findById(newId);
 
     const logData: LogDto = {
@@ -136,7 +136,7 @@ export class CorridaService {
     });
 
     if (!foundCorrida) {
-      throw new NotFoundException(`Item com id ${idCorrida} não encontrado`);
+      throw new NotFoundException(`Item with id ${idCorrida} not found`);
     }
     return this.mapEntityToDto(foundCorrida);
   }
@@ -144,8 +144,8 @@ export class CorridaService {
   async findAll(params: FindAllParameters): Promise<CorridaDto[]> {
     const searchParams: FindOptionsWhere<CorridasEntity> = {};
 
-    if (params.local_de_saida) {
-      searchParams.local_de_saida = Like(`%${params.local_de_saida}%`);
+    if (params.localDeSaida) {
+      searchParams.localDeSaida = Like(`%${params.localDeSaida}%`);
     }
 
     const corridaFound = await this.corridaRepository.find({
@@ -162,7 +162,7 @@ export class CorridaService {
   async emprestarChave(
     idCorrida: number,
     currentUserId?: number,
-    currentUserName?: string
+    currentUserName?: string,
   ): Promise<void> {
     const foundCorrida = await this.corridaRepository.findOne({
       where: { idCorrida },
@@ -201,14 +201,14 @@ export class CorridaService {
     idCorrida: number,
     situacao: string,
     currentUserId?: number,
-    currentUserName?: string
+    currentUserName?: string,
   ): Promise<void> {
     const foundCorrida = await this.corridaRepository.findOne({
       where: { idCorrida },
     });
 
     if (!foundCorrida) {
-      throw new NotFoundException(`Corrida com id ${idCorrida} não encontrada`);
+      throw new NotFoundException(`Item with id ${idCorrida} not found`);
     }
 
     const transicoesPermitidas = {
@@ -251,20 +251,17 @@ export class CorridaService {
       dataInicio?: Date;
       dataTermino?: Date;
       idMotorista?: number;
-      idCarros?: number;
+      idCarro?: number;
     },
     currentUserId?: number,
-    currentUserName?: string
+    currentUserName?: string,
   ) {
     const corrida = await this.corridaRepository.findOne({
       where: { idCorrida },
     });
 
     if (!corrida) {
-      throw new HttpException(
-        `Corrida ${idCorrida} não encontrada`,
-        HttpStatus.NOT_FOUND,
-      );
+      throw new NotFoundException(`Item with id ${idCorrida} not found`);
     }
 
     const dadosAntigos = { ...corrida };
@@ -273,7 +270,7 @@ export class CorridaService {
       dataInicio: dados.dataInicio ?? corrida.dataInicio,
       dataTermino: dados.dataTermino ?? corrida.dataTermino,
       idMotorista: dados.idMotorista ?? corrida.idMotorista,
-      idCarros: dados.idCarros ?? corrida.idCarros,
+      idCarro: dados.idCarro ?? corrida.idCarro,
     });
 
     const updatedCorrida = await this.corridaRepository.findOne({
@@ -299,19 +296,16 @@ export class CorridaService {
     idCorrida: number,
     corrida: CorridaDto,
     currentUserId?: number,
-    currentUserName?: string
+    currentUserName?: string,
   ) {
-    corrida.local_de_saida = corrida.local_de_saida.toUpperCase();
+    corrida.localDeSaida = corrida.localDeSaida.toUpperCase();
 
     const foundCorrida = await this.corridaRepository.findOne({
       where: { idCorrida },
     });
 
     if (!foundCorrida) {
-      throw new HttpException(
-        `Item com id ${idCorrida} não encontrado`,
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new NotFoundException(`Item with id ${idCorrida} not found`);
     }
 
     const dadosAntigos = { ...foundCorrida };
@@ -341,17 +335,14 @@ export class CorridaService {
   async remove(
     idCorrida: number,
     currentUserId?: number,
-    currentUserName?: string
+    currentUserName?: string,
   ) {
     const corridaToDelete = await this.corridaRepository.findOne({
       where: { idCorrida },
     });
 
     if (!corridaToDelete) {
-      throw new HttpException(
-        `Item com id ${idCorrida} não encontrado`,
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new NotFoundException(`Item with id ${idCorrida} not found`);
     }
 
     const dadosAntigos = { ...corridaToDelete };
@@ -359,10 +350,7 @@ export class CorridaService {
     const result = await this.corridaRepository.delete(idCorrida);
 
     if (!result.affected || result.affected === 0) {
-      throw new HttpException(
-        `Item com id ${idCorrida} não encontrado`,
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new NotFoundException(`Item with id ${idCorrida} not found`);
     }
 
     const logData: LogDto = {
@@ -456,12 +444,12 @@ export class CorridaService {
       dataInicio: corridaEntity.dataInicio,
       dataTermino: corridaEntity.dataTermino,
       distanciaKm: corridaEntity.distanciaKm,
-      local_de_saida: corridaEntity.local_de_saida,
+      localDeSaida: corridaEntity.localDeSaida,
       idMotorista: corridaEntity.idMotorista,
       chaveEmprestada: corridaEntity.chaveEmprestada,
       situacao: corridaEntity.situacao,
       nomeMotorista: corridaEntity.motorista?.nome,
-      idCarros: corridaEntity.idCarros,
+      idCarro: corridaEntity.idCarro,
       placaVeiculo: corridaEntity.carro?.placa,
       dataHoraLiberacaoChave: corridaEntity.dataHoraLiberacaoChave,
       datHoraRecebimentoChave: corridaEntity.dataHoraRecebimentoChave,
@@ -473,9 +461,9 @@ export class CorridaService {
       dataInicio: corridaDto.dataInicio,
       dataTermino: corridaDto.dataTermino,
       distanciaKm: corridaDto.distanciaKm,
-      local_de_saida: corridaDto.local_de_saida,
+      localDeSaida: corridaDto.localDeSaida,
       idMotorista: corridaDto.idMotorista,
-      idCarros: corridaDto.idCarros,
+      idCarro: corridaDto.idCarro,
       chaveEmprestada: corridaDto.chaveEmprestada || false,
     };
 

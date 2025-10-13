@@ -61,7 +61,7 @@ export class PercursoService {
     entity.saidaHora = percurso.saidaHora;
     entity.chegadaHora = percurso.chegadaHora;
     entity.saidaOdometro = percurso.saidaOdometro;
-    entity.chegadaodometro = percurso.chegadaodometro;
+    entity.chegadaOdometro = percurso.chegadaOdometro;
 
     const created = await this.percursoRepository.save(entity);
 
@@ -106,7 +106,7 @@ export class PercursoService {
     const dadosAntigos = { ...percurso };
 
     percurso.chegadaHora = new Date();
-    percurso.chegadaodometro = chegadaOdometro;
+    percurso.chegadaOdometro = chegadaOdometro;
 
     const updated = await this.percursoRepository.save(percurso);
 
@@ -135,7 +135,8 @@ export class PercursoService {
         'Nenhum percurso encontrado para esta corrida',
       );
     }
-    
+
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     return percursos.map(this.mapEntityToDto);
   }
 
@@ -196,7 +197,7 @@ export class PercursoService {
     const dadosAntigos = { ...foundPercurso };
 
     foundPercurso.chegadaHora = percurso.chegadaHora;
-    foundPercurso.chegadaodometro = percurso.chegadaodometro;
+    foundPercurso.chegadaOdometro = percurso.chegadaOdometro;
     foundPercurso.localDestino = percurso.localDestino;
     foundPercurso.localOrigem = percurso.localOrigem;
     foundPercurso.saidaHora = percurso.saidaHora;
@@ -226,7 +227,7 @@ export class PercursoService {
       saidaOdometro: entity.saidaOdometro,
       localDestino: entity.localDestino,
       chegadaHora: entity.chegadaHora,
-      chegadaodometro: entity.chegadaodometro,
+      chegadaOdometro: entity.chegadaOdometro,
       localOrigem: entity.localOrigem,
     };
   }

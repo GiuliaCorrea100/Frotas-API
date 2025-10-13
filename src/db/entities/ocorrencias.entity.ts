@@ -4,7 +4,7 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 @Entity({ name: 'ocorrencias' })
 export class OcorrenciasEntity {
   @PrimaryGeneratedColumn({ type: 'int', name: 'id_ocorrencia' })
-  idOcorrencias?: number;
+  idOcorrencia?: number;
 
   @Column({ type: 'varchar', name: 'descricao' })
   descricao: string;

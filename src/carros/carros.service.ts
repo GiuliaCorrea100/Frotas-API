@@ -1,9 +1,4 @@
-import {
-  HttpException,
-  HttpStatus,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CarrosEntity } from 'src/db/entities/carros.entity';
 import { TipoCombustivelEntity } from 'src/db/entities/tipoCombustivel.entity';
@@ -25,30 +20,30 @@ export class CarrosService {
   ) {}
 
   async create(
-    carros: CarrosDto,
+    carro: CarrosDto,
     currentUserId?: number,
-    currentUserName?: string
+    currentUserName?: string,
   ) {
     const tipoCombustivel = await this.tipoCombustivelRepository.findOne({
-      where: { id_tipo_combustivel: carros.id_tipo_combustivel },
+      where: { idTipoCombustivel: carro.idTipoCombustivel },
     });
 
     if (!tipoCombustivel) {
       throw new NotFoundException(
-        `Tipo de combustível com id ${carros.id_tipo_combustivel} não encontrado`,
+        `Item with id ${carro.idTipoCombustivel} not found`,
       );
     }
 
     const carrosToSave: Partial<CarrosEntity> = {
-      tombo: carros.tombo,
-      qrCode: carros.qrCode,
-      modelo: carros.modelo,
-      placa: carros.placa,
-      odometro: carros.odometro,
-      ano: carros.ano,
-      localidade_fisica: carros.localidade_fisica,
-      situacao: carros.situacao,
-      ativo: carros.ativo,
+      tombo: carro.tombo,
+      qrCode: carro.qrCode,
+      modelo: carro.modelo,
+      placa: carro.placa,
+      odometro: carro.odometro,
+      ano: carro.ano,
+      localidadeFisica: carro.localidadeFisica,
+      situacao: carro.situacao,
+      ativo: carro.ativo,
       tipo_combustivel: tipoCombustivel,
     };
 
@@ -56,7 +51,7 @@ export class CarrosService {
 
     const logData: LogDto = {
       nomeTabela: 'carros',
-      idRegistro: savedCarro.idCarros,
+      idRegistro: savedCarro.idCarro,
       operacao: 'INSERT',
       dadosAntigos: null,
       dadosNovos: savedCarro,
@@ -69,14 +64,14 @@ export class CarrosService {
     return savedCarro;
   }
 
-  async findById(idCarros: number): Promise<CarrosDto> {
+  async findById(idCarro: number): Promise<CarrosDto> {
     const foundCarro = await this.carrosRepository.findOne({
-      where: { idCarros },
+      where: { idCarro },
       relations: ['tipo_combustivel'],
     });
 
     if (!foundCarro) {
-      throw new NotFoundException(`Item with id ${idCarros} not found`);
+      throw new NotFoundException(`Item with id ${idCarro} not found`);
     }
 
     return this.mapEntityToDto(foundCarro);
@@ -140,40 +135,37 @@ export class CarrosService {
     });
 
     if (!foundCarro) {
-      throw new NotFoundException(`Carro com tombo ${tombo} não encontrado`);
+      throw new NotFoundException(`Item with id ${tombo} not found`);
     }
 
     return this.mapEntityToDto(foundCarro);
   }
 
   async update(
-    idCarros: number,
+    idCarro: number,
     carros: CarrosDto,
     currentUserId?: number,
-    currentUserName?: string
+    currentUserName?: string,
   ) {
     const foundCarro = await this.carrosRepository.findOne({
-      where: { idCarros },
+      where: { idCarro },
     });
 
     if (!foundCarro) {
-      throw new HttpException(
-        `Item with id ${carros.idCarros} not found`,
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new NotFoundException(`Item with id ${carros.idCarro} not found`);
     }
 
     const dadosAntigos = { ...foundCarro };
 
-    await this.carrosRepository.update(idCarros, this.mapDtoToentity(carros));
+    await this.carrosRepository.update(idCarro, this.mapDtoToentity(carros));
 
     const updatedCarro = await this.carrosRepository.findOne({
-      where: { idCarros },
+      where: { idCarro },
     });
 
     const logData: LogDto = {
       nomeTabela: 'carros',
-      idRegistro: idCarros,
+      idRegistro: idCarro,
       operacao: 'UPDATE',
       dadosAntigos: dadosAntigos,
       dadosNovos: updatedCarro,
@@ -185,35 +177,29 @@ export class CarrosService {
   }
 
   async remove(
-    idCarros: number,
+    idCarro: number,
     currentUserId?: number,
-    currentUserName?: string
+    currentUserName?: string,
   ) {
     const carroToDelete = await this.carrosRepository.findOne({
-      where: { idCarros },
+      where: { idCarro },
     });
 
     if (!carroToDelete) {
-      throw new HttpException(
-        `Item with id ${idCarros} not found`,
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new NotFoundException(`Item with id ${idCarro} not found`);
     }
 
     const dadosAntigos = { ...carroToDelete };
 
-    const result = await this.carrosRepository.delete(idCarros);
+    const result = await this.carrosRepository.delete(idCarro);
 
     if (!result.affected) {
-      throw new HttpException(
-        `Item with id ${idCarros} not found`,
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new NotFoundException(`Item with id ${idCarro} not found`);
     }
 
     const logData: LogDto = {
       nomeTabela: 'carros',
-      idRegistro: idCarros,
+      idRegistro: idCarro,
       operacao: 'DELETE',
       dadosAntigos: dadosAntigos,
       dadosNovos: null,
@@ -225,14 +211,14 @@ export class CarrosService {
   }
 
   async inativar(
-    idCarros: number,
+    idCarro: number,
     currentUserId?: number,
-    currentUserName?: string
+    currentUserName?: string,
   ): Promise<CarrosDto> {
-    const carro = await this.carrosRepository.findOne({ where: { idCarros } });
+    const carro = await this.carrosRepository.findOne({ where: { idCarro } });
 
     if (!carro) {
-      throw new NotFoundException(`Carro com ID ${idCarros} não encontrado`);
+      throw new NotFoundException(`Item with id ${idCarro} not found`);
     }
 
     const dadosAntigos = { ...carro };
@@ -243,7 +229,7 @@ export class CarrosService {
 
     const logData: LogDto = {
       nomeTabela: 'carros',
-      idRegistro: idCarros,
+      idRegistro: idCarro,
       operacao: 'UPDATE',
       dadosAntigos: dadosAntigos,
       dadosNovos: carroAtualizado,
@@ -258,19 +244,19 @@ export class CarrosService {
 
   private mapEntityToDto(CarrosEntity: CarrosEntity): CarrosDto {
     return {
-      idCarros: CarrosEntity.idCarros,
+      idCarro: CarrosEntity.idCarro,
       tombo: CarrosEntity.tombo,
       qrCode: CarrosEntity.qrCode,
       placa: CarrosEntity.placa,
       odometro: CarrosEntity.odometro,
       modelo: CarrosEntity.modelo,
       ano: CarrosEntity.ano,
-      localidade_fisica: CarrosEntity.localidade_fisica,
+      localidadeFisica: CarrosEntity.localidadeFisica,
       situacao: CarrosEntity.situacao,
       ativo: CarrosEntity.ativo,
 
       nomeTipoCombustivel: CarrosEntity.tipo_combustivel?.nome,
-      id_tipo_combustivel: CarrosEntity.tipo_combustivel?.id_tipo_combustivel,
+      idTipoCombustivel: CarrosEntity.tipo_combustivel?.idTipoCombustivel,
     };
   }
 
@@ -282,7 +268,7 @@ export class CarrosService {
       odometro: carrosDto.odometro,
       modelo: carrosDto.modelo,
       ano: carrosDto.ano,
-      localidade_fisica: carrosDto.localidade_fisica,
+      localidadeFisica: carrosDto.localidadeFisica,
       situacao: carrosDto.situacao,
       ativo: carrosDto.ativo,
     };

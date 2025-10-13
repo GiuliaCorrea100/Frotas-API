@@ -1,5 +1,5 @@
 export class CarrosDto {
-  idCarros?: number;
+  idCarro?: number;
   tombo: number;
   qrCode: string;
   placa: string;
@@ -7,10 +7,10 @@ export class CarrosDto {
   modelo: string;
   ano: number;
 
-  localidade_fisica: string;
+  localidadeFisica: string;
   situacao: string;
   ativo: boolean;
-  id_tipo_combustivel?: number;
+  idTipoCombustivel?: number;
 
   nomeTipoCombustivel?: string;
 }
@@ -21,5 +21,5 @@ export interface FindAllParameters {
 }
 
 export class CarrosRouteParameters {
-  idCarros: number;
+  idCarro: number;
 }

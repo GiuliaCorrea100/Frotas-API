@@ -3,14 +3,14 @@ export class CorridaDto {
   dataInicio: Date;
   dataTermino: Date;
   distanciaKm?: string;
-  local_de_saida: string;
+  localDeSaida: string;
   idMotorista: number;
 
   chaveEmprestada: boolean;
   datHoraRecebimentoChave: Date;
   dataHoraLiberacaoChave: Date;
 
-  idCarros: number;
+  idCarro: number;
 
   nomeMotorista?: string;
   placaVeiculo?: string;
@@ -23,7 +23,7 @@ export interface MotoristaDashboardDto {
 }
 
 export interface FindAllParameters {
-  local_de_saida: string;
+  localDeSaida: string;
 }
 
 export class CorridasRouteParameters {

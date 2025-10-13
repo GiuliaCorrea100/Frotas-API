@@ -27,10 +27,14 @@ export class TipoCombustivelController {
   create(@Body() dto: TipoCombustivelDto, @Request() req: any) {
     const currentUserId = req.user?.sub;
     const currentUserName = req.user?.login;
-    return this.tipoCombustivelService.create(dto, currentUserId, currentUserName);
+    return this.tipoCombustivelService.create(
+      dto,
+      currentUserId,
+      currentUserName,
+    );
   }
 
-  @Patch(':id_tipo_combustivel')
+  @Patch(':idTipoCombustivel')
   update(
     @Param() params: TipoCombustivelRouteParams,
     @Body() dto: TipoCombustivelDto,
@@ -39,10 +43,10 @@ export class TipoCombustivelController {
     const currentUserId = req.user?.sub;
     const currentUserName = req.user?.login;
     return this.tipoCombustivelService.update(
-      params.id_tipo_combustivel,
+      params.idTipoCombustivel,
       dto,
       currentUserId,
-      currentUserName
+      currentUserName,
     );
   }
 
@@ -51,15 +55,22 @@ export class TipoCombustivelController {
     return this.tipoCombustivelService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.tipoCombustivelService.findOne(+id);
+  @Get(':idTipoCombustivel')
+  findOne(@Param('idTipoCombustivel') idTipoCombustivel: string) {
+    return this.tipoCombustivelService.findOne(+idTipoCombustivel);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string, @Request() req: any) {
+  @Delete(':idTipoCombustivel')
+  remove(
+    @Param('idTipoCombustivel') idTipoCombustivel: string,
+    @Request() req: any,
+  ) {
     const currentUserId = req.user?.sub;
     const currentUserName = req.user?.login;
-    return this.tipoCombustivelService.remove(+id, currentUserId, currentUserName);
+    return this.tipoCombustivelService.remove(
+      +idTipoCombustivel,
+      currentUserId,
+      currentUserName,
+    );
   }
 }

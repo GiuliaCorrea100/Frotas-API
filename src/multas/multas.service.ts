@@ -1,9 +1,4 @@
-import {
-  HttpException,
-  HttpStatus,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { MultasDto, FindAllParameters } from './multas.dto';
 import { MultasEntity } from 'src/db/entities/multas.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -32,7 +27,6 @@ export class MultasService {
       placaVeiculo: multas.placaVeiculo,
       dataInfracao: multas.dataInfracao,
       autoInfracao: multas.autoInfracao,
-      //deletada: multas.deletada,
     };
 
     const savedMulta = await this.MultasRepository.save(multasToSave);
@@ -118,12 +112,9 @@ export class MultasService {
     });
 
     if (!foundMulta) {
-      throw new HttpException(
-        `Item with id ${multa.idMulta} not found`,
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new NotFoundException(`Item with id ${multa.idMulta} not found`);
     }
-    
+
     const dadosAntigos = { ...foundMulta };
 
     const updateData = this.mapDtoToEntity(multa);
@@ -142,7 +133,6 @@ export class MultasService {
     };
 
     await this.logService.logChange(logData);
-
   }
 
   private mapEntityToDto(MultasEntity: MultasEntity): MultasDto {

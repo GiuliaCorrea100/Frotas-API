@@ -6,10 +6,7 @@ import { PercursoEntity } from '../db/entities/percurso.entity';
 import { LogModule } from '../log/log.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([PercursoEntity]),
-    LogModule,
-  ],
+  imports: [TypeOrmModule.forFeature([PercursoEntity]), LogModule],
   controllers: [PercursoController],
   providers: [PercursoService],
 })
