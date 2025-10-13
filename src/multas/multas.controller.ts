@@ -23,22 +23,32 @@ import { AuthGuard } from '../auth/auth.guard';
 export class MultasController {
   constructor(private readonly multasService: MultasService) {}
 
-  // Rotas públicas (sem AuthGuard)
   @Get('/:idMultas')
   async findById(@Param('idMultas') idMultas: number): Promise<MultasDto> {
     return this.multasService.findById(idMultas);
   }
 
   @Patch('/deletar-multa/:idMultas')
-  async softRemove(@Param('idMultas') idMultas: number): Promise<void> {
-    return this.multasService.softRemove(idMultas);
+  @UseGuards(AuthGuard)
+  async softRemove(
+    @Param('idMultas') idMultas: number,
+    @Request() req: any,
+  ): Promise<void> {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+
+    return this.multasService.softRemove(
+      idMultas,
+      currentUserId,
+      currentUserName,
+    );
   }
 
   @Get()
   async findAll(@Query() params: FindAllParameters): Promise<MultasDto[]> {
     return this.multasService.findAll(params);
   }
-  // Rotas protegidas (com AuthGuard)
+
   @Post()
   @UseGuards(AuthGuard)
   async create(

@@ -32,7 +32,6 @@ export class MultasService {
       placaVeiculo: multas.placaVeiculo,
       dataInfracao: multas.dataInfracao,
       autoInfracao: multas.autoInfracao,
-      //deletada: multas.deletada,
     };
 
     const savedMulta = await this.MultasRepository.save(multasToSave);
@@ -93,7 +92,11 @@ export class MultasService {
     return multasFound.map((MultasEntity) => this.mapEntityToDto(MultasEntity));
   }
 
-  async softRemove(idMulta: number) {
+  async softRemove(
+    idMulta: number,
+    currentUserId?: number,
+    currentUserName?: string,
+  ) {
     const foundMulta = await this.MultasRepository.findOne({
       where: { idMulta },
     });
@@ -102,9 +105,23 @@ export class MultasService {
       throw new NotFoundException(`Item with id ${idMulta} not found`);
     }
 
+    const dadosAntigos = { ...foundMulta };
+
     foundMulta.deletada = true;
 
-    await this.MultasRepository.save(foundMulta);
+    const updatedMulta = await this.MultasRepository.save(foundMulta);
+
+    const logData: LogDto = {
+      nomeTabela: 'multas',
+      idRegistro: idMulta,
+      operacao: 'UPDATE',
+      dadosAntigos: dadosAntigos,
+      dadosNovos: updatedMulta,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    await this.logService.logChange(logData);
   }
 
   async update(
@@ -123,7 +140,7 @@ export class MultasService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    
+
     const dadosAntigos = { ...foundMulta };
 
     const updateData = this.mapDtoToEntity(multa);
@@ -142,7 +159,6 @@ export class MultasService {
     };
 
     await this.logService.logChange(logData);
-
   }
 
   private mapEntityToDto(MultasEntity: MultasEntity): MultasDto {
