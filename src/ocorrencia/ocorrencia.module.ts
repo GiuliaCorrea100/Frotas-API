@@ -15,4 +15,4 @@ import { LogModule } from 'src/log/log.module';
   controllers: [ocorrenciaController],
   providers: [ocorrenciaService],
 })
-export class ocorrenciaModule {}
+export class OcorrenciaModule {}
