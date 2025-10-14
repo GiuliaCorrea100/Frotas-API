@@ -245,10 +245,7 @@ export class AbastecimentoService {
     const result = await this.abastecimentoRepository.delete(idAbastecimento);
 
     if (!result.affected) {
-      throw new HttpException(
-        `Abastecimento com id ${idAbastecimento} não encontrado`,
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new NotFoundException(`Item with id ${idAbastecimento} not found`);
     }
 
     const logData: LogDto = {
