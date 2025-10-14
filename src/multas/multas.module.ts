@@ -6,10 +6,7 @@ import { MultasEntity } from 'src/db/entities/multas.entity';
 import { LogModule } from 'src/log/log.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([MultasEntity]),
-    LogModule,
-  ],
+  imports: [TypeOrmModule.forFeature([MultasEntity]), LogModule],
   controllers: [MultasController],
   providers: [MultasService],
 })

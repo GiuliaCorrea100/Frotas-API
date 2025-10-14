@@ -11,51 +11,64 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { OcorrenciasService } from './ocorrencias.service';
-import { FindAllParameters, OcorrenciasDto } from './ocorrencias.dto';
+import { ocorrenciaService } from './ocorrencia.service';
+import { FindAllParameters, ocorrenciaDto } from './ocorrencia.dto';
 import { AuthGuard } from '../auth/auth.guard';
 
-@Controller('ocorrencias')
-export class OcorrenciasController {
-  constructor(private readonly ocorrenciasService: OcorrenciasService) {}
+@Controller('ocorrencia')
+export class ocorrenciaController {
+  constructor(private readonly ocorrenciaService: ocorrenciaService) {}
 
   @Get()
-  async findAll(@Query() params: FindAllParameters): Promise<OcorrenciasDto[]> {
-    return await this.ocorrenciasService.findAll(params);
+  async findAll(@Query() params: FindAllParameters): Promise<ocorrenciaDto[]> {
+    return await this.ocorrenciaService.findAll(params);
   }
 
   @Get('buscar-por-id/:idOcorrencia')
   async findById(
     @Param('idOcorrencia') idOcorrencia: number,
-  ): Promise<OcorrenciasDto> {
-    return this.ocorrenciasService.findById(idOcorrencia);
+  ): Promise<ocorrenciaDto> {
+    return this.ocorrenciaService.findById(idOcorrencia);
   }
 
   @Get('buscar-por-corrida/:idCorrida')
   async findByIdCorrida(
     @Param('idCorrida') idCorrida: number,
-  ): Promise<OcorrenciasDto[]> {
-    return this.ocorrenciasService.findByIdCorrida(idCorrida);
+  ): Promise<ocorrenciaDto[]> {
+    return this.ocorrenciaService.findByIdCorrida(idCorrida);
   }
 
   @Post()
   @UseGuards(AuthGuard)
-  async create(@Body() ocorrencia: OcorrenciasDto, @Request() req: any): Promise<OcorrenciasDto> {
+  async create(
+    @Body() ocorrencia: ocorrenciaDto,
+    @Request() req: any,
+  ): Promise<ocorrenciaDto> {
     const currentUserId = req.user?.sub;
     const currentUserName = req.user?.login;
-    return await this.ocorrenciasService.create(ocorrencia, currentUserId, currentUserName);
+    return await this.ocorrenciaService.create(
+      ocorrencia,
+
+      currentUserId,
+      currentUserName,
+    );
   }
 
   @Put('/:idOcorrencia')
   @UseGuards(AuthGuard)
   async update(
     @Param('idOcorrencia') idOcorrencia: number,
-    @Body() ocorrencia: OcorrenciasDto,
+    @Body() ocorrencia: ocorrenciaDto,
     @Request() req: any,
   ): Promise<void> {
     const currentUserId = req.user?.sub;
     const currentUserName = req.user?.login;
-    await this.ocorrenciasService.update(idOcorrencia, ocorrencia, currentUserId, currentUserName);
+    await this.ocorrenciaService.update(
+      idOcorrencia,
+      ocorrencia,
+      currentUserId,
+      currentUserName,
+    );
   }
 
   @Patch(':id/descricao')
@@ -67,7 +80,12 @@ export class OcorrenciasController {
   ) {
     const currentUserId = req.user?.sub;
     const currentUserName = req.user?.login;
-    return this.ocorrenciasService.updateDescricao(id, descricao, currentUserId, currentUserName);
+    return this.ocorrenciaService.updateDescricao(
+      id,
+      descricao,
+      currentUserId,
+      currentUserName,
+    );
   }
 
   @Delete('/:idOcorrencia')
@@ -75,6 +93,10 @@ export class OcorrenciasController {
   remove(@Param('idOcorrencia') idOcorrencia: number, @Request() req: any) {
     const currentUserId = req.user?.sub;
     const currentUserName = req.user?.login;
-    return this.ocorrenciasService.remove(idOcorrencia, currentUserId, currentUserName);
+    return this.ocorrenciaService.remove(
+      idOcorrencia,
+      currentUserId,
+      currentUserName,
+    );
   }
 }

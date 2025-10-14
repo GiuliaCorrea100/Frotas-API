@@ -31,15 +31,15 @@ export class AbastecimentoService {
   async create(
     abastecimento: AbastecimentoDto,
     currentUserId?: number,
-    currentUserName?: string
+    currentUserName?: string,
   ): Promise<AbastecimentoDto> {
     const tipoCombustivel = await this.tipoCombustivelRepository.findOne({
-      where: { id_tipo_combustivel: abastecimento.idTipoCombustivel },
+      where: { idTipoCombustivel: abastecimento.idTipoCombustivel },
     });
 
     if (!tipoCombustivel) {
       throw new NotFoundException(
-        `Tipo de combustível com id ${abastecimento.idTipoCombustivel} não encontrado`,
+        `Item with id ${abastecimento.idTipoCombustivel} not found`,
       );
     }
 
@@ -49,7 +49,7 @@ export class AbastecimentoService {
 
     if (!corrida) {
       throw new NotFoundException(
-        `Corrida com id ${abastecimento.idCorrida} não encontrada`,
+        `Item with id ${abastecimento.idTipoCombustivel} not found`,
       );
     }
 
@@ -66,7 +66,7 @@ export class AbastecimentoService {
 
     const savedEntity =
       await this.abastecimentoRepository.save(abastecimentoToSave);
-    
+
     const logData: LogDto = {
       nomeTabela: 'abastecimento',
       idRegistro: savedEntity.idAbastecimento,
@@ -89,9 +89,7 @@ export class AbastecimentoService {
     });
 
     if (!foundAbastecimento) {
-      throw new NotFoundException(
-        `Abastecimento com id ${idAbastecimento} não encontrado`,
-      );
+      throw new NotFoundException(`Item with id ${idAbastecimento} not found`);
     }
 
     return this.mapEntityToDto(foundAbastecimento);
@@ -106,9 +104,7 @@ export class AbastecimentoService {
       .getMany();
 
     if (!foundAbastecimentos) {
-      throw new NotFoundException(
-        `Nenhum abastecimento encontrado para corrida ${idCorrida}`,
-      );
+      throw new NotFoundException(`Item with id ${idCorrida} not found`);
     }
     return foundAbastecimentos.map((entity) => this.mapEntityToDto(entity));
   }
@@ -132,17 +128,14 @@ export class AbastecimentoService {
     idAbastecimento: number,
     abastecimento: AbastecimentoDto,
     currentUserId?: number,
-    currentUserName?: string
+    currentUserName?: string,
   ) {
     const foundAbastecimento = await this.abastecimentoRepository.findOne({
       where: { idAbastecimento },
     });
 
     if (!foundAbastecimento) {
-      throw new HttpException(
-        `Abastecimento com id ${idAbastecimento} não encontrado`,
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new NotFoundException(`Item with id ${idAbastecimento} not found`);
     }
 
     const dadosAntigos = { ...foundAbastecimento };
@@ -152,12 +145,12 @@ export class AbastecimentoService {
 
     if (abastecimento.idTipoCombustivel !== undefined) {
       const tipoCombustivel = await this.tipoCombustivelRepository.findOne({
-        where: { id_tipo_combustivel: abastecimento.idTipoCombustivel },
+        where: { idTipoCombustivel: abastecimento.idTipoCombustivel },
       });
 
       if (!tipoCombustivel) {
         throw new NotFoundException(
-          `Tipo de combustível com id ${abastecimento.idTipoCombustivel} não encontrado`,
+          `Item with id ${abastecimento.idTipoCombustivel} not found`,
         );
       }
       updateData.idTipoCombustivel = abastecimento.idTipoCombustivel;
@@ -170,7 +163,7 @@ export class AbastecimentoService {
 
       if (!corrida) {
         throw new NotFoundException(
-          `Corrida com id ${abastecimento.idCorrida} não encontrada`,
+          `Item with id ${abastecimento.idCorrida} not found`,
         );
       }
       updateData.idCorrida = corrida;
@@ -196,20 +189,17 @@ export class AbastecimentoService {
   }
 
   async updateAbastecimento(
-    id: number,
+    idAbastecimento: number,
     abastecimento: AbastecimentoDto,
     currentUserId?: number,
-    currentUserName?: string
+    currentUserName?: string,
   ) {
     const foundAbastecimento = await this.abastecimentoRepository.findOne({
-      where: { idAbastecimento: id },
+      where: { idAbastecimento: idAbastecimento },
     });
 
     if (!foundAbastecimento) {
-      throw new HttpException(
-        `Item with id ${id} not found`,
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new NotFoundException(`Item with id ${idAbastecimento} not found`);
     }
 
     const dadosAntigos = { ...foundAbastecimento };
@@ -224,7 +214,7 @@ export class AbastecimentoService {
 
     const logData: LogDto = {
       nomeTabela: 'abastecimento',
-      idRegistro: id,
+      idRegistro: idAbastecimento,
       operacao: 'UPDATE',
       dadosAntigos: dadosAntigos,
       dadosNovos: savedAbastecimento,
@@ -240,17 +230,14 @@ export class AbastecimentoService {
   async remove(
     idAbastecimento: number,
     currentUserId?: number,
-    currentUserName?: string
+    currentUserName?: string,
   ) {
     const abastecimentoToDelete = await this.abastecimentoRepository.findOne({
       where: { idAbastecimento },
     });
 
     if (!abastecimentoToDelete) {
-      throw new HttpException(
-        `Abastecimento com id ${idAbastecimento} não encontrado`,
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new NotFoundException(`Item with id ${idAbastecimento} not found`);
     }
 
     const dadosAntigos = { ...abastecimentoToDelete };
@@ -258,10 +245,7 @@ export class AbastecimentoService {
     const result = await this.abastecimentoRepository.delete(idAbastecimento);
 
     if (!result.affected) {
-      throw new HttpException(
-        `Abastecimento com id ${idAbastecimento} não encontrado`,
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new NotFoundException(`Item with id ${idAbastecimento} not found`);
     }
 
     const logData: LogDto = {

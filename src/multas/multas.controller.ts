@@ -5,7 +5,6 @@ import {
   Get,
   Param,
   Put,
-  Delete,
   Query,
   Patch,
   Request,

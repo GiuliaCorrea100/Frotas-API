@@ -34,17 +34,6 @@ export class UserSinguService {
     return this.mapEntityToDto(foundUser);
   }
 
-  async buscarPorNome(nome: string): Promise<UserSinguDto[]> {
-    const foundUsers = await this.UserSinguRepository.find({
-      where: {
-        nome: ILike(`%${nome}%`),
-      },
-      take: 10,
-    });
-
-    return foundUsers.map((user) => this.mapEntityToDto(user));
-  }
-
   async findByNome(nome?: string): Promise<UserSinguDto[]> {
     if (!nome || nome.length < 3) {
       return [];
@@ -78,8 +67,6 @@ export class UserSinguService {
     } else {
       return false;
     }
-
-    return true;
   }
 
   private mapEntityToDto(UserSinguEntity: UserSinguEntity): UserSinguDto {

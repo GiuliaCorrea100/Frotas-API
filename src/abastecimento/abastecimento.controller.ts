@@ -35,7 +35,7 @@ export class AbastecimentoController {
     return await this.abastecimentoService.create(
       abastecimento,
       currentUserId,
-      currentUserName
+      currentUserName,
     );
   }
 
@@ -65,19 +65,19 @@ export class AbastecimentoController {
     return this.abastecimentoService.findAll(params);
   }
 
-  @Patch(':id/edicao-abastecimento')
+  @Patch('edicao-abastecimento/:idAbastecimento')
   async updateAbastecimento(
-    @Param('id') id: number,
+    @Param('idAbastecimento') idAbastecimento: number,
     @Body() abastecimento: AbastecimentoDto,
     @Request() req: any,
   ) {
     const currentUserId = req.user?.sub;
     const currentUserName = req.user?.login;
     return this.abastecimentoService.updateAbastecimento(
-      id,
+      idAbastecimento,
       abastecimento,
       currentUserId,
-      currentUserName
+      currentUserName,
     );
   }
 
@@ -96,7 +96,7 @@ export class AbastecimentoController {
       params.idAbastecimento,
       abastecimento,
       currentUserId,
-      currentUserName
+      currentUserName,
     );
   }
 
@@ -110,7 +110,7 @@ export class AbastecimentoController {
     return this.abastecimentoService.remove(
       idAbastecimento,
       currentUserId,
-      currentUserName
+      currentUserName,
     );
   }
 }

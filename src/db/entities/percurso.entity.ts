@@ -27,7 +27,7 @@ export class PercursoEntity {
     scale: 2,
     nullable: true,
   })
-  chegadaodometro?: number;
+  chegadaOdometro?: number;
 
   @Column({ name: 'local_origem', nullable: true })
   localOrigem?: string;

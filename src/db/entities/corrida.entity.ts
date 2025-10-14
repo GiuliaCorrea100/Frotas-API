@@ -25,10 +25,10 @@ export class CorridasEntity {
   distanciaKm: string;
 
   @Column({ type: 'varchar', name: 'local_de_saida' })
-  local_de_saida: string;
+  localDeSaida: string;
 
   @Column({ type: 'int', name: 'id_carros', nullable: false })
-  idCarros: number;
+  idCarro: number;
 
   @Column({ type: 'int', name: 'id_motorista', nullable: false })
   idMotorista: number;
@@ -44,7 +44,7 @@ export class CorridasEntity {
   motorista?: UserEntity;
 
   @ManyToOne(() => CarrosEntity)
-  @JoinColumn({ name: 'id_carros', referencedColumnName: 'idCarros' })
+  @JoinColumn({ name: 'id_carros', referencedColumnName: 'idCarro' })
   carro?: CarrosEntity;
 
   @CreateDateColumn({ type: 'timestamptz', name: 'data_hora_liberacao_chave' })
