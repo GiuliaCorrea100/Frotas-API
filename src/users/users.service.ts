@@ -38,7 +38,7 @@ export class UsersService {
   ) {
     const usersToSave: UserEntity = {
       idPessoaSigaa: users.idPessoaSigaa,
-      permissao: users.permissao,
+      administrador: users.administrador,
       nome: users.nome,
     };
 
@@ -80,13 +80,15 @@ export class UsersService {
   async findAll(params: FindAllParameters): Promise<UsersDto[]> {
     const searchParams: FindOptionsWhere<UserEntity> = {};
 
-    if (params.permissao) {
-      searchParams.permissao = Equal(params.permissao);
+    if (params.administrador !== undefined) {
+      searchParams.administrador = Equal(params.administrador);
     }
+
     const usersFound = await this.UsersRepository.find({
       where: searchParams,
     });
-    return usersFound.map((UserEntity) => this.mapEntityToDto(UserEntity));
+
+    return usersFound.map((userEntity) => this.mapEntityToDto(userEntity));
   }
 
   async permissaoAdm(
@@ -104,11 +106,7 @@ export class UsersService {
 
     const dadosAntigos = { ...foundUser };
 
-    if (foundUser.permissao == 2) {
-      foundUser.permissao = 1;
-    } else {
-      foundUser.permissao = 2;
-    }
+    foundUser.administrador = !foundUser.administrador;
 
     const updatedUser = await this.UsersRepository.save(foundUser);
 
@@ -131,15 +129,16 @@ export class UsersService {
     await this.logService.logChange(logData);
   }
 
-  async findUserSingu(idUsuario: number): Promise<number> {
+  async findUserId(idUsuario: number): Promise<UsersDto | null> {
     const foundUser = await this.UsersRepository.findOne({
       where: { idUsuario },
     });
 
     if (!foundUser) {
-      throw new NotFoundException(`Item with id ${idUsuario} not found`);
+      return null;
     }
-    return foundUser.idPessoaSigaa;
+
+    return this.mapEntityToDto(foundUser);
   }
 
   async update(
@@ -234,7 +233,7 @@ export class UsersService {
     return {
       idUsuario: UserEntity.idUsuario,
       idPessoaSigaa: UserEntity.idPessoaSigaa,
-      permissao: UserEntity.permissao,
+      administrador: UserEntity.administrador,
       nome: UserEntity.nome,
     };
   }
@@ -242,7 +241,7 @@ export class UsersService {
   private mapDtoToEntity(UsersDto: UsersDto): Partial<UserEntity> {
     return {
       idPessoaSigaa: UsersDto.idPessoaSigaa,
-      permissao: UsersDto.permissao,
+      administrador: UsersDto.administrador,
       nome: UsersDto.nome,
     };
   }

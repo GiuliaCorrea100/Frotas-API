@@ -8,8 +8,8 @@ export class UserEntity {
   @Column({ type: 'int', name: 'id_pessoa_sigaa' })
   idPessoaSigaa: number;
 
-  @Column({ type: 'int', name: 'permissao' })
-  permissao: number;
+  @Column({ type: 'boolean', name: 'administrador' })
+  administrador: boolean;
 
   @Column({ type: 'varchar', name: 'nome' })
   nome: string;

@@ -27,11 +27,11 @@ export class UsersController {
     return await this.usersService.create(user, currentUserId, currentUserName);
   }
 
-  @Get('/:idUsuario')
+  @Get('/:idPessoaSigaa')
   async findByIdPessoaSigaa(
-    @Param('idUsuario') idUsuario: number,
+    @Param('idPessoaSigaa') idPessoaSigaa: number,
   ): Promise<UsersDto> {
-    return this.usersService.findByIdPessoaSigaa(idUsuario);
+    return this.usersService.findByIdPessoaSigaa(idPessoaSigaa);
   }
 
   @Get()
@@ -44,9 +44,11 @@ export class UsersController {
     return this.usersService.findByName(nome);
   }
 
-  @Get('/buscar-singu/:idUsuario')
-  async findUserSingu(@Param('idUsuario') idUsuario: number): Promise<number> {
-    return this.usersService.findUserSingu(idUsuario);
+  @Get('/buscar-usuario/:idUsuario')
+  async findUserId(
+    @Param('idUsuario') idUsuario: number,
+  ): Promise<UsersDto | null> {
+    return this.usersService.findUserId(idUsuario);
   }
 
   @Patch('/mudar-permissao/:idPessoaSigaa')

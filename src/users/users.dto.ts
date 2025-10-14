@@ -1,12 +1,12 @@
 export class UsersDto {
   idUsuario?: number;
   idPessoaSigaa: number;
-  permissao: number; //1-adm 2-motorista
+  administrador: boolean; //TRUE-adm FALSE-motorista
   nome: string;
 }
 
 export interface FindAllParameters {
-  permissao: number;
+  administrador: boolean;
 }
 
 export class UsersRouteParameters {

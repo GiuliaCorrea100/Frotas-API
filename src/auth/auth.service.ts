@@ -41,7 +41,7 @@ export class AuthService {
     if (!usuarioFrota) {
       const novoUsuario = {
         idPessoaSigaa: loginFound.idPessoaSigaa,
-        permissao: 1,
+        administrador: false,
         nome: loginFound.nome,
       };
       usuarioFrota = await this.usersService.create(novoUsuario);
@@ -54,7 +54,7 @@ export class AuthService {
       sub: usuarioFrota.idUsuario,
       login: loginFound.login,
       nome: loginFound.nome,
-      permissao: usuarioFrota.permissao,
+      administrador: usuarioFrota.administrador,
       idUsuario: usuarioFrota.idUsuario,
     };
 
@@ -66,7 +66,7 @@ export class AuthService {
       token,
       expiresIn: this.jwtExpirationTimeInSeconds,
       username: loginFound.login,
-      permissao: usuarioFrota.permissao,
+      administrador: usuarioFrota.administrador,
       nome: loginFound.nome,
       email: loginFound.email,
       idUsuario: usuarioFrota.idUsuario,
