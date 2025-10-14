@@ -31,9 +31,13 @@ export class UsersService {
     return usersFound.map((userEntity) => this.mapEntityToDto(userEntity));
   }
 
-  async create(users: UsersDto, currentUserId?: number, currentUserName?: string) {
+  async create(
+    users: UsersDto,
+    currentUserId?: number,
+    currentUserName?: string,
+  ) {
     const usersToSave: UserEntity = {
-      idPessoaSingu: users.idPessoaSingu,
+      idPessoaSigaa: users.idPessoaSigaa,
       permissao: users.permissao,
       nome: users.nome,
     };
@@ -43,7 +47,7 @@ export class UsersService {
     console.log('Dados do log (create):', {
       currentUserId,
       currentUserName,
-      idRegistro: savedUser.idUsuario
+      idRegistro: savedUser.idUsuario,
     });
 
     const logData: LogDto = {
@@ -61,14 +65,15 @@ export class UsersService {
     return savedUser;
   }
 
-  async findById(idPessoaSingu: number): Promise<UsersDto> {
+  async findByIdPessoaSigaa(idPessoaSigaa: number): Promise<UsersDto | null> {
     const foundUser = await this.UsersRepository.findOne({
-      where: { idPessoaSingu },
+      where: { idPessoaSigaa },
     });
 
     if (!foundUser) {
-      throw new NotFoundException(`Item with id ${idPessoaSingu} not found`);
+      return null;
     }
+
     return this.mapEntityToDto(foundUser);
   }
 
@@ -84,13 +89,17 @@ export class UsersService {
     return usersFound.map((UserEntity) => this.mapEntityToDto(UserEntity));
   }
 
-  async permissaoAdm(idPessoaSingu: number, currentUserId?: number, currentUserName?: string): Promise<void> {
+  async permissaoAdm(
+    idPessoaSigaa: number,
+    currentUserId?: number,
+    currentUserName?: string,
+  ): Promise<void> {
     const foundUser = await this.UsersRepository.findOne({
-      where: { idPessoaSingu },
+      where: { idPessoaSigaa },
     });
 
     if (!foundUser) {
-      throw new NotFoundException(`Item with id ${idPessoaSingu} not found`);
+      throw new NotFoundException(`Item with id ${idPessoaSigaa} not found`);
     }
 
     const dadosAntigos = { ...foundUser };
@@ -106,7 +115,7 @@ export class UsersService {
     console.log('Dados do log (permissaoAdm):', {
       currentUserId,
       currentUserName,
-      idRegistro: updatedUser.idUsuario
+      idRegistro: updatedUser.idUsuario,
     });
 
     const logData: LogDto = {
@@ -130,10 +139,15 @@ export class UsersService {
     if (!foundUser) {
       throw new NotFoundException(`Item with id ${idUsuario} not found`);
     }
-    return foundUser.idPessoaSingu;
+    return foundUser.idPessoaSigaa;
   }
 
-  async update(idUsuario: number, users: UsersDto, currentUserId?: number, currentUserName?: string) {
+  async update(
+    idUsuario: number,
+    users: UsersDto,
+    currentUserId?: number,
+    currentUserName?: string,
+  ) {
     const foundUser = await this.UsersRepository.findOne({
       where: { idUsuario },
     });
@@ -156,7 +170,7 @@ export class UsersService {
     console.log('Dados do log (update):', {
       currentUserId,
       currentUserName,
-      idRegistro: idUsuario
+      idRegistro: idUsuario,
     });
 
     const logData: LogDto = {
@@ -172,7 +186,11 @@ export class UsersService {
     await this.logService.logChange(logData);
   }
 
-  async remove(idUsuario: number, currentUserId?: number, currentUserName?: string) {
+  async remove(
+    idUsuario: number,
+    currentUserId?: number,
+    currentUserName?: string,
+  ) {
     const userToDelete = await this.UsersRepository.findOne({
       where: { idUsuario },
     });
@@ -192,11 +210,11 @@ export class UsersService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    
+
     console.log('Dados do log (remove):', {
       currentUserId,
       currentUserName,
-      idRegistro: idUsuario
+      idRegistro: idUsuario,
     });
 
     const logData: LogDto = {
@@ -215,7 +233,7 @@ export class UsersService {
   private mapEntityToDto(UserEntity: UserEntity): UsersDto {
     return {
       idUsuario: UserEntity.idUsuario,
-      idPessoaSingu: UserEntity.idPessoaSingu,
+      idPessoaSigaa: UserEntity.idPessoaSigaa,
       permissao: UserEntity.permissao,
       nome: UserEntity.nome,
     };
@@ -223,7 +241,7 @@ export class UsersService {
 
   private mapDtoToEntity(UsersDto: UsersDto): Partial<UserEntity> {
     return {
-      idPessoaSingu: UsersDto.idPessoaSingu,
+      idPessoaSigaa: UsersDto.idPessoaSigaa,
       permissao: UsersDto.permissao,
       nome: UsersDto.nome,
     };

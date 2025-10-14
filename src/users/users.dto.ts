@@ -1,6 +1,6 @@
 export class UsersDto {
   idUsuario?: number;
-  idPessoaSingu: number;
+  idPessoaSigaa: number;
   permissao: number; //1-adm 2-motorista
   nome: string;
 }

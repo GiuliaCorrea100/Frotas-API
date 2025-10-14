@@ -14,6 +14,9 @@ import { UsersinguModule } from './usersingu/usersingu.module';
 import { TipoCombustivelModule } from './tipoCombustivel/tipoCombustivel.module';
 import { OcorrenciaModule } from './ocorrencia/ocorrencia.module';
 import { PercursoModule } from './percurso/percurso.module';
+import { DbSigaaModule } from './dbsigaa/dbsigaa.module';
+import { UsersigaaModule } from './usersigaa/usersigaa.module';
+import { ServidorsigaaModule } from './servidorsigaa/servidorsigaa.module';
 
 @Module({
   imports: [
@@ -32,6 +35,9 @@ import { PercursoModule } from './percurso/percurso.module';
     TipoCombustivelModule,
     OcorrenciaModule,
     PercursoModule,
+    DbSigaaModule,
+    UsersigaaModule,
+    ServidorsigaaModule,
   ],
   controllers: [AppController],
   providers: [AppService],

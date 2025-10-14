@@ -1,6 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+} from 'typeorm';
 
-@Entity({ schema: 'frota', name: 'log_tabelas' })
+@Entity({ name: 'log_tabelas' })
 export class LogEntity {
   @PrimaryGeneratedColumn({ name: 'log_id' })
   logId: number;

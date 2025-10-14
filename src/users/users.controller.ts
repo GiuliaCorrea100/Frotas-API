@@ -28,8 +28,10 @@ export class UsersController {
   }
 
   @Get('/:idUsuario')
-  async findById(@Param('idUsuario') idUsuario: number): Promise<UsersDto> {
-    return this.usersService.findById(idUsuario);
+  async findByIdPessoaSigaa(
+    @Param('idUsuario') idUsuario: number,
+  ): Promise<UsersDto> {
+    return this.usersService.findByIdPessoaSigaa(idUsuario);
   }
 
   @Get()
@@ -47,15 +49,15 @@ export class UsersController {
     return this.usersService.findUserSingu(idUsuario);
   }
 
-  @Patch('/mudar-permissao/:idPessoaSingu')
+  @Patch('/mudar-permissao/:idPessoaSigaa')
   async permissaoAdm(
-    @Param('idPessoaSingu') idPessoaSingu: number,
+    @Param('idPessoaSigaa') idPessoaSigaa: number,
     @Request() req: any,
   ): Promise<void> {
     const currentUserId = req.user?.sub;
     const currentUserName = req.user?.login;
     await this.usersService.permissaoAdm(
-      idPessoaSingu,
+      idPessoaSigaa,
       currentUserId,
       currentUserName,
     );

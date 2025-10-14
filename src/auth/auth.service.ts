@@ -1,10 +1,10 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { ConfigService } from '@nestjs/config';
-import { UserSinguService } from '../usersingu/usersingu.service';
 import { AuthResponseDto } from './auth.dto';
 import { JwtService } from '@nestjs/jwt';
 import { md5 } from 'src/util/md5';
+import { UsersigaaService } from 'src/usersigaa/usersigaa.service';
 
 @Injectable()
 export class AuthService {
@@ -12,7 +12,7 @@ export class AuthService {
 
   constructor(
     private readonly usersService: UsersService,
-    private readonly userSinguService: UserSinguService,
+    private readonly userSigaaService: UsersigaaService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
   ) {
@@ -26,7 +26,7 @@ export class AuthService {
   }
 
   async singIn(login: string, senha: string): Promise<AuthResponseDto> {
-    const loginFound = await this.userSinguService.findByLogin(login);
+    const loginFound = await this.userSigaaService.findByUserLogin(login);
 
     const senhaHash = md5(senha);
 
@@ -34,12 +34,21 @@ export class AuthService {
       throw new UnauthorizedException();
     }
 
-    const usuarioFrota = await this.usersService.findById(loginFound.idPessoa);
+    let usuarioFrota = await this.usersService.findByIdPessoaSigaa(
+      loginFound.idPessoaSigaa,
+    );
 
     if (!usuarioFrota) {
-      throw new UnauthorizedException('Usuário não cadastrado no Frotas');
+      const novoUsuario = {
+        idPessoaSigaa: loginFound.idPessoaSigaa,
+        permissao: 1,
+        nome: loginFound.nome,
+      };
+      usuarioFrota = await this.usersService.create(novoUsuario);
+      console.log(
+        `Usuário ${usuarioFrota.idUsuario} cadastrado. Nome: ${usuarioFrota.nome}.`,
+      );
     }
-    
 
     const payload = {
       sub: usuarioFrota.idUsuario,
