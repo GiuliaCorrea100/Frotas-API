@@ -67,8 +67,6 @@ export class UserSinguService {
     } else {
       return false;
     }
-
-    return true;
   }
 
   private mapEntityToDto(UserSinguEntity: UserSinguEntity): UserSinguDto {
