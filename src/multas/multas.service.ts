@@ -87,7 +87,11 @@ export class MultasService {
     return multasFound.map((MultasEntity) => this.mapEntityToDto(MultasEntity));
   }
 
-  async softRemove(idMulta: number) {
+  async softRemove(
+    idMulta: number,
+    currentUserId?: number,
+    currentUserName?: string,
+  ) {
     const foundMulta = await this.MultasRepository.findOne({
       where: { idMulta },
     });
@@ -96,9 +100,23 @@ export class MultasService {
       throw new NotFoundException(`Item with id ${idMulta} not found`);
     }
 
+    const dadosAntigos = { ...foundMulta };
+
     foundMulta.deletada = true;
 
-    await this.MultasRepository.save(foundMulta);
+    const updatedMulta = await this.MultasRepository.save(foundMulta);
+
+    const logData: LogDto = {
+      nomeTabela: 'multas',
+      idRegistro: idMulta,
+      operacao: 'UPDATE',
+      dadosAntigos: dadosAntigos,
+      dadosNovos: updatedMulta,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    await this.logService.logChange(logData);
   }
 
   async update(
