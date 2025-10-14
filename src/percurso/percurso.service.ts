@@ -88,9 +88,7 @@ export class PercursoService {
     });
 
     if (!foundPercurso) {
-      throw new NotFoundException(
-        `Percurso com ID ${idPercurso} não encontrado`,
-      );
+      throw new NotFoundException(`Item with id ${idPercurso} not found`);
     }
 
     if (foundPercurso.chegadaHora) {
@@ -190,7 +188,7 @@ export class PercursoService {
     });
 
     if (!foundPercurso) {
-      throw new NotFoundException(`Percurso com ID ${id} não encontrado`);
+      throw new NotFoundException(`Item with id ${id} not found`);
     }
 
     const dadosAntigos = { ...foundPercurso };
