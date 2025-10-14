@@ -43,18 +43,32 @@ export class CorridaController {
 
   @Post()
   @UseGuards(AuthGuard)
-  async create(@Body() corrida: CorridaDto, @Request() req: any): Promise<CorridaDto> {
+  async create(
+    @Body() corrida: CorridaDto,
+    @Request() req: any,
+  ): Promise<CorridaDto> {
     const currentUserId = req.user?.sub;
     const currentUserName = req.user?.login;
-    return await this.corridaService.create(corrida, currentUserId, currentUserName);
+    return await this.corridaService.create(
+      corrida,
+      currentUserId,
+      currentUserName,
+    );
   }
 
   @Patch('/emprestar-chave/:idCorrida')
   @UseGuards(AuthGuard)
-  async emprestarChave(@Param('idCorrida') idCorrida: number, @Request() req: any): Promise<void> {
+  async emprestarChave(
+    @Param('idCorrida') idCorrida: number,
+    @Request() req: any,
+  ): Promise<void> {
     const currentUserId = req.user?.sub;
     const currentUserName = req.user?.login;
-    await this.corridaService.emprestarChave(idCorrida, currentUserId, currentUserName);
+    await this.corridaService.emprestarChave(
+      idCorrida,
+      currentUserId,
+      currentUserName,
+    );
   }
 
   @Patch('/salvar-edicao-adm/:idCorrida')
@@ -66,13 +80,18 @@ export class CorridaController {
       dataInicio?: Date;
       dataTermino?: Date;
       idMotorista?: number;
-      idCarros?: number;
+      idCarro?: number;
     },
     @Request() req: any,
   ) {
     const currentUserId = req.user?.sub;
     const currentUserName = req.user?.login;
-    return this.corridaService.salvarEdicaoModal(idCorrida, dados, currentUserId, currentUserName);
+    return this.corridaService.salvarEdicaoModal(
+      idCorrida,
+      dados,
+      currentUserId,
+      currentUserName,
+    );
   }
 
   @Patch('/:idCorrida/situacao')
@@ -84,7 +103,12 @@ export class CorridaController {
   ): Promise<void> {
     const currentUserId = req.user?.sub;
     const currentUserName = req.user?.login;
-    await this.corridaService.atualizarSituacao(idCorrida, body.situacao, currentUserId, currentUserName);
+    await this.corridaService.atualizarSituacao(
+      idCorrida,
+      body.situacao,
+      currentUserId,
+      currentUserName,
+    );
   }
 
   @Put('/:idCorrida')
@@ -100,7 +124,7 @@ export class CorridaController {
       params.idCorrida,
       corrida,
       currentUserId,
-      currentUserName
+      currentUserName,
     );
   }
 
@@ -109,6 +133,10 @@ export class CorridaController {
   remove(@Param('idCorrida') idCorrida: number, @Request() req: any) {
     const currentUserId = req.user?.sub;
     const currentUserName = req.user?.login;
-    return this.corridaService.remove(idCorrida, currentUserId, currentUserName);
+    return this.corridaService.remove(
+      idCorrida,
+      currentUserId,
+      currentUserName,
+    );
   }
 }

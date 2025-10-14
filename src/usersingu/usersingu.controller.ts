@@ -16,11 +16,6 @@ export class UsersinguController {
     return await this.UserSinguService.findById(idPessoa);
   }
 
-  @Get('/buscarPorNome/:nome')
-  async buscarPorNome(@Param('nome') nome: string): Promise<UserSinguDto[]> {
-    return this.UserSinguService.buscarPorNome(nome);
-  }
-
   @Get('buscar-nome/:nome')
   async findbyNome(@Param('nome') nome: string): Promise<UserSinguDto[]> {
     if (!nome || nome.length < 3) {

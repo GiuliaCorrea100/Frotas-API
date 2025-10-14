@@ -1,4 +1,4 @@
-export class OcorrenciasDto {
+export class ocorrenciaDto {
   idOcorrencia?: number;
   descricao: string;
   idCorrida?: number;

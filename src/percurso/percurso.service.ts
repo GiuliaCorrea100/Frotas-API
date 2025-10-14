@@ -1,9 +1,4 @@
-import {
-  HttpException,
-  HttpStatus,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PercursoEntity } from '../db/entities/percurso.entity';
 import { Repository, IsNull, Not } from 'typeorm';
@@ -24,28 +19,30 @@ export class PercursoService {
     currentUserId?: number,
     currentUserName?: string,
   ): Promise<PercursoDto> {
-    const percursoToSave = {
-      ...percurso,
-      saidaHora: new Date(),
-      localDestino: percurso.localDestino.toUpperCase(),
-      saidaOdometro: percurso.saidaOdometro,
-      localOrigem: percurso.localOrigem || 'Não informado',
-    };
+    const entity = new PercursoEntity();
+    entity.idCorrida = percurso.idCorrida;
+    entity.localOrigem = percurso.localOrigem || 'Não informado';
+    entity.localDestino = percurso.localDestino.toUpperCase();
+    entity.saidaHora = new Date();
+    entity.saidaOdometro = percurso.saidaOdometro;
+    entity.chegadaHora = percurso.chegadaHora;
+    entity.chegadaOdometro = percurso.chegadaOdometro;
 
-    const created = await this.percursoRepository.save(percursoToSave);
+    const savedPercurso = await this.percursoRepository.save(entity);
 
     const logData: LogDto = {
       nomeTabela: 'percurso',
-      idRegistro: created.idPercurso,
+      idRegistro: savedPercurso.idPercurso,
       operacao: 'INSERT',
       dadosAntigos: null,
-      dadosNovos: created,
+      dadosNovos: savedPercurso,
       idUsuario: currentUserId,
       usuario: currentUserName,
     };
+
     await this.logService.logChange(logData);
 
-    return this.mapEntityToDto(created);
+    return this.mapEntityToDto(savedPercurso);
   }
 
   async inserirPercursoCompleto(
@@ -61,22 +58,23 @@ export class PercursoService {
     entity.saidaHora = percurso.saidaHora;
     entity.chegadaHora = percurso.chegadaHora;
     entity.saidaOdometro = percurso.saidaOdometro;
-    entity.chegadaodometro = percurso.chegadaodometro;
+    entity.chegadaOdometro = percurso.chegadaOdometro;
 
-    const created = await this.percursoRepository.save(entity);
+    const savedPercurso = await this.percursoRepository.save(entity);
 
     const logData: LogDto = {
       nomeTabela: 'percurso',
-      idRegistro: created.idPercurso,
+      idRegistro: savedPercurso.idPercurso,
       operacao: 'INSERT',
       dadosAntigos: null,
-      dadosNovos: created,
+      dadosNovos: savedPercurso,
       idUsuario: currentUserId,
       usuario: currentUserName,
     };
+
     await this.logService.logChange(logData);
 
-    return created;
+    return this.mapEntityToDto(savedPercurso);
   }
 
   async finalizarPercurso(
@@ -85,43 +83,44 @@ export class PercursoService {
     currentUserId?: number,
     currentUserName?: string,
   ): Promise<PercursoDto> {
-    const percurso = await this.percursoRepository.findOne({
+    const foundPercurso = await this.percursoRepository.findOne({
       where: { idPercurso },
     });
 
-    if (!percurso) {
-      throw new NotFoundException('Percurso não encontrado');
+    if (!foundPercurso) {
+      throw new NotFoundException(`Item with id ${idPercurso} not found`);
     }
 
-    if (percurso.chegadaHora) {
+    if (foundPercurso.chegadaHora) {
       throw new Error('Este percurso já foi finalizado');
     }
 
-    if (chegadaOdometro <= percurso.saidaOdometro) {
+    if (chegadaOdometro <= foundPercurso.saidaOdometro) {
       throw new Error(
         'Odômetro de chegada deve ser maior que o odômetro de saída',
       );
     }
 
-    const dadosAntigos = { ...percurso };
+    const dadosAntigos = { ...foundPercurso };
 
-    percurso.chegadaHora = new Date();
-    percurso.chegadaodometro = chegadaOdometro;
+    foundPercurso.chegadaHora = new Date();
+    foundPercurso.chegadaOdometro = chegadaOdometro;
 
-    const updated = await this.percursoRepository.save(percurso);
+    const updatedPercurso = await this.percursoRepository.save(foundPercurso);
 
     const logData: LogDto = {
       nomeTabela: 'percurso',
       idRegistro: idPercurso,
       operacao: 'UPDATE',
       dadosAntigos: dadosAntigos,
-      dadosNovos: updated,
+      dadosNovos: updatedPercurso,
       idUsuario: currentUserId,
       usuario: currentUserName,
     };
+
     await this.logService.logChange(logData);
 
-    return this.mapEntityToDto(updated);
+    return this.mapEntityToDto(updatedPercurso);
   }
 
   async findByCorrida(idCorrida: number): Promise<PercursoDto[]> {
@@ -131,17 +130,13 @@ export class PercursoService {
     });
 
     if (!percursos || percursos.length === 0) {
-      throw new NotFoundException(
-        'Nenhum percurso encontrado para esta corrida',
-      );
+      return [];
     }
-    
-    return percursos.map(this.mapEntityToDto);
+
+    return percursos.map((percurso) => this.mapEntityToDto(percurso));
   }
 
-  async findUltimoPercursoAtivo(
-    idCorrida: number,
-  ): Promise<PercursoDto | null> {
+  async findUltimoPercursoAtivo(idCorrida: number): Promise<PercursoDto> {
     const percurso = await this.percursoRepository.findOne({
       where: {
         idCorrida,
@@ -150,12 +145,14 @@ export class PercursoService {
       order: { saidaHora: 'DESC' },
     });
 
-    return percurso ? this.mapEntityToDto(percurso) : null;
+    if (!percurso) {
+      throw new NotFoundException('Nenhum percurso ativo encontrado');
+    }
+
+    return this.mapEntityToDto(percurso);
   }
 
-  async findUltimoPercursoFinalizado(
-    idCorrida: number,
-  ): Promise<PercursoDto | null> {
+  async findUltimoPercursoFinalizado(idCorrida: number): Promise<PercursoDto> {
     const percurso = await this.percursoRepository.findOne({
       where: {
         idCorrida,
@@ -164,7 +161,11 @@ export class PercursoService {
       order: { chegadaHora: 'DESC' },
     });
 
-    return percurso ? this.mapEntityToDto(percurso) : null;
+    if (!percurso) {
+      throw new NotFoundException('Nenhum percurso finalizado encontrado');
+    }
+
+    return this.mapEntityToDto(percurso);
   }
 
   async verificarPercursosAtivos(idCorrida: number): Promise<number> {
@@ -181,41 +182,37 @@ export class PercursoService {
     percurso: PercursoDto,
     currentUserId?: number,
     currentUserName?: string,
-  ) {
+  ): Promise<void> {
     const foundPercurso = await this.percursoRepository.findOne({
       where: { idPercurso: id },
     });
 
     if (!foundPercurso) {
-      throw new HttpException(
-        `Item with id ${id} not found`,
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new NotFoundException(`Item with id ${id} not found`);
     }
 
     const dadosAntigos = { ...foundPercurso };
 
     foundPercurso.chegadaHora = percurso.chegadaHora;
-    foundPercurso.chegadaodometro = percurso.chegadaodometro;
+    foundPercurso.chegadaOdometro = percurso.chegadaOdometro;
     foundPercurso.localDestino = percurso.localDestino;
     foundPercurso.localOrigem = percurso.localOrigem;
     foundPercurso.saidaHora = percurso.saidaHora;
     foundPercurso.saidaOdometro = percurso.saidaOdometro;
 
-    const updated = await this.percursoRepository.save(foundPercurso);
+    const updatedPercurso = await this.percursoRepository.save(foundPercurso);
 
     const logData: LogDto = {
       nomeTabela: 'percurso',
       idRegistro: id,
       operacao: 'UPDATE',
       dadosAntigos: dadosAntigos,
-      dadosNovos: updated,
+      dadosNovos: updatedPercurso,
       idUsuario: currentUserId,
       usuario: currentUserName,
     };
-    await this.logService.logChange(logData);
 
-    return updated;
+    await this.logService.logChange(logData);
   }
 
   private mapEntityToDto(entity: PercursoEntity): PercursoDto {
@@ -226,7 +223,7 @@ export class PercursoService {
       saidaOdometro: entity.saidaOdometro,
       localDestino: entity.localDestino,
       chegadaHora: entity.chegadaHora,
-      chegadaodometro: entity.chegadaodometro,
+      chegadaOdometro: entity.chegadaOdometro,
       localOrigem: entity.localOrigem,
     };
   }

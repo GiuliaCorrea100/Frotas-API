@@ -11,8 +11,8 @@ import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersinguModule } from './usersingu/usersingu.module';
-import { TipoCombustivelModule } from './tipo_combustivel/tipo_combustivel.module';
-import { OcorrenciasModule } from './ocorrencias/ocorrencias.module';
+import { TipoCombustivelModule } from './tipoCombustivel/tipoCombustivel.module';
+import { OcorrenciaModule } from './ocorrencia/ocorrencia.module';
 import { PercursoModule } from './percurso/percurso.module';
 
 @Module({
@@ -30,7 +30,7 @@ import { PercursoModule } from './percurso/percurso.module';
     ConfigModule.forRoot({ isGlobal: true }),
     UsersinguModule,
     TipoCombustivelModule,
-    OcorrenciasModule,
+    OcorrenciaModule,
     PercursoModule,
   ],
   controllers: [AppController],

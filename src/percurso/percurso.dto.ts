@@ -5,7 +5,7 @@ export class PercursoDto {
   saidaOdometro: number;
   localDestino: string;
   chegadaHora?: Date;
-  chegadaodometro?: number;
+  chegadaOdometro?: number;
   localOrigem?: string;
 }
 

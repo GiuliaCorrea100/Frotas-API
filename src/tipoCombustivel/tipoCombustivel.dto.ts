@@ -1,5 +1,5 @@
 export class TipoCombustivelDto {
-  id_tipo_combustivel?: number;
+  idTipoCombustivel?: number;
   nome: string;
 }
 
@@ -8,5 +8,5 @@ export interface FindAllTipoCombustivelParams {
 }
 
 export class TipoCombustivelRouteParams {
-  id_tipo_combustivel: number;
+  idTipoCombustivel: number;
 }

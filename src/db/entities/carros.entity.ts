@@ -10,7 +10,7 @@ import { TipoCombustivelEntity } from './tipoCombustivel.entity';
 @Entity({ name: 'carros' })
 export class CarrosEntity {
   @PrimaryGeneratedColumn({ type: 'int', name: 'id_carro' })
-  idCarros?: number;
+  idCarro?: number;
 
   @Column({ type: 'int', name: 'tombo' })
   tombo: number;
@@ -31,7 +31,7 @@ export class CarrosEntity {
   ano: number;
 
   @Column({ type: 'varchar', name: 'localidade_fisica' })
-  localidade_fisica: string;
+  localidadeFisica: string;
 
   @Column({ type: 'varchar', name: 'situacao' })
   situacao: string;

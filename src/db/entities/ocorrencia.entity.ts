@@ -1,10 +1,9 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-//import { CorridasEntity } from './corrida.entity';
 
 @Entity({ name: 'ocorrencias' })
-export class OcorrenciasEntity {
+export class OcorrenciaEntity {
   @PrimaryGeneratedColumn({ type: 'int', name: 'id_ocorrencia' })
-  idOcorrencias?: number;
+  idOcorrencia?: number;
 
   @Column({ type: 'varchar', name: 'descricao' })
   descricao: string;

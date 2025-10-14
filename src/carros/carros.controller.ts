@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   Body,
   Controller,
@@ -25,15 +27,22 @@ export class CarrosController {
   constructor(private readonly carrosService: CarrosService) {}
 
   @Post()
-  async create(@Body() carros: CarrosDto, @Request() req: any): Promise<CarrosDto> {
+  async create(
+    @Body() carro: CarrosDto,
+    @Request() req: any,
+  ): Promise<CarrosDto> {
     const currentUserId = req.user?.sub;
     const currentUserName = req.user?.login;
-    return await this.carrosService.create(carros, currentUserId, currentUserName);
+    return await this.carrosService.create(
+      carro,
+      currentUserId,
+      currentUserName,
+    );
   }
 
-  @Get('/:idCarros')
-  async findById(@Param('idCarros') idCarros: number): Promise<CarrosDto> {
-    return this.carrosService.findById(idCarros);
+  @Get('/:idCarro')
+  async findById(@Param('idCarro') idCarro: number): Promise<CarrosDto> {
+    return this.carrosService.findById(idCarro);
   }
 
   @Get('/buscar-placa/:placa')
@@ -58,7 +67,7 @@ export class CarrosController {
     return this.carrosService.findByTombo(tombo);
   }
 
-  @Put('/:idCarros')
+  @Put('/:idCarro')
   async update(
     @Param() params: CarrosRouteParameters,
     @Body() carros: CarrosDto,
@@ -67,24 +76,24 @@ export class CarrosController {
     const currentUserId = req.user?.sub;
     const currentUserName = req.user?.login;
     await this.carrosService.update(
-      params.idCarros,
+      params.idCarro,
       carros,
       currentUserId,
-      currentUserName
+      currentUserName,
     );
   }
 
-  @Delete('/:idCarros')
-  remove(@Param('idCarros') idCarros: number, @Request() req: any) {
+  @Delete('/:idCarro')
+  remove(@Param('idCarro') idCarro: number, @Request() req: any) {
     const currentUserId = req.user?.sub;
     const currentUserName = req.user?.login;
-    return this.carrosService.remove(idCarros, currentUserId, currentUserName);
+    return this.carrosService.remove(idCarro, currentUserId, currentUserName);
   }
 
-  @Patch(':id/inativar')
-  async inativar(@Param('id') id: number, @Request() req: any) {
+  @Patch(':idCarro/inativar')
+  async inativar(@Param('idCarro') idCarro: number, @Request() req: any) {
     const currentUserId = req.user?.sub;
     const currentUserName = req.user?.login;
-    return this.carrosService.inativar(id, currentUserId, currentUserName);
+    return this.carrosService.inativar(idCarro, currentUserId, currentUserName);
   }
 }
