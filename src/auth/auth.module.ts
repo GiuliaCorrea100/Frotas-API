@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { UsersModule } from '../users/users.module';
+import { UsuarioModule } from '../usuario/usuario.module';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { UsersinguModule } from 'src/usersingu/usersingu.module';
+import { UsuarioSigaaModule } from 'src/usuariosigaa/usuariosigaa.module';
 
 @Module({
   imports: [
@@ -20,8 +20,8 @@ import { UsersinguModule } from 'src/usersingu/usersingu.module';
       }),
       inject: [ConfigService],
     }),
-    UsersModule,
-    UsersinguModule,
+    UsuarioModule,
+    UsuarioSigaaModule,
   ],
   controllers: [AuthController],
   providers: [AuthService],

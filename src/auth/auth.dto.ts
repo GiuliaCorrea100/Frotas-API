@@ -2,7 +2,7 @@ export class AuthResponseDto {
   token: string;
   expiresIn: number;
   username: string;
-  permissao: number;
+  administrador: boolean;
   nome: string;
   email: string;
   idUsuario: number;

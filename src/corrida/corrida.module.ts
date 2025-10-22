@@ -3,13 +3,13 @@ import { CorridaService } from './corrida.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CorridaController } from './corrida.controller';
 import { CorridasEntity } from 'src/db/entities/corrida.entity';
-import { UsersinguModule } from '../usersingu/usersingu.module';
 import { LogModule } from 'src/log/log.module';
+import { UsuarioSigaaModule } from 'src/usuariosigaa/usuariosigaa.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([CorridasEntity]),
-    forwardRef(() => UsersinguModule),
+    forwardRef(() => UsuarioSigaaModule),
     LogModule,
   ],
   controllers: [CorridaController],

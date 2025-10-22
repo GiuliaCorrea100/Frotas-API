@@ -1,18 +1,18 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { UsersService } from '../users/users.service';
+import { UsuarioService } from '../usuario/usuario.service';
 import { ConfigService } from '@nestjs/config';
-import { UserSinguService } from '../usersingu/usersingu.service';
 import { AuthResponseDto } from './auth.dto';
 import { JwtService } from '@nestjs/jwt';
 import { md5 } from 'src/util/md5';
+import { UsuarioSigaaService } from 'src/usuariosigaa/usuariosigaa.service';
 
 @Injectable()
 export class AuthService {
   private jwtExpirationTimeInSeconds: number;
 
   constructor(
-    private readonly usersService: UsersService,
-    private readonly userSinguService: UserSinguService,
+    private readonly usuarioService: UsuarioService,
+    private readonly usuarioSigaaService: UsuarioSigaaService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
   ) {
@@ -26,7 +26,7 @@ export class AuthService {
   }
 
   async singIn(login: string, senha: string): Promise<AuthResponseDto> {
-    const loginFound = await this.userSinguService.findByLogin(login);
+    const loginFound = await this.usuarioSigaaService.findByUserLogin(login);
 
     const senhaHash = md5(senha);
 
@@ -34,18 +34,27 @@ export class AuthService {
       throw new UnauthorizedException();
     }
 
-    const usuarioFrota = await this.usersService.findById(loginFound.idPessoa);
+    let usuarioFrota = await this.usuarioService.findByIdPessoaSigaa(
+      loginFound.idPessoaSigaa,
+    );
 
     if (!usuarioFrota) {
-      throw new UnauthorizedException('Usuário não cadastrado no Frotas');
+      const novoUsuario = {
+        idPessoaSigaa: loginFound.idPessoaSigaa,
+        administrador: false,
+        nome: loginFound.nome,
+      };
+      usuarioFrota = await this.usuarioService.create(novoUsuario);
+      console.log(
+        `Usuário ${usuarioFrota.idUsuario} cadastrado. Nome: ${usuarioFrota.nome}.`,
+      );
     }
-    
 
     const payload = {
       sub: usuarioFrota.idUsuario,
       login: loginFound.login,
       nome: loginFound.nome,
-      permissao: usuarioFrota.permissao,
+      administrador: usuarioFrota.administrador,
       idUsuario: usuarioFrota.idUsuario,
     };
 
@@ -57,7 +66,7 @@ export class AuthService {
       token,
       expiresIn: this.jwtExpirationTimeInSeconds,
       username: loginFound.login,
-      permissao: usuarioFrota.permissao,
+      administrador: usuarioFrota.administrador,
       nome: loginFound.nome,
       email: loginFound.email,
       idUsuario: usuarioFrota.idUsuario,
