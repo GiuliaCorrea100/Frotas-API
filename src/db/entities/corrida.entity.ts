@@ -6,7 +6,7 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { UserEntity } from './users.entity';
+import { UsuarioEntity } from './usuario.entity';
 import { CarrosEntity } from './carros.entity';
 //import { OcorrenciasEntity } from './ocorrencias.entity';
 
@@ -39,9 +39,9 @@ export class CorridasEntity {
   @Column({ type: 'boolean', name: 'chave_emprestada', nullable: false })
   chaveEmprestada: boolean;
 
-  @ManyToOne(() => UserEntity)
+  @ManyToOne(() => UsuarioEntity)
   @JoinColumn({ name: 'id_motorista', referencedColumnName: 'idUsuario' })
-  motorista?: UserEntity;
+  motorista?: UsuarioEntity;
 
   @ManyToOne(() => CarrosEntity)
   @JoinColumn({ name: 'id_carros', referencedColumnName: 'idCarro' })

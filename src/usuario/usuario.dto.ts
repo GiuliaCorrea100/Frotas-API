@@ -1,12 +1,12 @@
-export class UsersDto {
+export class UsuarioDto {
   idUsuario?: number;
-  idPessoaSingu: number;
-  permissao: number; //1-adm 2-motorista
+  idPessoaSigaa: number;
+  administrador: boolean; //TRUE-adm FALSE-motorista
   nome: string;
 }
 
 export interface FindAllParameters {
-  permissao: number;
+  administrador: boolean;
 }
 
 export class UsersRouteParameters {
@@ -14,7 +14,7 @@ export class UsersRouteParameters {
 }
 
 export class UserActionDto {
-  userData: UsersDto;
+  userData: UsuarioDto;
   currentUserId: number;
   currentUserName: string;
 }
