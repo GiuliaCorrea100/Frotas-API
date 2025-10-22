@@ -1,0 +1,13 @@
+version: '3.8'
+
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: frotas-unir-management-api-db
+    ports:
+      - "4532:5432"
+    environment:
+      POSTGRES_DB: frotas-unir-management-api
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345
