@@ -1,18 +1,18 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { UsersService } from '../users/users.service';
+import { UsuarioService } from '../usuario/usuario.service';
 import { ConfigService } from '@nestjs/config';
 import { AuthResponseDto } from './auth.dto';
 import { JwtService } from '@nestjs/jwt';
 import { md5 } from 'src/util/md5';
-import { UsersigaaService } from 'src/usersigaa/usersigaa.service';
+import { UsuarioSigaaService } from 'src/usuariosigaa/usuariosigaa.service';
 
 @Injectable()
 export class AuthService {
   private jwtExpirationTimeInSeconds: number;
 
   constructor(
-    private readonly usersService: UsersService,
-    private readonly userSigaaService: UsersigaaService,
+    private readonly usuarioService: UsuarioService,
+    private readonly usuarioSigaaService: UsuarioSigaaService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
   ) {
@@ -26,7 +26,7 @@ export class AuthService {
   }
 
   async singIn(login: string, senha: string): Promise<AuthResponseDto> {
-    const loginFound = await this.userSigaaService.findByUserLogin(login);
+    const loginFound = await this.usuarioSigaaService.findByUserLogin(login);
 
     const senhaHash = md5(senha);
 
@@ -34,7 +34,7 @@ export class AuthService {
       throw new UnauthorizedException();
     }
 
-    let usuarioFrota = await this.usersService.findByIdPessoaSigaa(
+    let usuarioFrota = await this.usuarioService.findByIdPessoaSigaa(
       loginFound.idPessoaSigaa,
     );
 
@@ -44,7 +44,7 @@ export class AuthService {
         administrador: false,
         nome: loginFound.nome,
       };
-      usuarioFrota = await this.usersService.create(novoUsuario);
+      usuarioFrota = await this.usuarioService.create(novoUsuario);
       console.log(
         `Usuário ${usuarioFrota.idUsuario} cadastrado. Nome: ${usuarioFrota.nome}.`,
       );

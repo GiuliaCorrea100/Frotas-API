@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 import { IsString, IsNumber } from 'class-validator';
 
-export class UserSigaaDto {
+export class UsuarioSigaaDto {
 
     @IsNumber()
     idUsuarioSigaa: number;

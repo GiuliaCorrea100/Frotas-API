@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CarrosEntity } from 'src/db/entities/carros.entity';
 import { TipoCombustivelEntity } from 'src/db/entities/tipoCombustivel.entity';
-import { Equal, FindOptionsWhere, Like, Repository } from 'typeorm';
+import { Equal, FindOptionsWhere, ILike, Like, Repository } from 'typeorm';
 import { CarrosDto, FindAllParameters } from './carros.dto';
 import { LogService } from '../log/log.service';
 import { LogDto } from '../log/log.dto';
@@ -97,13 +97,24 @@ export class CarrosService {
 
     const searchTerm = `%${modeloPlaca.trim()}%`;
 
-    const carrosFound = await this.carrosRepository
-      .createQueryBuilder('carro')
-      .where('carro.modelo ILIKE :modeloPlaca', { modeloPlaca: searchTerm })
-      .orWhere('carro.placa ILIKE :modeloPlaca', { modeloPlaca: searchTerm })
-      .orderBy('carro.modelo', 'ASC')
-      .take(10)
-      .getMany();
+    const carrosFound = await this.carrosRepository.find({
+      where: [
+        {
+          situacao: 'DISPONIVEL',
+          ativo: true,
+          modelo: ILike(searchTerm),
+        },
+        {
+          situacao: 'DISPONIVEL',
+          ativo: true,
+          placa: ILike(searchTerm),
+        },
+      ],
+      order: {
+        modelo: 'ASC',
+      },
+      take: 10,
+    });
 
     return carrosFound.map((carroEntity) => this.mapEntityToDto(carroEntity));
   }
@@ -125,20 +136,6 @@ export class CarrosService {
     });
 
     return carrosFound.map((CarrosEntity) => this.mapEntityToDto(CarrosEntity));
-  }
-
-  async findByTombo(tombo: number): Promise<CarrosDto> {
-    const tomboNumber = Number(tombo);
-
-    const foundCarro = await this.carrosRepository.findOne({
-      where: { tombo: tomboNumber },
-    });
-
-    if (!foundCarro) {
-      throw new NotFoundException(`Item with id ${tombo} not found`);
-    }
-
-    return this.mapEntityToDto(foundCarro);
   }
 
   async update(

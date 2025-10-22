@@ -1,4 +1,4 @@
-export class UsersDto {
+export class UsuarioDto {
   idUsuario?: number;
   idPessoaSigaa: number;
   administrador: boolean; //TRUE-adm FALSE-motorista
@@ -14,7 +14,7 @@ export class UsersRouteParameters {
 }
 
 export class UserActionDto {
-  userData: UsersDto;
+  userData: UsuarioDto;
   currentUserId: number;
   currentUserName: string;
 }

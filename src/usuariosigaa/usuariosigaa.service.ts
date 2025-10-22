@@ -1,25 +1,25 @@
 /* eslint-disable prettier/prettier */
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserSigaaDto } from './usersigaa.dto';
-import { UserSigaaEntity } from 'src/dbsigaa/entities/usersigaa.entity';
+import { UsuarioSigaaDto } from './usuariosigaa.dto';
+import { UsuarioSigaaEntity } from 'src/dbsigaa/entities/usuariosigaa.entity';
 import { ServidorSigaaEntity } from 'src/dbsigaa/entities/servidorsigaa.entity';
+import { md5 } from 'src/util/md5';
 
 @Injectable()
-export class UsersigaaService {
+export class UsuarioSigaaService {
 
   constructor(
-    @InjectRepository(UserSigaaEntity, 'sigaaConnection')
-    private readonly usersRepository: Repository<UserSigaaEntity>,
+    @InjectRepository(UsuarioSigaaEntity, 'sigaaConnection')
+    private readonly usuarioSigaaService: Repository<UsuarioSigaaEntity>,
     
     @InjectRepository(ServidorSigaaEntity, 'sigaaConnection')
     private readonly servidorRepository: Repository<ServidorSigaaEntity>,
   ) { }
 
-  async findByUserLogin(login: string): Promise<UserSigaaDto | null> {
-    console.log(login);
-    const loginFound = await this.usersRepository.createQueryBuilder('usuario')
+  async findByUserLogin(login: string): Promise<UsuarioSigaaDto | null> {
+    const loginFound = await this.usuarioSigaaService.createQueryBuilder('usuario')
       .leftJoinAndSelect('usuario.pessoa', 'pessoa')
       .leftJoinAndSelect('usuario.servidor', 'servidor')
       .where('usuario.login = :login', { login })
@@ -33,7 +33,7 @@ export class UsersigaaService {
   }
 
   async findByNomeSimilar(nomeNormalizado: string) {
-    const usuarios = await this.usersRepository
+    const usuarios = await this.usuarioSigaaService
       .createQueryBuilder('usuario') 
       .innerJoinAndSelect('usuario.pessoa', 'pessoa')
       .innerJoinAndSelect('usuario.servidor', 'servidor')
@@ -50,7 +50,24 @@ export class UsersigaaService {
     return usuarios;
   }
 
-  private mapEntityToDto(userEntity: UserSigaaEntity, nome: string, email: string, tipoUsuario?: string): UserSigaaDto {
+  async confirmarSenha(idPessoaSigaa: number, senha: string): Promise<boolean> {
+    const foundUser = await this.usuarioSigaaService.findOne({
+      where: { idPessoaSigaa },
+    });
+
+    if (!foundUser) {
+      throw new NotFoundException(`Item with id ${idPessoaSigaa} not found`);
+    }
+    const senhaHash = md5(senha);
+
+    if (senhaHash === foundUser.senha) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  private mapEntityToDto(userEntity: UsuarioSigaaEntity, nome: string, email: string, tipoUsuario?: string): UsuarioSigaaDto {
     return {
       idUsuarioSigaa: userEntity.idUsuarioSigaa,
       idPessoaSigaa: userEntity.idPessoaSigaa,

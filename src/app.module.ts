@@ -8,14 +8,13 @@ import { AbastecimentoModule } from './abastecimento/abastecimento.module';
 import { CorridaModule } from './corrida/corrida.module';
 import { DbModule } from './db/db.module';
 import { ConfigModule } from '@nestjs/config';
-import { UsersModule } from './users/users.module';
+import { UsuarioModule } from './usuario/usuario.module';
 import { AuthModule } from './auth/auth.module';
-import { UsersinguModule } from './usersingu/usersingu.module';
 import { TipoCombustivelModule } from './tipoCombustivel/tipoCombustivel.module';
 import { OcorrenciaModule } from './ocorrencia/ocorrencia.module';
 import { PercursoModule } from './percurso/percurso.module';
 import { DbSigaaModule } from './dbsigaa/dbsigaa.module';
-import { UsersigaaModule } from './usersigaa/usersigaa.module';
+import { UsuarioSigaaModule } from './usuariosigaa/usuariosigaa.module';
 import { ServidorsigaaModule } from './servidorsigaa/servidorsigaa.module';
 
 @Module({
@@ -27,16 +26,14 @@ import { ServidorsigaaModule } from './servidorsigaa/servidorsigaa.module';
     CorridaModule,
     DbModule,
     ConfigModule,
-    UsersModule,
-    UsersinguModule,
+    UsuarioModule,
     AuthModule,
     ConfigModule.forRoot({ isGlobal: true }),
-    UsersinguModule,
     TipoCombustivelModule,
     OcorrenciaModule,
     PercursoModule,
     DbSigaaModule,
-    UsersigaaModule,
+    UsuarioSigaaModule,
     ServidorsigaaModule,
   ],
   controllers: [AppController],

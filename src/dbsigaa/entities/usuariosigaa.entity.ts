@@ -4,7 +4,7 @@ import { PessoaSigaaEntity } from "./pessoasigaa.entity"
 import { ServidorSigaaEntity } from "./servidorsigaa.entity"
 
 @Entity({name: 'usuario', schema: 'comum'})
-export class UserSigaaEntity {
+export class UsuarioSigaaEntity {
 
     @PrimaryGeneratedColumn({ type: 'integer', name: 'id_usuario' })
     idUsuarioSigaa: number;

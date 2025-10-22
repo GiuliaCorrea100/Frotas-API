@@ -102,7 +102,7 @@ export class CorridaController {
     @Request() req: any,
   ): Promise<void> {
     const currentUserId = req.user?.sub;
-    const currentUserName = req.user?.login;
+    const currentUserName = req.user?.login || req.user?.nome;
     await this.corridaService.atualizarSituacao(
       idCorrida,
       body.situacao,

@@ -4,23 +4,23 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { UsersDto, FindAllParameters } from './users.dto';
+import { UsuarioDto, FindAllParameters } from './usuario.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Equal, FindOptionsWhere } from 'typeorm';
-import { UserEntity } from 'src/db/entities/users.entity';
+import { UsuarioEntity } from 'src/db/entities/usuario.entity';
 import { LogService } from '../log/log.service';
 import { LogDto } from '../log/log.dto';
 
 @Injectable()
-export class UsersService {
+export class UsuarioService {
   constructor(
-    @InjectRepository(UserEntity)
-    private readonly UsersRepository: Repository<UserEntity>,
+    @InjectRepository(UsuarioEntity)
+    private readonly UsuarioRepository: Repository<UsuarioEntity>,
     private readonly logService: LogService,
   ) {}
 
-  async findByName(nome: string): Promise<UsersDto[]> {
-    const usersFound = await this.UsersRepository.createQueryBuilder('user')
+  async findByName(nome: string): Promise<UsuarioDto[]> {
+    const usersFound = await this.UsuarioRepository.createQueryBuilder('user')
       .where('LOWER(user.nome) LIKE LOWER(:nome)', { nome: `%${nome}%` })
       .getMany();
 
@@ -32,17 +32,17 @@ export class UsersService {
   }
 
   async create(
-    users: UsersDto,
+    users: UsuarioDto,
     currentUserId?: number,
     currentUserName?: string,
   ) {
-    const usersToSave: UserEntity = {
+    const usersToSave: UsuarioEntity = {
       idPessoaSigaa: users.idPessoaSigaa,
       administrador: users.administrador,
       nome: users.nome,
     };
 
-    const savedUser = await this.UsersRepository.save(usersToSave);
+    const savedUser = await this.UsuarioRepository.save(usersToSave);
 
     console.log('Dados do log (create):', {
       currentUserId,
@@ -65,8 +65,8 @@ export class UsersService {
     return savedUser;
   }
 
-  async findByIdPessoaSigaa(idPessoaSigaa: number): Promise<UsersDto | null> {
-    const foundUser = await this.UsersRepository.findOne({
+  async findByIdPessoaSigaa(idPessoaSigaa: number): Promise<UsuarioDto | null> {
+    const foundUser = await this.UsuarioRepository.findOne({
       where: { idPessoaSigaa },
     });
 
@@ -77,14 +77,37 @@ export class UsersService {
     return this.mapEntityToDto(foundUser);
   }
 
-  async findAll(params: FindAllParameters): Promise<UsersDto[]> {
-    const searchParams: FindOptionsWhere<UserEntity> = {};
+  async consultaCadastroUsuario(
+    idPessoaSigaa: number,
+    nome: string,
+  ): Promise<UsuarioEntity> {
+    let userFound = await this.findByIdPessoaSigaa(idPessoaSigaa);
+
+    if (!userFound) {
+      const novoUsuario = {
+        idPessoaSigaa,
+        nome,
+        administrador: false,
+      };
+      userFound = await this.create(novoUsuario);
+    }
+
+    return {
+      idUsuario: Number(userFound.idUsuario),
+      idPessoaSigaa: Number(userFound.idPessoaSigaa),
+      nome: userFound.nome,
+      administrador: userFound.administrador,
+    };
+  }
+
+  async findAll(params: FindAllParameters): Promise<UsuarioDto[]> {
+    const searchParams: FindOptionsWhere<UsuarioEntity> = {};
 
     if (params.administrador !== undefined) {
       searchParams.administrador = Equal(params.administrador);
     }
 
-    const usersFound = await this.UsersRepository.find({
+    const usersFound = await this.UsuarioRepository.find({
       where: searchParams,
     });
 
@@ -92,23 +115,19 @@ export class UsersService {
   }
 
   async permissaoAdm(
-    idPessoaSigaa: number,
+    idUsuario: number,
     currentUserId?: number,
     currentUserName?: string,
   ): Promise<void> {
-    const foundUser = await this.UsersRepository.findOne({
-      where: { idPessoaSigaa },
+    const foundUser = await this.UsuarioRepository.findOne({
+      where: { idUsuario },
     });
-
-    if (!foundUser) {
-      throw new NotFoundException(`Item with id ${idPessoaSigaa} not found`);
-    }
 
     const dadosAntigos = { ...foundUser };
 
     foundUser.administrador = !foundUser.administrador;
 
-    const updatedUser = await this.UsersRepository.save(foundUser);
+    const updatedUser = await this.UsuarioRepository.save(foundUser);
 
     console.log('Dados do log (permissaoAdm):', {
       currentUserId,
@@ -129,8 +148,8 @@ export class UsersService {
     await this.logService.logChange(logData);
   }
 
-  async findUserId(idUsuario: number): Promise<UsersDto | null> {
-    const foundUser = await this.UsersRepository.findOne({
+  async findUserId(idUsuario: number): Promise<UsuarioDto | null> {
+    const foundUser = await this.UsuarioRepository.findOne({
       where: { idUsuario },
     });
 
@@ -143,11 +162,11 @@ export class UsersService {
 
   async update(
     idUsuario: number,
-    users: UsersDto,
+    users: UsuarioDto,
     currentUserId?: number,
     currentUserName?: string,
   ) {
-    const foundUser = await this.UsersRepository.findOne({
+    const foundUser = await this.UsuarioRepository.findOne({
       where: { idUsuario },
     });
 
@@ -160,9 +179,9 @@ export class UsersService {
 
     const dadosAntigos = { ...foundUser };
 
-    await this.UsersRepository.update(idUsuario, this.mapDtoToEntity(users));
+    await this.UsuarioRepository.update(idUsuario, this.mapDtoToEntity(users));
 
-    const updatedUser = await this.UsersRepository.findOne({
+    const updatedUser = await this.UsuarioRepository.findOne({
       where: { idUsuario },
     });
 
@@ -190,7 +209,7 @@ export class UsersService {
     currentUserId?: number,
     currentUserName?: string,
   ) {
-    const userToDelete = await this.UsersRepository.findOne({
+    const userToDelete = await this.UsuarioRepository.findOne({
       where: { idUsuario },
     });
 
@@ -201,7 +220,7 @@ export class UsersService {
       );
     }
 
-    const result = await this.UsersRepository.delete(idUsuario);
+    const result = await this.UsuarioRepository.delete(idUsuario);
 
     if (!result.affected) {
       throw new HttpException(
@@ -229,20 +248,20 @@ export class UsersService {
     await this.logService.logChange(logData);
   }
 
-  private mapEntityToDto(UserEntity: UserEntity): UsersDto {
+  private mapEntityToDto(usuarioEntity: UsuarioEntity): UsuarioDto {
     return {
-      idUsuario: UserEntity.idUsuario,
-      idPessoaSigaa: UserEntity.idPessoaSigaa,
-      administrador: UserEntity.administrador,
-      nome: UserEntity.nome,
+      idUsuario: usuarioEntity.idUsuario,
+      idPessoaSigaa: usuarioEntity.idPessoaSigaa,
+      administrador: usuarioEntity.administrador,
+      nome: usuarioEntity.nome,
     };
   }
 
-  private mapDtoToEntity(UsersDto: UsersDto): Partial<UserEntity> {
+  private mapDtoToEntity(usuarioDto: UsuarioDto): Partial<UsuarioEntity> {
     return {
-      idPessoaSigaa: UsersDto.idPessoaSigaa,
-      administrador: UsersDto.administrador,
-      nome: UsersDto.nome,
+      idPessoaSigaa: usuarioDto.idPessoaSigaa,
+      administrador: usuarioDto.administrador,
+      nome: usuarioDto.nome,
     };
   }
 }

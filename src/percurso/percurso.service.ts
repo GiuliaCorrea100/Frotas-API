@@ -136,23 +136,32 @@ export class PercursoService {
     return percursos.map((percurso) => this.mapEntityToDto(percurso));
   }
 
-  async findUltimoPercursoAtivo(idCorrida: number): Promise<PercursoDto> {
-    const percurso = await this.percursoRepository.findOne({
-      where: {
-        idCorrida,
-        chegadaHora: IsNull(),
-      },
-      order: { saidaHora: 'DESC' },
-    });
+  async findUltimoPercursoAtivo(
+    idCorrida: number,
+  ): Promise<PercursoDto | null> {
+    try {
+      const percurso = await this.percursoRepository.findOne({
+        where: {
+          idCorrida,
+          chegadaHora: IsNull(),
+        },
+        order: { saidaHora: 'DESC' },
+      });
 
-    if (!percurso) {
-      throw new NotFoundException('Nenhum percurso ativo encontrado');
+      if (!percurso) {
+        return null;
+      }
+
+      return this.mapEntityToDto(percurso);
+    } catch (error) {
+      console.error('Erro em findUltimoPercursoAtivo:', error);
+      throw error;
     }
-
-    return this.mapEntityToDto(percurso);
   }
 
-  async findUltimoPercursoFinalizado(idCorrida: number): Promise<PercursoDto> {
+  async findUltimoPercursoFinalizado(
+    idCorrida: number,
+  ): Promise<PercursoDto | null> {
     const percurso = await this.percursoRepository.findOne({
       where: {
         idCorrida,
@@ -162,7 +171,7 @@ export class PercursoService {
     });
 
     if (!percurso) {
-      throw new NotFoundException('Nenhum percurso finalizado encontrado');
+      return null;
     }
 
     return this.mapEntityToDto(percurso);
