@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Module, forwardRef } from '@nestjs/common';
 import { CorridaService } from './corrida.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -11,6 +12,8 @@ import { UsuarioSigaaModule } from 'src/usuariosigaa/usuariosigaa.module';
     TypeOrmModule.forFeature([CorridasEntity]),
     forwardRef(() => UsuarioSigaaModule),
     LogModule,
+    // Só importa se AUTH=SIGAA
+    ...(process.env.AUTH === 'SIGAA' ? [forwardRef(() => UsuarioSigaaModule)] : []),
   ],
   controllers: [CorridaController],
   exports: [CorridaService],

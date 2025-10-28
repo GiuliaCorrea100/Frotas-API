@@ -12,14 +12,14 @@ export class UsuarioSigaaService {
 
   constructor(
     @InjectRepository(UsuarioSigaaEntity, 'sigaaConnection')
-    private readonly usuarioSigaaService: Repository<UsuarioSigaaEntity>,
+    private readonly usuarioSigaaRepository: Repository<UsuarioSigaaEntity>,
     
     @InjectRepository(ServidorSigaaEntity, 'sigaaConnection')
     private readonly servidorRepository: Repository<ServidorSigaaEntity>,
   ) { }
 
   async findByUserLogin(login: string): Promise<UsuarioSigaaDto | null> {
-    const loginFound = await this.usuarioSigaaService.createQueryBuilder('usuario')
+    const loginFound = await this.usuarioSigaaRepository.createQueryBuilder('usuario')
       .leftJoinAndSelect('usuario.pessoa', 'pessoa')
       .leftJoinAndSelect('usuario.servidor', 'servidor')
       .where('usuario.login = :login', { login })
@@ -33,7 +33,7 @@ export class UsuarioSigaaService {
   }
 
   async findByNomeSimilar(nomeNormalizado: string) {
-    const usuarios = await this.usuarioSigaaService
+    const usuarios = await this.usuarioSigaaRepository
       .createQueryBuilder('usuario') 
       .innerJoinAndSelect('usuario.pessoa', 'pessoa')
       .innerJoinAndSelect('usuario.servidor', 'servidor')
@@ -51,7 +51,7 @@ export class UsuarioSigaaService {
   }
 
   async confirmarSenha(idPessoaSigaa: number, senha: string): Promise<boolean> {
-    const foundUser = await this.usuarioSigaaService.findOne({
+    const foundUser = await this.usuarioSigaaRepository.findOne({
       where: { idPessoaSigaa },
     });
 

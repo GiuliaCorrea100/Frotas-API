@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -19,22 +20,22 @@ import { ServidorsigaaModule } from './servidorsigaa/servidorsigaa.module';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    DbModule,
+    DbSigaaModule,
+    UsuarioSigaaModule,
+    ServidorsigaaModule,
     CarrosModule,
     CnhModule,
     MultasModule,
     AbastecimentoModule,
     CorridaModule,
-    DbModule,
     ConfigModule,
     UsuarioModule,
-    AuthModule,
-    ConfigModule.forRoot({ isGlobal: true }),
     TipoCombustivelModule,
     OcorrenciaModule,
     PercursoModule,
-    DbSigaaModule,
-    UsuarioSigaaModule,
-    ServidorsigaaModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
