@@ -10,7 +10,7 @@ import {
   MotoristaDashboardDto,
 } from './corrida.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CorridasEntity } from 'src/db/entities/corrida.entity';
+import { CorridaEntity } from 'src/db/entities/corrida.entity';
 import {
   FindOptionsWhere,
   Repository,
@@ -27,8 +27,8 @@ import { LogDto } from '../log/log.dto';
 @Injectable()
 export class CorridaService {
   constructor(
-    @InjectRepository(CorridasEntity)
-    private readonly corridaRepository: Repository<CorridasEntity>,
+    @InjectRepository(CorridaEntity)
+    private readonly corridaRepository: Repository<CorridaEntity>,
     private readonly logService: LogService,
   ) {}
 
@@ -142,7 +142,7 @@ export class CorridaService {
   }
 
   async findAll(params: FindAllParameters): Promise<CorridaDto[]> {
-    const searchParams: FindOptionsWhere<CorridasEntity> = {};
+    const searchParams: FindOptionsWhere<CorridaEntity> = {};
 
     if (params.localDeSaida) {
       searchParams.localDeSaida = Like(`%${params.localDeSaida}%`);
@@ -438,7 +438,7 @@ export class CorridaService {
     };
   }
 
-  private mapEntityToDto(corridaEntity: CorridasEntity): CorridaDto {
+  private mapEntityToDto(corridaEntity: CorridaEntity): CorridaDto {
     return {
       idCorrida: corridaEntity.idCorrida,
       dataInicio: corridaEntity.dataInicio,
@@ -456,8 +456,8 @@ export class CorridaService {
     };
   }
 
-  private mapDtoToEntity(corridaDto: CorridaDto): Partial<CorridasEntity> {
-    const entity: Partial<CorridasEntity> = {
+  private mapDtoToEntity(corridaDto: CorridaDto): Partial<CorridaEntity> {
+    const entity: Partial<CorridaEntity> = {
       dataInicio: corridaDto.dataInicio,
       dataTermino: corridaDto.dataTermino,
       distanciaKm: corridaDto.distanciaKm,

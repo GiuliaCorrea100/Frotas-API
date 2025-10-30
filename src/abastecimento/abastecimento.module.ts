@@ -4,7 +4,7 @@ import { AbastecimentoService } from './abastecimento.service';
 import { AbastecimentoEntity } from 'src/db/entities/abastecimento.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TipoCombustivelEntity } from 'src/db/entities/tipoCombustivel.entity';
-import { CorridasEntity } from 'src/db/entities/corrida.entity';
+import { CorridaEntity } from 'src/db/entities/corrida.entity';
 import { LogModule } from 'src/log/log.module';
 
 @Module({
@@ -12,7 +12,7 @@ import { LogModule } from 'src/log/log.module';
     TypeOrmModule.forFeature([
       AbastecimentoEntity,
       TipoCombustivelEntity,
-      CorridasEntity,
+      CorridaEntity,
     ]),
     LogModule,
   ],

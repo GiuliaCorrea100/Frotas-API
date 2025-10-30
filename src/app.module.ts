@@ -25,7 +25,7 @@ import { ServidorsigaaModule } from './servidorsigaa/servidorsigaa.module';
     DbSigaaModule,
     UsuarioSigaaModule,
     ServidorsigaaModule,
-    carroModule,
+    CarroModule,
     CnhModule,
     MultaModule,
     AbastecimentoModule,
