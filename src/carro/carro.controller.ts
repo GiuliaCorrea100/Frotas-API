@@ -14,26 +14,26 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import {
-  CarrosDto,
-  CarrosRouteParameters,
+  CarroDto,
+  CarroRouteParameters,
   FindAllParameters,
-} from './carros.dto';
-import { CarrosService } from './carros.service';
+} from './carro.dto';
+import { carroService } from './carro.service';
 import { AuthGuard } from '../auth/auth.guard';
 
-@Controller('carros')
+@Controller('carro')
 @UseGuards(AuthGuard)
-export class CarrosController {
-  constructor(private readonly carrosService: CarrosService) {}
+export class CarroController {
+  constructor(private readonly carroService: carroService) {}
 
   @Post()
   async create(
-    @Body() carro: CarrosDto,
+    @Body() carro: CarroDto,
     @Request() req: any,
-  ): Promise<CarrosDto> {
+  ): Promise<CarroDto> {
     const currentUserId = req.user?.sub;
     const currentUserName = req.user?.login;
-    return await this.carrosService.create(
+    return await this.carroService.create(
       carro,
       currentUserId,
       currentUserName,
@@ -41,38 +41,38 @@ export class CarrosController {
   }
 
   @Get('/:idCarro')
-  async findById(@Param('idCarro') idCarro: number): Promise<CarrosDto> {
-    return this.carrosService.findById(idCarro);
+  async findById(@Param('idCarro') idCarro: number): Promise<CarroDto> {
+    return this.carroService.findById(idCarro);
   }
 
   @Get('/buscar-placa/:placa')
-  async findByPlaca(@Param('placa') placa: string): Promise<CarrosDto[]> {
-    return this.carrosService.findByPlaca(placa);
+  async findByPlaca(@Param('placa') placa: string): Promise<CarroDto[]> {
+    return this.carroService.findByPlaca(placa);
   }
 
   @Get('/buscar-modelo-placa/:modeloPlaca')
   async findByModeloPlaca(
     @Param('modeloPlaca') modeloPlaca: string,
-  ): Promise<CarrosDto[]> {
-    return this.carrosService.findByModeloPlaca(modeloPlaca);
+  ): Promise<CarroDto[]> {
+    return this.carroService.findByModeloPlaca(modeloPlaca);
   }
 
   @Get()
-  async findAll(@Query() params: FindAllParameters): Promise<CarrosDto[]> {
-    return this.carrosService.findAll(params);
+  async findAll(@Query() params: FindAllParameters): Promise<CarroDto[]> {
+    return this.carroService.findAll(params);
   }
 
   @Put('/:idCarro')
   async update(
-    @Param() params: CarrosRouteParameters,
-    @Body() carros: CarrosDto,
+    @Param() params: CarroRouteParameters,
+    @Body() carro: CarroDto,
     @Request() req: any,
   ) {
     const currentUserId = req.user?.sub;
     const currentUserName = req.user?.login;
-    await this.carrosService.update(
+    await this.carroService.update(
       params.idCarro,
-      carros,
+      carro,
       currentUserId,
       currentUserName,
     );
@@ -82,13 +82,13 @@ export class CarrosController {
   remove(@Param('idCarro') idCarro: number, @Request() req: any) {
     const currentUserId = req.user?.sub;
     const currentUserName = req.user?.login;
-    return this.carrosService.remove(idCarro, currentUserId, currentUserName);
+    return this.carroService.remove(idCarro, currentUserId, currentUserName);
   }
 
   @Patch(':idCarro/inativar')
   async inativar(@Param('idCarro') idCarro: number, @Request() req: any) {
     const currentUserId = req.user?.sub;
     const currentUserName = req.user?.login;
-    return this.carrosService.inativar(idCarro, currentUserId, currentUserName);
+    return this.carroService.inativar(idCarro, currentUserId, currentUserName);
   }
 }

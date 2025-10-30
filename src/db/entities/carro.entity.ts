@@ -7,8 +7,8 @@ import {
 } from 'typeorm';
 import { TipoCombustivelEntity } from './tipoCombustivel.entity';
 
-@Entity({ name: 'carros' })
-export class CarrosEntity {
+@Entity({ name: 'carro' })
+export class CarroEntity {
   @PrimaryGeneratedColumn({ type: 'int', name: 'id_carro' })
   idCarro?: number;
 
