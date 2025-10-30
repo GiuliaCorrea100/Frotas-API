@@ -91,4 +91,20 @@ export class CarrosController {
     const currentUserName = req.user?.login;
     return this.carrosService.inativar(idCarro, currentUserId, currentUserName);
   }
+
+  @Patch(':idCarro/situacao')
+  async atualizarSituacao(
+    @Param('idCarro') idCarro: number,
+    @Body() body: { situacao: string },
+    @Request() req: any,
+  ): Promise<void> {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+    await this.carrosService.atualizarSituacao(
+      idCarro,
+      body.situacao,
+      currentUserId,
+      currentUserName,
+    );
+  }
 }
