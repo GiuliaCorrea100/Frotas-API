@@ -19,6 +19,39 @@ export class carroService {
     private readonly logService: LogService,
   ) {}
 
+  async atualizarSituacao(
+    idCarro: number,
+    situacao: string,
+    currentUserId?: number,
+    currentUserName?: string,
+  ): Promise<CarrosDto> {
+    const carro = await this.carrosRepository.findOne({ where: { idCarro } });
+
+    if (!carro) {
+      throw new NotFoundException(`Carro com id ${idCarro} não encontrado`);
+    }
+
+    const dadosAntigos = { ...carro };
+
+    carro.situacao = situacao;
+
+    const carroAtualizado = await this.carrosRepository.save(carro);
+
+    const logData: LogDto = {
+      nomeTabela: 'carros',
+      idRegistro: idCarro,
+      operacao: 'UPDATE',
+      dadosAntigos: dadosAntigos,
+      dadosNovos: carroAtualizado,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    await this.logService.logChange(logData);
+
+    return this.mapEntityToDto(carroAtualizado);
+  }
+
   async create(
     carro: CarroDto,
     currentUserId?: number,
