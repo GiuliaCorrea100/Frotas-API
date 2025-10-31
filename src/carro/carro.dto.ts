@@ -1,4 +1,4 @@
-export class CarrosDto {
+export class CarroDto {
   idCarro?: number;
   tombo: number;
   qrCode: string;
@@ -20,6 +20,6 @@ export interface FindAllParameters {
   ano: number;
 }
 
-export class CarrosRouteParameters {
+export class CarroRouteParameters {
   idCarro: number;
 }

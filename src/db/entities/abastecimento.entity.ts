@@ -7,7 +7,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { TipoCombustivelEntity } from './tipoCombustivel.entity';
-import { CorridasEntity } from './corrida.entity';
+import { CorridaEntity } from './corrida.entity';
 
 @Entity({ name: 'abastecimento' })
 export class AbastecimentoEntity {
@@ -43,7 +43,7 @@ export class AbastecimentoEntity {
   @JoinColumn({ name: 'id_tipo_combustivel' })
   tipoCombustivel?: TipoCombustivelEntity;
 
-  @ManyToOne(() => CorridasEntity)
+  @ManyToOne(() => CorridaEntity)
   @JoinColumn({ name: 'id_corrida' })
-  idCorrida: CorridasEntity;
+  idCorrida: CorridaEntity;
 }

@@ -5,7 +5,7 @@ import {
   CreateDateColumn,
 } from 'typeorm';
 
-@Entity({ name: 'log_tabelas' })
+@Entity({ name: 'log_tabela' })
 export class LogEntity {
   @PrimaryGeneratedColumn({ name: 'log_id' })
   logId: number;
