@@ -3,13 +3,13 @@ import { Module, forwardRef } from '@nestjs/common';
 import { CorridaService } from './corrida.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CorridaController } from './corrida.controller';
-import { CorridasEntity } from 'src/db/entities/corrida.entity';
+import { CorridaEntity } from 'src/db/entities/corrida.entity';
 import { LogModule } from 'src/log/log.module';
 import { UsuarioSigaaModule } from 'src/usuariosigaa/usuariosigaa.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([CorridasEntity]),
+    TypeOrmModule.forFeature([CorridaEntity]),
     forwardRef(() => UsuarioSigaaModule),
     LogModule,
     // Só importa se AUTH=SIGAA

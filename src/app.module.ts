@@ -2,9 +2,9 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { CarrosModule } from './carros/carros.module';
+import { CarroModule } from './carro/carro.module';
 import { CnhModule } from './cnh/cnh.module';
-import { MultasModule } from './multas/multas.module';
+import { MultaModule } from './multa/multa.module';
 import { AbastecimentoModule } from './abastecimento/abastecimento.module';
 import { CorridaModule } from './corrida/corrida.module';
 import { DbModule } from './db/db.module';
@@ -25,9 +25,9 @@ import { ServidorsigaaModule } from './servidorsigaa/servidorsigaa.module';
     DbSigaaModule,
     UsuarioSigaaModule,
     ServidorsigaaModule,
-    CarrosModule,
+    CarroModule,
     CnhModule,
-    MultasModule,
+    MultaModule,
     AbastecimentoModule,
     CorridaModule,
     ConfigModule,

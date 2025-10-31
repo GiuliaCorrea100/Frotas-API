@@ -5,8 +5,8 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-@Entity({ name: 'multas' })
-export class MultasEntity {
+@Entity({ name: 'multa' })
+export class MultaEntity {
   @PrimaryGeneratedColumn({ type: 'int', name: 'id_multa' })
   idMulta?: number;
 
