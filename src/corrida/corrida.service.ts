@@ -370,8 +370,10 @@ export class CorridaService {
     idMotorista: number,
   ): Promise<MotoristaDashboardDto> {
     const hoje = new Date();
-    hoje.setHours(0, 0, 0, 0);
-    const amanha = new Date(hoje.getTime() + 86400000);
+    hoje.setUTCHours(0, 0, 0, 0);
+    const amanha = new Date(hoje);
+    amanha.setDate(amanha.getDate() + 1);
+    amanha.setUTCHours(23, 59, 59, 999);
 
     const corridasAgendadasHoje = await this.corridaRepository.find({
       where: {
