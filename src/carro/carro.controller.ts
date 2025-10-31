@@ -100,7 +100,7 @@ export class CarroController {
   ): Promise<void> {
     const currentUserId = req.user?.sub;
     const currentUserName = req.user?.login;
-    await this.carrosService.atualizarSituacao(
+    await this.carroService.atualizarSituacao(
       idCarro,
       body.situacao,
       currentUserId,
