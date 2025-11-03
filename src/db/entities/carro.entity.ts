@@ -7,8 +7,8 @@ import {
 } from 'typeorm';
 import { TipoCombustivelEntity } from './tipoCombustivel.entity';
 
-@Entity({ name: 'carros' })
-export class CarrosEntity {
+@Entity({ name: 'carro' })
+export class CarroEntity {
   @PrimaryGeneratedColumn({ type: 'int', name: 'id_carro' })
   idCarro?: number;
 
@@ -29,6 +29,9 @@ export class CarrosEntity {
 
   @Column({ type: 'int', name: 'ano' })
   ano: number;
+
+  @Column({ type: 'int', name: 'id_tipo_combustivel' })
+  idTipoCombustivel: number;
 
   @Column({ type: 'varchar', name: 'localidade_fisica' })
   localidadeFisica: string;

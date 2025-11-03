@@ -1,4 +1,4 @@
-export class MultasDto {
+export class MultaDto {
   idMulta?: number;
   codigoInfracao: number;
   classificacao: string;
@@ -17,6 +17,6 @@ export interface FindAllParameters {
   dataInfracao: Date;
 }
 
-export class MultasRouteParameters {
+export class MultaRouteParameters {
   idMulta: number;
 }

@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Controller, Get, UseGuards, Query, Param } from '@nestjs/common';
 import { UsuarioSigaaService } from './usuariosigaa.service';
 import { AuthGuard } from 'src/auth/auth.guard';

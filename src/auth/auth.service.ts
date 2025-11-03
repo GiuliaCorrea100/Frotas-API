@@ -1,4 +1,5 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+/* eslint-disable prettier/prettier */
+import { Injectable, Optional, UnauthorizedException } from '@nestjs/common';
 import { UsuarioService } from '../usuario/usuario.service';
 import { ConfigService } from '@nestjs/config';
 import { AuthResponseDto } from './auth.dto';
@@ -10,52 +11,122 @@ import { UsuarioSigaaService } from 'src/usuariosigaa/usuariosigaa.service';
 export class AuthService {
   private jwtExpirationTimeInSeconds: number;
 
+
   constructor(
     private readonly usuarioService: UsuarioService,
     private readonly usuarioSigaaService: UsuarioSigaaService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
   ) {
-    const expirationTime = this.configService.get<number>(
-      'JWT_EXPIRATION_TIME',
-    );
+    const expirationTime = this.configService.get<number>('JWT_EXPIRATION_TIME');
     if (expirationTime === undefined) {
       throw new Error('JWT_EXPIRATION_TIME is not configured');
     }
     this.jwtExpirationTimeInSeconds = +expirationTime;
   }
 
-  async singIn(login: string, senha: string): Promise<AuthResponseDto> {
-    const loginFound = await this.usuarioSigaaService.findByUserLogin(login);
-
-    const senhaHash = md5(senha);
-
-    if (!loginFound || senhaHash != loginFound.senha) {
-      throw new UnauthorizedException();
+  async signIn(login: string, senha: string): Promise<AuthResponseDto> {
+    if (process.env.AUTH === 'SIGAA') {
+      console.log('Autenticação via SIGAA...');
+      return this.signInSigaa(login, senha);
+    } else {
+      console.log('Autenticação MOCK...');
+      return this.signInMock(login, senha);
     }
+  }
 
-    let usuarioFrota = await this.usuarioService.findByIdPessoaSigaa(
-      loginFound.idPessoaSigaa,
-    );
+  async signInSigaa(login: string, senha: string): Promise<AuthResponseDto> {
+    try {
+      const loginFound = await this.usuarioSigaaService.findByUserLogin(login);
+      const senhaHash = md5(senha);
 
-    if (!usuarioFrota) {
-      const novoUsuario = {
-        idPessoaSigaa: loginFound.idPessoaSigaa,
-        administrador: false,
-        nome: loginFound.nome,
-      };
-      usuarioFrota = await this.usuarioService.create(novoUsuario);
-      console.log(
-        `Usuário ${usuarioFrota.idUsuario} cadastrado. Nome: ${usuarioFrota.nome}.`,
+      if (!loginFound || senhaHash !== loginFound.senha) {
+        throw new UnauthorizedException('Usuário ou Senha inválido');
+      }
+
+      let usuarioFrota = await this.usuarioService.findByIdPessoaSigaa(
+        loginFound.idPessoaSigaa,
       );
+
+      if (!usuarioFrota) {
+        const novoUsuario = {
+          idPessoaSigaa: loginFound.idPessoaSigaa,
+          administrador: false,
+          nome: loginFound.nome,
+        };
+        usuarioFrota = await this.usuarioService.create(novoUsuario);
+        console.log(
+          `Usuário ${usuarioFrota.idUsuario} cadastrado. Nome: ${usuarioFrota.nome}.`,
+        );
+      }
+
+      const payload = {
+        sub: usuarioFrota.idUsuario,
+        login: loginFound.login,
+        nome: loginFound.nome,
+        administrador: usuarioFrota.administrador,
+        idUsuario: usuarioFrota.idUsuario,
+      };
+
+      const token = this.jwtService.sign(payload, {
+        expiresIn: `${this.jwtExpirationTimeInSeconds}s`,
+      });
+
+      return {
+        token,
+        expiresIn: this.jwtExpirationTimeInSeconds,
+        username: loginFound.login,
+        administrador: usuarioFrota.administrador,
+        nome: loginFound.nome,
+        email: loginFound.email,
+        idUsuario: usuarioFrota.idUsuario,
+      };
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error('Erro na autenticação SIGAA:', error.message);
+      } else {
+        console.error('Erro na autenticação SIGAA:', error);
+      }
+      throw new UnauthorizedException('Falha na autenticação SIGAA. Verifique as configurações do ambiente.');
+    }
+  }
+
+  async signInMock(login: string, senha: string): Promise<AuthResponseDto> {
+    // Usuários de teste pré-definidos
+    const usuarios = [
+      {
+        login: '11111111111',
+        password: 'secret',
+        administrador: true,
+        nome: 'ADMINISTRADOR FROTAS',
+        idUsuario: 1,
+        email: 'administradorfrotas@unir.br',
+        idPessoaSigaa: 999998, // ID fictício
+      },
+      {
+        login: '22222222222',
+        password: 'secret',
+        administrador: false,
+        nome: 'MOTORISTA FROTAS',
+        idUsuario: 2,
+        email: 'motoristateste@unir.br',
+        idPessoaSigaa: 999999, // ID fictício
+      },
+    ];
+
+    const usuario = usuarios.find((u) => u.login === login);
+
+    // Verificar se o usuário existe e a senha corresponde
+    if (!usuario || md5(senha) !== md5(usuario.password)) {
+      throw new UnauthorizedException('Credenciais inválidas no modo teste');
     }
 
     const payload = {
-      sub: usuarioFrota.idUsuario,
-      login: loginFound.login,
-      nome: loginFound.nome,
-      administrador: usuarioFrota.administrador,
-      idUsuario: usuarioFrota.idUsuario,
+      sub: usuario.idUsuario,
+      login: usuario.login,
+      nome: usuario.nome,
+      administrador: usuario.administrador,
+      idUsuario: usuario.idUsuario,
     };
 
     const token = this.jwtService.sign(payload, {
@@ -65,11 +136,13 @@ export class AuthService {
     return {
       token,
       expiresIn: this.jwtExpirationTimeInSeconds,
-      username: loginFound.login,
-      administrador: usuarioFrota.administrador,
-      nome: loginFound.nome,
-      email: loginFound.email,
-      idUsuario: usuarioFrota.idUsuario,
+      username: usuario.login,
+      administrador: usuario.administrador,
+      nome: usuario.nome,
+      email: usuario.email,
+      idUsuario: usuario.idUsuario,
     };
   }
+
+  
 }

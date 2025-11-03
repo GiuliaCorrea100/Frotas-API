@@ -1,9 +1,10 @@
+/* eslint-disable prettier/prettier */
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { CarrosModule } from './carros/carros.module';
+import { CarroModule } from './carro/carro.module';
 import { CnhModule } from './cnh/cnh.module';
-import { MultasModule } from './multas/multas.module';
+import { MultaModule } from './multa/multa.module';
 import { AbastecimentoModule } from './abastecimento/abastecimento.module';
 import { CorridaModule } from './corrida/corrida.module';
 import { DbModule } from './db/db.module';
@@ -19,22 +20,22 @@ import { ServidorsigaaModule } from './servidorsigaa/servidorsigaa.module';
 
 @Module({
   imports: [
-    CarrosModule,
-    CnhModule,
-    MultasModule,
-    AbastecimentoModule,
-    CorridaModule,
-    DbModule,
-    ConfigModule,
-    UsuarioModule,
-    AuthModule,
     ConfigModule.forRoot({ isGlobal: true }),
-    TipoCombustivelModule,
-    OcorrenciaModule,
-    PercursoModule,
+    DbModule,
     DbSigaaModule,
     UsuarioSigaaModule,
     ServidorsigaaModule,
+    CarroModule,
+    CnhModule,
+    MultaModule,
+    AbastecimentoModule,
+    CorridaModule,
+    ConfigModule,
+    UsuarioModule,
+    TipoCombustivelModule,
+    OcorrenciaModule,
+    PercursoModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

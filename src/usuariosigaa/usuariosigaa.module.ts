@@ -11,7 +11,10 @@ import { UsuarioSigaaController } from './usuariosigaa.controller';
   exports: [UsuarioSigaaService],
   controllers: [UsuarioSigaaController],
   imports: [
-    TypeOrmModule.forFeature([UsuarioSigaaEntity, PessoaSigaaEntity, ServidorSigaaEntity], 'sigaaConnection'),
+    TypeOrmModule.forFeature(
+      [UsuarioSigaaEntity, PessoaSigaaEntity, ServidorSigaaEntity],
+      'sigaaConnection'
+    ),
   ],
   providers: [UsuarioSigaaService],
 })

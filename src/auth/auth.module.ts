@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Module } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
@@ -11,7 +12,6 @@ import { UsuarioSigaaModule } from 'src/usuariosigaa/usuariosigaa.module';
     JwtModule.registerAsync({
       global: true,
       imports: [],
-      // eslint-disable-next-line @typescript-eslint/require-await
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
         signOptions: {

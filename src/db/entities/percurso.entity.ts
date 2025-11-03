@@ -8,7 +8,7 @@ export class PercursoEntity {
   @Column({ name: 'id_corrida', nullable: false })
   idCorrida: number;
 
-  @Column({ name: 'saida_hora' })
+  @Column({ type: 'timestamptz', name: 'saida_hora' })
   saidaHora: Date;
 
   @Column({ name: 'saida_odometro', type: 'numeric', precision: 10, scale: 2 })
@@ -17,7 +17,7 @@ export class PercursoEntity {
   @Column({ name: 'local_destino' })
   localDestino: string;
 
-  @Column({ name: 'chegada_hora', nullable: true })
+  @Column({ type: 'timestamptz', name: 'chegada_hora', nullable: true })
   chegadaHora?: Date;
 
   @Column({

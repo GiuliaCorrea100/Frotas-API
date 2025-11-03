@@ -1,38 +1,38 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { MultasDto, FindAllParameters } from './multas.dto';
-import { MultasEntity } from 'src/db/entities/multas.entity';
+import { MultaDto, FindAllParameters } from './multa.dto';
+import { MultaEntity } from 'src/db/entities/multa.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like, FindOptionsWhere } from 'typeorm';
 import { LogService } from '../log/log.service';
 import { LogDto } from '../log/log.dto';
 
 @Injectable()
-export class MultasService {
+export class MultaService {
   constructor(
-    @InjectRepository(MultasEntity)
-    private readonly MultasRepository: Repository<MultasEntity>,
+    @InjectRepository(MultaEntity)
+    private readonly MultaRepository: Repository<MultaEntity>,
     private readonly logService: LogService,
   ) {}
-  private multas: MultasDto[] = [];
+  private multa: MultaDto[] = [];
 
   async create(
-    multas: MultasDto,
+    multa: MultaDto,
     currentUserId?: number,
     currentUserName?: string,
   ) {
-    const multasToSave: MultasEntity = {
-      codigoInfracao: multas.codigoInfracao,
-      classificacao: multas.classificacao,
-      valorInfracao: multas.valorInfracao,
-      placaVeiculo: multas.placaVeiculo,
-      dataInfracao: multas.dataInfracao,
-      autoInfracao: multas.autoInfracao,
+    const multaToSave: MultaEntity = {
+      codigoInfracao: multa.codigoInfracao,
+      classificacao: multa.classificacao,
+      valorInfracao: multa.valorInfracao,
+      placaVeiculo: multa.placaVeiculo,
+      dataInfracao: multa.dataInfracao,
+      autoInfracao: multa.autoInfracao,
     };
 
-    const savedMulta = await this.MultasRepository.save(multasToSave);
+    const savedMulta = await this.MultaRepository.save(multaToSave);
 
     const logData: LogDto = {
-      nomeTabela: 'multas',
+      nomeTabela: 'multa',
       idRegistro: savedMulta.idMulta,
       operacao: 'INSERT',
       dadosAntigos: null,
@@ -46,8 +46,8 @@ export class MultasService {
     return savedMulta;
   }
 
-  async findById(idMulta: number): Promise<MultasDto> {
-    const foundMulta = await this.MultasRepository.findOne({
+  async findById(idMulta: number): Promise<MultaDto> {
+    const foundMulta = await this.MultaRepository.findOne({
       where: { idMulta },
     });
 
@@ -57,8 +57,8 @@ export class MultasService {
     return this.mapEntityToDto(foundMulta);
   }
 
-  async findAll(params: FindAllParameters): Promise<MultasDto[]> {
-    const searchParams: FindOptionsWhere<MultasEntity> = {};
+  async findAll(params: FindAllParameters): Promise<MultaDto[]> {
+    const searchParams: FindOptionsWhere<MultaEntity> = {};
 
     if (params.classificacao) {
       searchParams.classificacao = Like(`%${params.classificacao}%`);
@@ -80,11 +80,11 @@ export class MultasService {
       searchParams.dataInfracao = params.dataInfracao;
     }
 
-    const multasFound = await this.MultasRepository.find({
+    const multaFound = await this.MultaRepository.find({
       where: searchParams,
     });
 
-    return multasFound.map((MultasEntity) => this.mapEntityToDto(MultasEntity));
+    return multaFound.map((MultaEntity) => this.mapEntityToDto(MultaEntity));
   }
 
   async softRemove(
@@ -92,7 +92,7 @@ export class MultasService {
     currentUserId?: number,
     currentUserName?: string,
   ) {
-    const foundMulta = await this.MultasRepository.findOne({
+    const foundMulta = await this.MultaRepository.findOne({
       where: { idMulta },
     });
 
@@ -104,10 +104,10 @@ export class MultasService {
 
     foundMulta.deletada = true;
 
-    const updatedMulta = await this.MultasRepository.save(foundMulta);
+    const updatedMulta = await this.MultaRepository.save(foundMulta);
 
     const logData: LogDto = {
-      nomeTabela: 'multas',
+      nomeTabela: 'multa',
       idRegistro: idMulta,
       operacao: 'UPDATE',
       dadosAntigos: dadosAntigos,
@@ -121,11 +121,11 @@ export class MultasService {
 
   async update(
     idMulta: number,
-    multa: MultasDto,
+    multa: MultaDto,
     currentUserId?: number,
     currentUserName?: string,
   ) {
-    const foundMulta = await this.MultasRepository.findOne({
+    const foundMulta = await this.MultaRepository.findOne({
       where: { idMulta },
     });
 
@@ -136,12 +136,12 @@ export class MultasService {
     const dadosAntigos = { ...foundMulta };
 
     const updateData = this.mapDtoToEntity(multa);
-    const mergedEntity = this.MultasRepository.merge(foundMulta, updateData);
+    const mergedEntity = this.MultaRepository.merge(foundMulta, updateData);
 
-    const updatedMulta = await this.MultasRepository.save(mergedEntity);
+    const updatedMulta = await this.MultaRepository.save(mergedEntity);
 
     const logData: LogDto = {
-      nomeTabela: 'multas',
+      nomeTabela: 'multa',
       idRegistro: idMulta,
       operacao: 'UPDATE',
       dadosAntigos: dadosAntigos,
@@ -153,28 +153,28 @@ export class MultasService {
     await this.logService.logChange(logData);
   }
 
-  private mapEntityToDto(MultasEntity: MultasEntity): MultasDto {
+  private mapEntityToDto(MultaEntity: MultaEntity): MultaDto {
     return {
-      idMulta: MultasEntity.idMulta,
-      codigoInfracao: MultasEntity.codigoInfracao,
-      classificacao: MultasEntity.classificacao,
-      valorInfracao: MultasEntity.valorInfracao,
-      placaVeiculo: MultasEntity.placaVeiculo,
-      dataInfracao: MultasEntity.dataInfracao,
-      autoInfracao: MultasEntity.autoInfracao,
-      deletada: MultasEntity.deletada,
+      idMulta: MultaEntity.idMulta,
+      codigoInfracao: MultaEntity.codigoInfracao,
+      classificacao: MultaEntity.classificacao,
+      valorInfracao: MultaEntity.valorInfracao,
+      placaVeiculo: MultaEntity.placaVeiculo,
+      dataInfracao: MultaEntity.dataInfracao,
+      autoInfracao: MultaEntity.autoInfracao,
+      deletada: MultaEntity.deletada,
     };
   }
 
-  private mapDtoToEntity(MultasDto: MultasDto): Partial<MultasEntity> {
+  private mapDtoToEntity(MultaDto: MultaDto): Partial<MultaEntity> {
     return {
-      codigoInfracao: MultasDto.codigoInfracao,
-      classificacao: MultasDto.classificacao,
-      valorInfracao: MultasDto.valorInfracao,
-      placaVeiculo: MultasDto.placaVeiculo,
-      dataInfracao: MultasDto.dataInfracao,
-      autoInfracao: MultasDto.autoInfracao,
-      deletada: MultasDto.deletada,
+      codigoInfracao: MultaDto.codigoInfracao,
+      classificacao: MultaDto.classificacao,
+      valorInfracao: MultaDto.valorInfracao,
+      placaVeiculo: MultaDto.placaVeiculo,
+      dataInfracao: MultaDto.dataInfracao,
+      autoInfracao: MultaDto.autoInfracao,
+      deletada: MultaDto.deletada,
     };
   }
 }
