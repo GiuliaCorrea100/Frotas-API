@@ -13,11 +13,7 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import {
-  CarroDto,
-  CarroRouteParameters,
-  FindAllParameters,
-} from './carro.dto';
+import { CarroDto, CarroRouteParameters, FindAllParameters } from './carro.dto';
 import { carroService } from './carro.service';
 import { AuthGuard } from '../auth/auth.guard';
 
@@ -70,6 +66,7 @@ export class CarroController {
   ) {
     const currentUserId = req.user?.sub;
     const currentUserName = req.user?.login;
+    console.log('Carro: ', carro);
     await this.carroService.update(
       params.idCarro,
       carro,
@@ -94,17 +91,17 @@ export class CarroController {
 
   @Patch(':idCarro/situacao')
   async atualizarSituacao(
-    @Param('idCarro') idCarro: number,
-    @Body() body: { situacao: string },
-    @Request() req: any,
+    @Param('idCarro') idCarro: number,
+    @Body() body: { situacao: string },
+    @Request() req: any,
   ): Promise<void> {
-    const currentUserId = req.user?.sub;
-    const currentUserName = req.user?.login;
-    await this.carroService.atualizarSituacao(
-      idCarro,
-      body.situacao,
-      currentUserId,
-      currentUserName,
-    );
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+    await this.carroService.atualizarSituacao(
+      idCarro,
+      body.situacao,
+      currentUserId,
+      currentUserName,
+    );
   }
 }

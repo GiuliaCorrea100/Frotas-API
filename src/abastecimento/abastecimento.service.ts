@@ -208,6 +208,7 @@ export class AbastecimentoService {
     foundAbastecimento.valorTotal = abastecimento.valorTotal;
     foundAbastecimento.valorUnitario = abastecimento.valorUnitario;
     foundAbastecimento.dataAbastecimento = abastecimento.dataAbastecimento;
+    foundAbastecimento.idTipoCombustivel = abastecimento.idTipoCombustivel;
 
     const savedAbastecimento =
       await this.abastecimentoRepository.save(foundAbastecimento);

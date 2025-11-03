@@ -186,7 +186,6 @@ export class carroService {
     }
 
     const dadosAntigos = { ...foundCarro };
-
     await this.carroRepository.update(idCarro, this.mapDtoToentity(carro));
 
     const updatedCarro = await this.carroRepository.findOne({
@@ -286,7 +285,7 @@ export class carroService {
       ativo: CarroEntity.ativo,
 
       nomeTipoCombustivel: CarroEntity.tipo_combustivel?.nome,
-      idTipoCombustivel: CarroEntity.tipo_combustivel?.idTipoCombustivel,
+      idTipoCombustivel: CarroEntity.idTipoCombustivel,
     };
   }
 
@@ -301,6 +300,7 @@ export class carroService {
       localidadeFisica: CarroDto.localidadeFisica,
       situacao: CarroDto.situacao,
       ativo: CarroDto.ativo,
+      idTipoCombustivel: CarroDto.idTipoCombustivel,
     };
   }
 }

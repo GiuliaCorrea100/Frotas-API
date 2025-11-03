@@ -30,6 +30,9 @@ export class CarroEntity {
   @Column({ type: 'int', name: 'ano' })
   ano: number;
 
+  @Column({ type: 'int', name: 'id_tipo_combustivel' })
+  idTipoCombustivel: number;
+
   @Column({ type: 'varchar', name: 'localidade_fisica' })
   localidadeFisica: string;
 

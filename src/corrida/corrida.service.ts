@@ -71,8 +71,23 @@ export class CorridaService {
     currentUserId?: number,
     currentUserName?: string,
   ): Promise<CorridaDto> {
+    // Ajustar Hora do dataTermino
+    if (corrida.dataTermino) {
+      const dataTermino = new Date(corrida.dataTermino);
+      const dataTerminoUTC = new Date(
+        Date.UTC(
+          dataTermino.getUTCFullYear(),
+          dataTermino.getUTCMonth(),
+          dataTermino.getUTCDate(),
+          23,
+          59,
+          59,
+          999,
+        ),
+      );
+      corrida.dataTermino = dataTerminoUTC;
+    }
     corrida.localDeSaida = corrida.localDeSaida.toUpperCase();
-
     const conflitoMotorista = await this.verificarConflitoDeCorrida(
       corrida.idMotorista,
       new Date(corrida.dataInicio),
@@ -266,9 +281,26 @@ export class CorridaService {
 
     const dadosAntigos = { ...corrida };
 
+    // Ajustar Hora do dataTermino
+    let dataTerminoAjustada = dados.dataTermino ?? corrida.dataTermino;
+    if (dados.dataTermino) {
+      const dataTermino = new Date(dados.dataTermino);
+      dataTerminoAjustada = new Date(
+        Date.UTC(
+          dataTermino.getUTCFullYear(),
+          dataTermino.getUTCMonth(),
+          dataTermino.getUTCDate(),
+          23,
+          59,
+          59,
+          999,
+        ),
+      );
+    }
+
     await this.corridaRepository.update(idCorrida, {
       dataInicio: dados.dataInicio ?? corrida.dataInicio,
-      dataTermino: dados.dataTermino ?? corrida.dataTermino,
+      dataTermino: dataTerminoAjustada,
       idMotorista: dados.idMotorista ?? corrida.idMotorista,
       idCarro: dados.idCarro ?? corrida.idCarro,
     });

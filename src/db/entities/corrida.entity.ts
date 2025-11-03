@@ -10,7 +10,7 @@ import { UsuarioEntity } from './usuario.entity';
 import { CarroEntity } from './carro.entity';
 //import { OcorrenciasEntity } from './ocorrencias.entity';
 
-@Entity({ name: 'corridas' })
+@Entity({ name: 'corrida' })
 export class CorridaEntity {
   @PrimaryGeneratedColumn({ type: 'int', name: 'id_corrida' })
   idCorrida?: number;
