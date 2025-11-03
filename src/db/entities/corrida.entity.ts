@@ -7,11 +7,11 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { UsuarioEntity } from './usuario.entity';
-import { CarrosEntity } from './carros.entity';
+import { CarroEntity } from './carro.entity';
 //import { OcorrenciasEntity } from './ocorrencias.entity';
 
-@Entity({ name: 'corridas' })
-export class CorridasEntity {
+@Entity({ name: 'corrida' })
+export class CorridaEntity {
   @PrimaryGeneratedColumn({ type: 'int', name: 'id_corrida' })
   idCorrida?: number;
 
@@ -27,7 +27,7 @@ export class CorridasEntity {
   @Column({ type: 'varchar', name: 'local_de_saida' })
   localDeSaida: string;
 
-  @Column({ type: 'int', name: 'id_carros', nullable: false })
+  @Column({ type: 'int', name: 'id_carro', nullable: false })
   idCarro: number;
 
   @Column({ type: 'int', name: 'id_motorista', nullable: false })
@@ -43,9 +43,9 @@ export class CorridasEntity {
   @JoinColumn({ name: 'id_motorista', referencedColumnName: 'idUsuario' })
   motorista?: UsuarioEntity;
 
-  @ManyToOne(() => CarrosEntity)
-  @JoinColumn({ name: 'id_carros', referencedColumnName: 'idCarro' })
-  carro?: CarrosEntity;
+  @ManyToOne(() => CarroEntity)
+  @JoinColumn({ name: 'id_carro', referencedColumnName: 'idCarro' })
+  carro?: CarroEntity;
 
   @CreateDateColumn({ type: 'timestamptz', name: 'data_hora_liberacao_chave' })
   dataHoraLiberacaoChave: Date;

@@ -1,6 +1,6 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity({ name: 'ocorrencias' })
+@Entity({ name: 'ocorrencia' })
 export class OcorrenciaEntity {
   @PrimaryGeneratedColumn({ type: 'int', name: 'id_ocorrencia' })
   idOcorrencia?: number;
@@ -11,6 +11,6 @@ export class OcorrenciaEntity {
   @Column({ type: 'int', name: 'id_corrida', nullable: false })
   idCorrida: number;
 
-  @Column({ type: 'date', name: 'data_registro' })
+  @Column({ type: 'timestamptz', name: 'data_registro' })
   dataRegistro: Date;
 }

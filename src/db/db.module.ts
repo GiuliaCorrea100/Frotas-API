@@ -16,6 +16,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         schema: configService.get<string>('DB_SCHEMA'),
         entities: [__dirname + '/entities/**'],
         migrations: [__dirname + '/migrations/*.ts'],
+        timezone: 'America/Porto_Velho',
         synchronize: false,
       }),
       inject: [ConfigService],

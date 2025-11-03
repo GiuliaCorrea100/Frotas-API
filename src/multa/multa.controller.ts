@@ -11,53 +11,53 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import {
-  MultasDto,
+  MultaDto,
   FindAllParameters,
-  MultasRouteParameters,
-} from './multas.dto';
-import { MultasService } from './multas.service';
+  MultaRouteParameters,
+} from './multa.dto';
+import { MultaService } from './multa.service';
 import { AuthGuard } from '../auth/auth.guard';
 
-@Controller('multas')
-export class MultasController {
-  constructor(private readonly multasService: MultasService) {}
+@Controller('multa')
+export class MultaController {
+  constructor(private readonly MultaService: MultaService) {}
 
-  @Get('/:idMultas')
-  async findById(@Param('idMultas') idMultas: number): Promise<MultasDto> {
-    return this.multasService.findById(idMultas);
+  @Get('/:idMulta')
+  async findById(@Param('idMulta') idMulta: number): Promise<MultaDto> {
+    return this.MultaService.findById(idMulta);
   }
 
-  @Patch('/deletar-multa/:idMultas')
+  @Patch('/deletar-multa/:idMulta')
   @UseGuards(AuthGuard)
   async softRemove(
-    @Param('idMultas') idMultas: number,
+    @Param('idMulta') idMulta: number,
     @Request() req: any,
   ): Promise<void> {
     const currentUserId = req.user?.sub;
     const currentUserName = req.user?.login;
 
-    return this.multasService.softRemove(
-      idMultas,
+    return this.MultaService.softRemove(
+      idMulta,
       currentUserId,
       currentUserName,
     );
   }
 
   @Get()
-  async findAll(@Query() params: FindAllParameters): Promise<MultasDto[]> {
-    return this.multasService.findAll(params);
+  async findAll(@Query() params: FindAllParameters): Promise<MultaDto[]> {
+    return this.MultaService.findAll(params);
   }
 
   @Post()
   @UseGuards(AuthGuard)
   async create(
-    @Body() multas: MultasDto,
+    @Body() multa: MultaDto,
     @Request() req: any,
-  ): Promise<MultasDto> {
+  ): Promise<MultaDto> {
     const currentUserId = req.user?.sub;
     const currentUserName = req.user?.login;
-    return await this.multasService.create(
-      multas,
+    return await this.MultaService.create(
+      multa,
       currentUserId,
       currentUserName,
     );
@@ -66,13 +66,13 @@ export class MultasController {
   @Put('/:idMulta')
   @UseGuards(AuthGuard)
   async update(
-    @Param() params: MultasRouteParameters,
-    @Body() multa: MultasDto,
+    @Param() params: MultaRouteParameters,
+    @Body() multa: MultaDto,
     @Request() req: any,
   ) {
     const currentUserId = req.user?.sub;
     const currentUserName = req.user?.login;
-    await this.multasService.update(
+    await this.MultaService.update(
       params.idMulta,
       multa,
       currentUserId,

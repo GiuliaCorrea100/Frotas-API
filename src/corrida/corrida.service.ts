@@ -10,7 +10,7 @@ import {
   MotoristaDashboardDto,
 } from './corrida.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CorridasEntity } from 'src/db/entities/corrida.entity';
+import { CorridaEntity } from 'src/db/entities/corrida.entity';
 import {
   FindOptionsWhere,
   Repository,
@@ -27,8 +27,8 @@ import { LogDto } from '../log/log.dto';
 @Injectable()
 export class CorridaService {
   constructor(
-    @InjectRepository(CorridasEntity)
-    private readonly corridaRepository: Repository<CorridasEntity>,
+    @InjectRepository(CorridaEntity)
+    private readonly corridaRepository: Repository<CorridaEntity>,
     private readonly logService: LogService,
   ) {}
 
@@ -71,8 +71,23 @@ export class CorridaService {
     currentUserId?: number,
     currentUserName?: string,
   ): Promise<CorridaDto> {
+    // Ajustar Hora do dataTermino
+    if (corrida.dataTermino) {
+      const dataTermino = new Date(corrida.dataTermino);
+      const dataTerminoUTC = new Date(
+        Date.UTC(
+          dataTermino.getUTCFullYear(),
+          dataTermino.getUTCMonth(),
+          dataTermino.getUTCDate(),
+          23,
+          59,
+          59,
+          999,
+        ),
+      );
+      corrida.dataTermino = dataTerminoUTC;
+    }
     corrida.localDeSaida = corrida.localDeSaida.toUpperCase();
-
     const conflitoMotorista = await this.verificarConflitoDeCorrida(
       corrida.idMotorista,
       new Date(corrida.dataInicio),
@@ -142,7 +157,7 @@ export class CorridaService {
   }
 
   async findAll(params: FindAllParameters): Promise<CorridaDto[]> {
-    const searchParams: FindOptionsWhere<CorridasEntity> = {};
+    const searchParams: FindOptionsWhere<CorridaEntity> = {};
 
     if (params.localDeSaida) {
       searchParams.localDeSaida = Like(`%${params.localDeSaida}%`);
@@ -266,9 +281,26 @@ export class CorridaService {
 
     const dadosAntigos = { ...corrida };
 
+    // Ajustar Hora do dataTermino
+    let dataTerminoAjustada = dados.dataTermino ?? corrida.dataTermino;
+    if (dados.dataTermino) {
+      const dataTermino = new Date(dados.dataTermino);
+      dataTerminoAjustada = new Date(
+        Date.UTC(
+          dataTermino.getUTCFullYear(),
+          dataTermino.getUTCMonth(),
+          dataTermino.getUTCDate(),
+          23,
+          59,
+          59,
+          999,
+        ),
+      );
+    }
+
     await this.corridaRepository.update(idCorrida, {
       dataInicio: dados.dataInicio ?? corrida.dataInicio,
-      dataTermino: dados.dataTermino ?? corrida.dataTermino,
+      dataTermino: dataTerminoAjustada,
       idMotorista: dados.idMotorista ?? corrida.idMotorista,
       idCarro: dados.idCarro ?? corrida.idCarro,
     });
@@ -370,8 +402,10 @@ export class CorridaService {
     idMotorista: number,
   ): Promise<MotoristaDashboardDto> {
     const hoje = new Date();
-    hoje.setHours(0, 0, 0, 0);
-    const amanha = new Date(hoje.getTime() + 86400000);
+    hoje.setUTCHours(0, 0, 0, 0);
+    const amanha = new Date(hoje);
+    amanha.setDate(amanha.getDate() + 1);
+    amanha.setUTCHours(23, 59, 59, 999);
 
     const corridasAgendadasHoje = await this.corridaRepository.find({
       where: {
@@ -438,7 +472,7 @@ export class CorridaService {
     };
   }
 
-  private mapEntityToDto(corridaEntity: CorridasEntity): CorridaDto {
+  private mapEntityToDto(corridaEntity: CorridaEntity): CorridaDto {
     return {
       idCorrida: corridaEntity.idCorrida,
       dataInicio: corridaEntity.dataInicio,
@@ -456,8 +490,8 @@ export class CorridaService {
     };
   }
 
-  private mapDtoToEntity(corridaDto: CorridaDto): Partial<CorridasEntity> {
-    const entity: Partial<CorridasEntity> = {
+  private mapDtoToEntity(corridaDto: CorridaDto): Partial<CorridaEntity> {
+    const entity: Partial<CorridaEntity> = {
       dataInicio: corridaDto.dataInicio,
       dataTermino: corridaDto.dataTermino,
       distanciaKm: corridaDto.distanciaKm,

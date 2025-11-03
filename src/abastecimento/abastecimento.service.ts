@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AbastecimentoEntity } from 'src/db/entities/abastecimento.entity';
-import { CorridasEntity } from 'src/db/entities/corrida.entity';
+import { CorridaEntity } from 'src/db/entities/corrida.entity';
 import { TipoCombustivelEntity } from 'src/db/entities/tipoCombustivel.entity';
 import { FindOptionsWhere, Repository } from 'typeorm';
 import { AbastecimentoDto, FindAllParameters } from './abastecimento.dto';
@@ -22,8 +22,8 @@ export class AbastecimentoService {
     @InjectRepository(TipoCombustivelEntity)
     private readonly tipoCombustivelRepository: Repository<TipoCombustivelEntity>,
 
-    @InjectRepository(CorridasEntity)
-    private readonly corridaRepository: Repository<CorridasEntity>,
+    @InjectRepository(CorridaEntity)
+    private readonly corridaRepository: Repository<CorridaEntity>,
 
     private readonly logService: LogService,
   ) {}
@@ -208,6 +208,7 @@ export class AbastecimentoService {
     foundAbastecimento.valorTotal = abastecimento.valorTotal;
     foundAbastecimento.valorUnitario = abastecimento.valorUnitario;
     foundAbastecimento.dataAbastecimento = abastecimento.dataAbastecimento;
+    foundAbastecimento.idTipoCombustivel = abastecimento.idTipoCombustivel;
 
     const savedAbastecimento =
       await this.abastecimentoRepository.save(foundAbastecimento);

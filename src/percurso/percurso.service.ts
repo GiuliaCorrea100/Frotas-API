@@ -25,8 +25,8 @@ export class PercursoService {
     entity.localDestino = percurso.localDestino.toUpperCase();
     entity.saidaHora = new Date();
     entity.saidaOdometro = percurso.saidaOdometro;
-    entity.chegadaHora = percurso.chegadaHora;
-    entity.chegadaOdometro = percurso.chegadaOdometro;
+    //entity.chegadaHora = new Date();
+    //entity.chegadaOdometro = percurso.chegadaOdometro;
 
     const savedPercurso = await this.percursoRepository.save(entity);
 

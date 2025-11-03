@@ -22,7 +22,7 @@ export class ocorrenciaService {
     const entity = new OcorrenciaEntity();
     entity.descricao = ocorrencia.descricao;
     entity.idCorrida = ocorrencia.idCorrida;
-    entity.dataRegistro = ocorrencia.dataRegistro;
+    entity.dataRegistro = new Date();
 
     const savedOcorrencia = await this.ocorrenciaRepository.save(entity);
 
@@ -35,12 +35,6 @@ export class ocorrenciaService {
       idUsuario: currentUserId,
       usuario: currentUserName,
     };
-
-    console.log('Dados do log (ocorrencia):', {
-      currentUserId,
-      currentUserName,
-      idRegistro: savedOcorrencia.idOcorrencia,
-    });
 
     await this.logService.logChange(logData);
 

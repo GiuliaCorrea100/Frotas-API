@@ -4,7 +4,7 @@ export class $npmConfigName1744042181574 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     //await queryRunner.query(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`);
     await queryRunner.query(`
-          CREATE TABLE frota.multas(
+          CREATE TABLE frota.multa(
             id_multa serial NOT NULL,
             num_auto_infracao integer NOT NULL, 
             cod_infracao varchar(256) NOT NULL,
@@ -17,6 +17,6 @@ export class $npmConfigName1744042181574 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DROP TABLE IF EXISTS frota.multas`);
+    await queryRunner.query(`DROP TABLE IF EXISTS frota.multa`);
   }
 }
