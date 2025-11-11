@@ -38,7 +38,7 @@ export class carroService {
     const carroAtualizado = await this.carroRepository.save(carro);
 
     const logData: LogDto = {
-      nomeTabela: 'carros',
+      nomeTabela: 'carro',
       idRegistro: idCarro,
       operacao: 'UPDATE',
       dadosAntigos: dadosAntigos,

@@ -1,10 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  Inject,
+  forwardRef,
+} from '@nestjs/common';
 import { MultaDto, FindAllParameters } from './multa.dto';
 import { MultaEntity } from 'src/db/entities/multa.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like, FindOptionsWhere } from 'typeorm';
 import { LogService } from '../log/log.service';
 import { LogDto } from '../log/log.dto';
+import { CorridaService } from '../corrida/corrida.service';
 
 @Injectable()
 export class MultaService {
@@ -12,6 +18,8 @@ export class MultaService {
     @InjectRepository(MultaEntity)
     private readonly MultaRepository: Repository<MultaEntity>,
     private readonly logService: LogService,
+    @Inject(forwardRef(() => CorridaService))
+    private readonly corridaService: CorridaService,
   ) {}
   private multa: MultaDto[] = [];
 
@@ -19,7 +27,37 @@ export class MultaService {
     multa: MultaDto,
     currentUserId?: number,
     currentUserName?: string,
-  ) {
+  ): Promise<{
+    multa: MultaDto;
+    motoristaResponsavel?: {
+      idMotorista: number;
+      nomeMotorista: string;
+    } | null;
+  }> {
+    let motoristaResponsavel = null;
+
+    try {
+      const corridaEncontrada =
+        await this.corridaService.encontrarCorridaPorPlacaEData(
+          multa.placaVeiculo,
+          multa.dataInfracao,
+        );
+
+      if (corridaEncontrada) {
+        motoristaResponsavel = {
+          idMotorista: corridaEncontrada.idMotorista,
+          nomeMotorista:
+            corridaEncontrada.nomeMotorista || 'Motorista não identificado',
+        };
+
+        console.log(
+          `Multa associada ao motorista: ${motoristaResponsavel.nomeMotorista} (ID: ${motoristaResponsavel.idMotorista})`,
+        );
+      }
+    } catch (error) {
+      console.warn('Não foi possível associar motorista à multa:', error);
+    }
+
     const multaToSave: MultaEntity = {
       codigoInfracao: multa.codigoInfracao,
       classificacao: multa.classificacao,
@@ -43,7 +81,10 @@ export class MultaService {
 
     await this.logService.logChange(logData);
 
-    return savedMulta;
+    return {
+      multa: this.mapEntityToDto(savedMulta),
+      motoristaResponsavel,
+    };
   }
 
   async findById(idMulta: number): Promise<MultaDto> {
@@ -151,6 +192,43 @@ export class MultaService {
     };
 
     await this.logService.logChange(logData);
+  }
+
+  /*
+   * Busca o motorista responsável por uma multa específica pelo ID da multa.
+   * Este método localiza a multa, obtém a placa e a data, e
+   * usa o CorridaService para encontrar a corrida correspondente.
+   */
+  async buscarMotoristaResponsavel(idMulta: number): Promise<{
+    idMotorista: number;
+    nomeMotorista: string;
+  } | null> {
+    try {
+      // 1. Encontra a multa pelo ID
+      const multa = await this.MultaRepository.findOne({ where: { idMulta } });
+      
+      // 2. Verifica se a multa existe
+      if (!multa) {
+        console.warn(`[buscarMotoristaResponsavel] Multa com ID ${idMulta} não encontrada.`);
+        return null;
+      }
+
+      // 3. Usa o serviço de corrida para encontrar o motorista
+      const corridaEncontrada = await this.corridaService.encontrarCorridaPorPlacaEData(
+        multa.placaVeiculo,
+        multa.dataInfracao
+      );
+
+      // 4. Retorna os dados do motorista se encontrado
+      return corridaEncontrada ? {
+        idMotorista: corridaEncontrada.idMotorista,
+        nomeMotorista: corridaEncontrada.nomeMotorista || 'Motorista não identificado'
+      } : null; // Retorna nulo se nenhuma corrida for encontrada
+
+    } catch (error) {
+      console.error(`Erro ao buscar motorista para multa ${idMulta}:`, error);
+      return null; // Retorna nulo em caso de qualquer erro
+    }
   }
 
   private mapEntityToDto(MultaEntity: MultaEntity): MultaDto {
