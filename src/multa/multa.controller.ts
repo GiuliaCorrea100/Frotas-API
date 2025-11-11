@@ -48,12 +48,34 @@ export class MultaController {
     return this.MultaService.findAll(params);
   }
 
+  /**
+   * Endpoint para buscar o motorista responsável por uma multa
+   * usando o ID da multa.
+   * Rota: GET /multa/motorista-responsavel/:idMulta
+   */
+  @Get('/motorista-responsavel/:idMulta')
+  async buscarMotoristaResponsavel(
+    @Param('idMulta') idMulta: number, // Captura o ID da multa da URL
+  ): Promise<{
+    idMotorista: number;
+    nomeMotorista: string;
+  } | null> {
+    // Chama o método correspondente no serviço
+    return this.MultaService.buscarMotoristaResponsavel(idMulta);
+  }
+
   @Post()
   @UseGuards(AuthGuard)
   async create(
     @Body() multa: MultaDto,
     @Request() req: any,
-  ): Promise<MultaDto> {
+  ): Promise<{
+    multa: MultaDto;
+    motoristaResponsavel?: {
+      idMotorista: number;
+      nomeMotorista: string;
+    } | null;
+  }> {
     const currentUserId = req.user?.sub;
     const currentUserName = req.user?.login;
     return await this.MultaService.create(

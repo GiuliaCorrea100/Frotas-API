@@ -472,6 +472,28 @@ export class CorridaService {
     };
   }
 
+  async encontrarCorridaPorPlacaEData(
+    placaVeiculo: string,
+    dataInfracao: Date,
+  ): Promise<CorridaDto | null> {
+    try {
+      const corrida = await this.corridaRepository
+        .createQueryBuilder('corrida')
+        .innerJoinAndSelect('corrida.carro', 'carro')
+        .innerJoinAndSelect('corrida.motorista', 'motorista')
+        .where('carro.placa = :placa', { placa: placaVeiculo })
+        .andWhere('corrida.situacao = :situacao', { situacao: 'FINALIZADA' })
+        .andWhere(':dataInfracao BETWEEN corrida.dataInicio AND corrida.dataTermino')
+        .setParameter('dataInfracao', dataInfracao)
+        .getOne();
+
+      return corrida ? this.mapEntityToDto(corrida) : null;
+    } catch (error) {
+      console.error('Erro ao buscar corrida por placa e data:', error);
+      return null;
+    }
+  }
+
   private mapEntityToDto(corridaEntity: CorridaEntity): CorridaDto {
     return {
       idCorrida: corridaEntity.idCorrida,
