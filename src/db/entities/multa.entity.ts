@@ -19,8 +19,8 @@ export class MultaEntity {
   @Column({ type: 'decimal', name: 'valor_infracao' })
   valorInfracao: number;
 
-  @Column({ type: 'boolean', name: 'deletada' })
-  deletada?: boolean;
+  @Column({ type: 'boolean', name: 'ativa' })
+  ativa?: boolean;
 
   @Column({ type: 'varchar', name: 'placa_veiculo' })
   placaVeiculo: string;

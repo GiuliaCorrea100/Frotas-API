@@ -69,7 +69,6 @@ export class carroService {
 
     const carroToSave: Partial<CarroEntity> = {
       tombo: carro.tombo,
-      qrCode: carro.qrCode,
       modelo: carro.modelo,
       placa: carro.placa,
       odometro: carro.odometro,
@@ -275,7 +274,6 @@ export class carroService {
     return {
       idCarro: CarroEntity.idCarro,
       tombo: CarroEntity.tombo,
-      qrCode: CarroEntity.qrCode,
       placa: CarroEntity.placa,
       odometro: CarroEntity.odometro,
       modelo: CarroEntity.modelo,
@@ -292,7 +290,6 @@ export class carroService {
   private mapDtoToentity(CarroDto: CarroDto): Partial<CarroEntity> {
     return {
       tombo: CarroDto.tombo,
-      qrCode: CarroDto.qrCode,
       placa: CarroDto.placa,
       odometro: CarroDto.odometro,
       modelo: CarroDto.modelo,

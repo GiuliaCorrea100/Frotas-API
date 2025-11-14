@@ -143,7 +143,7 @@ export class MultaService {
 
     const dadosAntigos = { ...foundMulta };
 
-    foundMulta.deletada = true;
+    foundMulta.ativa = false;
 
     const updatedMulta = await this.MultaRepository.save(foundMulta);
 
@@ -240,7 +240,7 @@ export class MultaService {
       placaVeiculo: MultaEntity.placaVeiculo,
       dataInfracao: MultaEntity.dataInfracao,
       autoInfracao: MultaEntity.autoInfracao,
-      deletada: MultaEntity.deletada,
+      ativa: MultaEntity.ativa,
     };
   }
 
@@ -252,7 +252,7 @@ export class MultaService {
       placaVeiculo: MultaDto.placaVeiculo,
       dataInfracao: MultaDto.dataInfracao,
       autoInfracao: MultaDto.autoInfracao,
-      deletada: MultaDto.deletada,
+      ativa: MultaDto.ativa,
     };
   }
 }
