@@ -94,6 +94,23 @@ export class PercursoController {
     return await this.percursoService.verificarPercursosAtivos(idCorrida);
   }
 
+  @Patch('/deletar-percurso/:idPercurso')
+  @UseGuards(AuthGuard)
+  async softRemove(
+    @Param('idPercurso') idPercurso: number,
+    @Request() req: any,
+  ): Promise<void> {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+
+    return this.percursoService.softRemove(
+      idPercurso,
+      currentUserId,
+      currentUserName,
+    );
+  }
+
+
   @Patch(':id/atualizar-percurso')
   @UseGuards(AuthGuard)
   async updatePercurso(

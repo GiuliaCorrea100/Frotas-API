@@ -20,6 +20,9 @@ export class PercursoEntity {
   @Column({ type: 'timestamptz', name: 'chegada_hora', nullable: true })
   chegadaHora?: Date;
 
+  @Column({ type: 'boolean', name: 'ativo' })
+  ativo: boolean;
+
   @Column({
     name: 'chegada_odometro',
     type: 'numeric',
