@@ -40,6 +40,7 @@ export class UsuarioService {
       idPessoaSigaa: users.idPessoaSigaa,
       administrador: users.administrador,
       nome: users.nome,
+      email: users.email,
     };
 
     const savedUser = await this.UsuarioRepository.save(usersToSave);
@@ -97,6 +98,7 @@ export class UsuarioService {
       idPessoaSigaa: Number(userFound.idPessoaSigaa),
       nome: userFound.nome,
       administrador: userFound.administrador,
+      email: userFound.email,
     };
   }
 
@@ -254,6 +256,7 @@ export class UsuarioService {
       idPessoaSigaa: usuarioEntity.idPessoaSigaa,
       administrador: usuarioEntity.administrador,
       nome: usuarioEntity.nome,
+      email: usuarioEntity.email,
     };
   }
 
@@ -262,6 +265,7 @@ export class UsuarioService {
       idPessoaSigaa: usuarioDto.idPessoaSigaa,
       administrador: usuarioDto.administrador,
       nome: usuarioDto.nome,
+      email:usuarioDto.email,
     };
   }
 }

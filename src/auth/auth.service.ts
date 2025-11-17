@@ -53,6 +53,7 @@ export class AuthService {
           idPessoaSigaa: loginFound.idPessoaSigaa,
           administrador: false,
           nome: loginFound.nome,
+          email: loginFound.email,
         };
         usuarioFrota = await this.usuarioService.create(novoUsuario);
         console.log(

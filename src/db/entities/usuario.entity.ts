@@ -13,4 +13,7 @@ export class UsuarioEntity {
 
   @Column({ type: 'varchar', name: 'nome' })
   nome: string;
+
+  @Column({ type: 'varchar', name: 'email', nullable: true })
+  email: string;
 }
