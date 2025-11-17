@@ -38,7 +38,7 @@ export class MultaService {
 
     try {
       const corridaEncontrada =
-        await this.corridaService.encontrarCorridaPorPlacaEData(
+        await this.corridaService.encontrarMotoristaPorPlacaEData(
           multa.placaVeiculo,
           multa.dataInfracao,
         );
@@ -65,6 +65,10 @@ export class MultaService {
       placaVeiculo: multa.placaVeiculo,
       dataInfracao: multa.dataInfracao,
       autoInfracao: multa.autoInfracao,
+      deletada: false,
+      idMotorista: motoristaResponsavel
+        ? motoristaResponsavel.idMotorista
+        : null,
     };
 
     const savedMulta = await this.MultaRepository.save(multaToSave);
@@ -81,8 +85,14 @@ export class MultaService {
 
     await this.logService.logChange(logData);
 
+    const dto = this.mapEntityToDto(savedMulta);
+    if (motoristaResponsavel) {
+      dto.idMotorista = motoristaResponsavel.idMotorista;
+      dto.nomeMotorista = motoristaResponsavel.nomeMotorista;
+    }
+
     return {
-      multa: this.mapEntityToDto(savedMulta),
+      multa: dto,
       motoristaResponsavel,
     };
   }
@@ -90,6 +100,7 @@ export class MultaService {
   async findById(idMulta: number): Promise<MultaDto> {
     const foundMulta = await this.MultaRepository.findOne({
       where: { idMulta },
+      relations: ['motorista'],
     });
 
     if (!foundMulta) {
@@ -123,6 +134,7 @@ export class MultaService {
 
     const multaFound = await this.MultaRepository.find({
       where: searchParams,
+      relations: ['motorista'],
     });
 
     return multaFound.map((MultaEntity) => this.mapEntityToDto(MultaEntity));
@@ -143,7 +155,7 @@ export class MultaService {
 
     const dadosAntigos = { ...foundMulta };
 
-    foundMulta.ativa = false;
+    foundMulta.deletada = true;
 
     const updatedMulta = await this.MultaRepository.save(foundMulta);
 
@@ -194,43 +206,6 @@ export class MultaService {
     await this.logService.logChange(logData);
   }
 
-  /*
-   * Busca o motorista responsável por uma multa específica pelo ID da multa.
-   * Este método localiza a multa, obtém a placa e a data, e
-   * usa o CorridaService para encontrar a corrida correspondente.
-   */
-  async buscarMotoristaResponsavel(idMulta: number): Promise<{
-    idMotorista: number;
-    nomeMotorista: string;
-  } | null> {
-    try {
-      // 1. Encontra a multa pelo ID
-      const multa = await this.MultaRepository.findOne({ where: { idMulta } });
-      
-      // 2. Verifica se a multa existe
-      if (!multa) {
-        console.warn(`[buscarMotoristaResponsavel] Multa com ID ${idMulta} não encontrada.`);
-        return null;
-      }
-
-      // 3. Usa o serviço de corrida para encontrar o motorista
-      const corridaEncontrada = await this.corridaService.encontrarCorridaPorPlacaEData(
-        multa.placaVeiculo,
-        multa.dataInfracao
-      );
-
-      // 4. Retorna os dados do motorista se encontrado
-      return corridaEncontrada ? {
-        idMotorista: corridaEncontrada.idMotorista,
-        nomeMotorista: corridaEncontrada.nomeMotorista || 'Motorista não identificado'
-      } : null; // Retorna nulo se nenhuma corrida for encontrada
-
-    } catch (error) {
-      console.error(`Erro ao buscar motorista para multa ${idMulta}:`, error);
-      return null; // Retorna nulo em caso de qualquer erro
-    }
-  }
-
   private mapEntityToDto(MultaEntity: MultaEntity): MultaDto {
     return {
       idMulta: MultaEntity.idMulta,
@@ -240,7 +215,9 @@ export class MultaService {
       placaVeiculo: MultaEntity.placaVeiculo,
       dataInfracao: MultaEntity.dataInfracao,
       autoInfracao: MultaEntity.autoInfracao,
-      ativa: MultaEntity.ativa,
+      deletada: MultaEntity.deletada,
+      idMotorista: MultaEntity.idMotorista,
+      nomeMotorista: MultaEntity.motorista?.nome,
     };
   }
 
@@ -252,7 +229,8 @@ export class MultaService {
       placaVeiculo: MultaDto.placaVeiculo,
       dataInfracao: MultaDto.dataInfracao,
       autoInfracao: MultaDto.autoInfracao,
-      ativa: MultaDto.ativa,
+      deletada: MultaDto.deletada,
+      idMotorista: MultaDto.idMotorista ?? null,
     };
   }
 }

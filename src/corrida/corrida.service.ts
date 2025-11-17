@@ -71,7 +71,6 @@ export class CorridaService {
     currentUserId?: number,
     currentUserName?: string,
   ): Promise<CorridaDto> {
-    // Ajustar Hora do dataTermino
     if (corrida.dataTermino) {
       const dataTermino = new Date(corrida.dataTermino);
       const dataTerminoUTC = new Date(
@@ -281,7 +280,6 @@ export class CorridaService {
 
     const dadosAntigos = { ...corrida };
 
-    // Ajustar Hora do dataTermino
     let dataTerminoAjustada = dados.dataTermino ?? corrida.dataTermino;
     if (dados.dataTermino) {
       const dataTermino = new Date(dados.dataTermino);
@@ -492,6 +490,32 @@ export class CorridaService {
       console.error('Erro ao buscar corrida por placa e data:', error);
       return null;
     }
+  }
+
+  async encontrarMotoristaPorPlacaEData(
+    placaVeiculo: string,
+    data: Date,
+  ): Promise<{
+    idMotorista: number;
+    nomeMotorista: string;
+  } | null> {
+    const corrida = await this.corridaRepository.findOne({
+      where: {
+        carro: { 
+          placa: placaVeiculo,
+        },
+        dataInicio: LessThanOrEqual(data),
+        dataTermino: MoreThanOrEqual(data),
+      },
+      relations: ['motorista', 'carro'],
+    });
+
+    if (!corrida) return null;
+
+    return {
+      idMotorista: corrida.idMotorista,
+      nomeMotorista: corrida.motorista?.nome || null,
+    };
   }
 
   private mapEntityToDto(corridaEntity: CorridaEntity): CorridaDto {

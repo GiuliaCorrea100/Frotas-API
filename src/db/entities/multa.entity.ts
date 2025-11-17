@@ -3,7 +3,10 @@ import {
   CreateDateColumn,
   Entity,
   PrimaryGeneratedColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+import { UsuarioEntity } from './usuario.entity';
 
 @Entity({ name: 'multa' })
 export class MultaEntity {
@@ -33,4 +36,13 @@ export class MultaEntity {
 
   @Column({ type: 'int', name: 'num_auto_infracao' })
   autoInfracao: number;
+
+  deletada: boolean;
+
+  @Column({ type: 'int', name: 'id_motorista', nullable: true })
+  idMotorista?: number;
+
+  @ManyToOne(() => UsuarioEntity, { nullable: true })
+  @JoinColumn({ name: 'id_motorista', referencedColumnName: 'idUsuario' })
+  motorista?: UsuarioEntity;
 }
