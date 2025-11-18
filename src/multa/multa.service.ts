@@ -11,6 +11,8 @@ import { Repository, Like, FindOptionsWhere } from 'typeorm';
 import { LogService } from '../log/log.service';
 import { LogDto } from '../log/log.dto';
 import { CorridaService } from '../corrida/corrida.service';
+import { EmailService } from '../email/email.service';
+import { UsuarioService } from '../usuario/usuario.service';
 
 @Injectable()
 export class MultaService {
@@ -20,6 +22,8 @@ export class MultaService {
     private readonly logService: LogService,
     @Inject(forwardRef(() => CorridaService))
     private readonly corridaService: CorridaService,
+    private readonly emailService: EmailService,
+    private readonly usuarioService: UsuarioService,
   ) {}
   private multa: MultaDto[] = [];
 
@@ -38,7 +42,7 @@ export class MultaService {
 
     try {
       const corridaEncontrada =
-        await this.corridaService.encontrarCorridaPorPlacaEData(
+        await this.corridaService.encontrarMotoristaPorPlacaEData(
           multa.placaVeiculo,
           multa.dataInfracao,
         );
@@ -49,10 +53,6 @@ export class MultaService {
           nomeMotorista:
             corridaEncontrada.nomeMotorista || 'Motorista não identificado',
         };
-
-        console.log(
-          `Multa associada ao motorista: ${motoristaResponsavel.nomeMotorista} (ID: ${motoristaResponsavel.idMotorista})`,
-        );
       }
     } catch (error) {
       console.warn('Não foi possível associar motorista à multa:', error);
@@ -65,6 +65,10 @@ export class MultaService {
       placaVeiculo: multa.placaVeiculo,
       dataInfracao: multa.dataInfracao,
       autoInfracao: multa.autoInfracao,
+      deletada: false,
+      idMotorista: motoristaResponsavel
+        ? motoristaResponsavel.idMotorista
+        : null,
     };
 
     const savedMulta = await this.MultaRepository.save(multaToSave);
@@ -81,8 +85,40 @@ export class MultaService {
 
     await this.logService.logChange(logData);
 
+    if (motoristaResponsavel && motoristaResponsavel.idMotorista) {
+      try {
+        const motorista = (await this.usuarioService.findById(
+          motoristaResponsavel.idMotorista,
+        )) as any;
+
+        if (motorista && motorista.email) {
+          await this.emailService.sendMail(
+            motorista.email,
+            'Notificação de Multa',
+            'notificarMulta.hbs',
+            {
+              nome: motorista.nome,
+              placa: multa.placaVeiculo,
+              data: new Date(multa.dataInfracao).toLocaleDateString('pt-BR'),
+              descricao: multa.classificacao,
+            }
+          );
+        } else {
+          console.log('Usuário sem email cadastrado, não será enviado');
+        }
+      } catch (emailError) {
+        console.warn('Erro ao tentar enviar email da multa:', emailError);
+      }
+    }
+
+    const dto = this.mapEntityToDto(savedMulta);
+    if (motoristaResponsavel) {
+      dto.idMotorista = motoristaResponsavel.idMotorista;
+      dto.nomeMotorista = motoristaResponsavel.nomeMotorista;
+    }
+
     return {
-      multa: this.mapEntityToDto(savedMulta),
+      multa: dto,
       motoristaResponsavel,
     };
   }
@@ -90,6 +126,7 @@ export class MultaService {
   async findById(idMulta: number): Promise<MultaDto> {
     const foundMulta = await this.MultaRepository.findOne({
       where: { idMulta },
+      relations: ['motorista'],
     });
 
     if (!foundMulta) {
@@ -123,6 +160,7 @@ export class MultaService {
 
     const multaFound = await this.MultaRepository.find({
       where: searchParams,
+      relations: ['motorista'],
     });
 
     return multaFound.map((MultaEntity) => this.mapEntityToDto(MultaEntity));
@@ -194,43 +232,6 @@ export class MultaService {
     await this.logService.logChange(logData);
   }
 
-  /*
-   * Busca o motorista responsável por uma multa específica pelo ID da multa.
-   * Este método localiza a multa, obtém a placa e a data, e
-   * usa o CorridaService para encontrar a corrida correspondente.
-   */
-  async buscarMotoristaResponsavel(idMulta: number): Promise<{
-    idMotorista: number;
-    nomeMotorista: string;
-  } | null> {
-    try {
-      // 1. Encontra a multa pelo ID
-      const multa = await this.MultaRepository.findOne({ where: { idMulta } });
-      
-      // 2. Verifica se a multa existe
-      if (!multa) {
-        console.warn(`[buscarMotoristaResponsavel] Multa com ID ${idMulta} não encontrada.`);
-        return null;
-      }
-
-      // 3. Usa o serviço de corrida para encontrar o motorista
-      const corridaEncontrada = await this.corridaService.encontrarCorridaPorPlacaEData(
-        multa.placaVeiculo,
-        multa.dataInfracao
-      );
-
-      // 4. Retorna os dados do motorista se encontrado
-      return corridaEncontrada ? {
-        idMotorista: corridaEncontrada.idMotorista,
-        nomeMotorista: corridaEncontrada.nomeMotorista || 'Motorista não identificado'
-      } : null; // Retorna nulo se nenhuma corrida for encontrada
-
-    } catch (error) {
-      console.error(`Erro ao buscar motorista para multa ${idMulta}:`, error);
-      return null; // Retorna nulo em caso de qualquer erro
-    }
-  }
-
   private mapEntityToDto(MultaEntity: MultaEntity): MultaDto {
     return {
       idMulta: MultaEntity.idMulta,
@@ -241,6 +242,8 @@ export class MultaService {
       dataInfracao: MultaEntity.dataInfracao,
       autoInfracao: MultaEntity.autoInfracao,
       deletada: MultaEntity.deletada,
+      idMotorista: MultaEntity.idMotorista,
+      nomeMotorista: MultaEntity.motorista?.nome,
     };
   }
 
@@ -253,6 +256,7 @@ export class MultaService {
       dataInfracao: MultaDto.dataInfracao,
       autoInfracao: MultaDto.autoInfracao,
       deletada: MultaDto.deletada,
+      idMotorista: MultaDto.idMotorista ?? null,
     };
   }
 }

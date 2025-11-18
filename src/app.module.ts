@@ -17,6 +17,7 @@ import { PercursoModule } from './percurso/percurso.module';
 import { DbSigaaModule } from './dbsigaa/dbsigaa.module';
 import { UsuarioSigaaModule } from './usuariosigaa/usuariosigaa.module';
 import { ServidorsigaaModule } from './servidorsigaa/servidorsigaa.module';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { ServidorsigaaModule } from './servidorsigaa/servidorsigaa.module';
     OcorrenciaModule,
     PercursoModule,
     AuthModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [AppService],

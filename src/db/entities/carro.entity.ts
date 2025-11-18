@@ -15,9 +15,6 @@ export class CarroEntity {
   @Column({ type: 'int', name: 'tombo' })
   tombo: number;
 
-  @Column({ type: 'varchar', name: 'qr_code' })
-  qrCode: string;
-
   @Column({ type: 'varchar', name: 'placa' })
   placa: string;
 
