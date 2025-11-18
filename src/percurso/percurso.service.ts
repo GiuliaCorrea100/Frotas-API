@@ -266,6 +266,7 @@ export class PercursoService {
       chegadaHora: entity.chegadaHora,
       chegadaOdometro: entity.chegadaOdometro,
       localOrigem: entity.localOrigem,
+      ativo: entity.ativo,
     };
   }
 }
