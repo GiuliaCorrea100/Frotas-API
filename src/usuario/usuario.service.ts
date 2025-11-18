@@ -13,6 +13,13 @@ import { LogDto } from '../log/log.dto';
 
 @Injectable()
 export class UsuarioService {
+  async findById(idUsuario: number): Promise<UsuarioEntity | null> {
+  const foundUser = await this.UsuarioRepository.findOne({
+    where: { idUsuario },
+  });
+
+  return foundUser ?? null;
+}
   constructor(
     @InjectRepository(UsuarioEntity)
     private readonly UsuarioRepository: Repository<UsuarioEntity>,

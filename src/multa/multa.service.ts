@@ -11,6 +11,8 @@ import { Repository, Like, FindOptionsWhere } from 'typeorm';
 import { LogService } from '../log/log.service';
 import { LogDto } from '../log/log.dto';
 import { CorridaService } from '../corrida/corrida.service';
+import { EmailService } from '../email/email.service';
+import { UsuarioService } from '../usuario/usuario.service';
 
 @Injectable()
 export class MultaService {
@@ -20,6 +22,8 @@ export class MultaService {
     private readonly logService: LogService,
     @Inject(forwardRef(() => CorridaService))
     private readonly corridaService: CorridaService,
+    private readonly emailService: EmailService,
+    private readonly usuarioService: UsuarioService,
   ) {}
   private multa: MultaDto[] = [];
 
@@ -49,10 +53,6 @@ export class MultaService {
           nomeMotorista:
             corridaEncontrada.nomeMotorista || 'Motorista não identificado',
         };
-
-        console.log(
-          `Multa associada ao motorista: ${motoristaResponsavel.nomeMotorista} (ID: ${motoristaResponsavel.idMotorista})`,
-        );
       }
     } catch (error) {
       console.warn('Não foi possível associar motorista à multa:', error);
@@ -84,6 +84,32 @@ export class MultaService {
     };
 
     await this.logService.logChange(logData);
+
+    if (motoristaResponsavel && motoristaResponsavel.idMotorista) {
+      try {
+        const motorista = (await this.usuarioService.findById(
+          motoristaResponsavel.idMotorista,
+        )) as any;
+
+        if (motorista && motorista.email) {
+          await this.emailService.sendMail(
+            motorista.email,
+            'Notificação de Multa',
+            'notificarMulta.hbs',
+            {
+              nome: motorista.nome,
+              placa: multa.placaVeiculo,
+              data: new Date(multa.dataInfracao).toLocaleDateString('pt-BR'),
+              descricao: multa.classificacao,
+            }
+          );
+        } else {
+          console.log('Usuário sem email cadastrado, não será enviado');
+        }
+      } catch (emailError) {
+        console.warn('Erro ao tentar enviar email da multa:', emailError);
+      }
+    }
 
     const dto = this.mapEntityToDto(savedMulta);
     if (motoristaResponsavel) {

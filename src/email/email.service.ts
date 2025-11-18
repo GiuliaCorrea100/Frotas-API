@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
-import * as fs from 'fs';
+import * as hbs from 'handlebars';
+import { readFileSync } from 'fs';
 import * as path from 'path';
 
 @Injectable()
@@ -9,27 +10,39 @@ export class EmailService {
 
   constructor() {
     this.transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USERNAME,
-        pass: process.env.EMAIL_PASSWORD,
+      host: process.env.MAIL_HOST,
+      port: Number(process.env.MAIL_PORT),
+      secure: false,
+      auth: process.env.MAIL_USER
+        ? {
+            user: process.env.MAIL_USER,
+            pass: process.env.MAIL_PASSWORD,
+          }
+        : undefined,
+      tls: {
+        rejectUnauthorized: false,
       },
     });
   }
 
-  async sendMultaEmail(to: string, data: { nomeMotorista: string; placa: string; dataMulta: string }) {
-    const templatePath = path.join(__dirname, 'templates', 'notificarMulta.hbs');
-    let html = fs.readFileSync(templatePath, 'utf8');
+  private async renderTemplate(templateName: string, context: any) {
+    const templatePath = path.join(process.cwd(), 'src', 'email', 'template', templateName);
 
-    html = html
-      .replace(/{{nomeMotorista}}/g, data.nomeMotorista)
-      .replace(/{{placa}}/g, data.placa)
-      .replace(/{{dataMulta}}/g, data.dataMulta);
+
+    const templateFile = readFileSync(templatePath, 'utf-8');
+
+    const compiledTemplate = hbs.compile(templateFile);
+
+    return compiledTemplate(context);
+  }
+
+  async sendMail(to: string, subject: string, template: string, context: any) {
+    const html = await this.renderTemplate(template, context);
 
     await this.transporter.sendMail({
-      from: `"Gestão de Frotas" <${process.env.EMAIL_USERNAME}>`,
+      from: process.env.MAIL_ADDRESS,
       to,
-      subject: 'Notificação de Multa',
+      subject,
       html,
     });
   }
