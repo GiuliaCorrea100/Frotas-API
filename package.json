@@ -24,7 +24,6 @@
     "migration:revert": "npm run typeorm migration:revert -- -d ./src/db/typeOrm.migration-config.ts"
   },
   "dependencies": {
-    "@nestjs-modules/mailer": "^2.0.2",
     "@nestjs/common": "^11.0.12",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
@@ -38,11 +37,9 @@
     "bcrypt": "^5.1.1",
     "class-validator": "^0.14.2",
     "dotenv": "^16.6.1",
-    "handlebars": "^4.7.8",
     "lodash": "^4.17.21",
     "md5": "^2.3.0",
     "mysql2": "^3.14.3",
-    "nestjs-mailer": "^1.0.1",
     "node-emoji": "^2.2.0",
     "nodemailer": "^7.0.10",
     "pg": "^8.16.3",
