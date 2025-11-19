@@ -37,7 +37,6 @@ export class MultaEntity {
   @Column({ type: 'int', name: 'num_auto_infracao' })
   autoInfracao: number;
 
-  deletada: boolean;
 
   @Column({ type: 'int', name: 'id_motorista', nullable: true })
   idMotorista?: number;
