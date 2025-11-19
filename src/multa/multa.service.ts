@@ -70,6 +70,9 @@ export class MultaService {
       placaVeiculo: multa.placaVeiculo,
       dataInfracao: multa.dataInfracao,
       autoInfracao: multa.autoInfracao,
+      idMotorista: motoristaResponsavel
+        ? motoristaResponsavel.idMotorista
+        : null,
     };
 
 
