@@ -61,7 +61,6 @@ export class AbastecimentoService {
       quantidade: abastecimento.quantidade,
       valorUnitario: abastecimento.valorUnitario,
       valorTotal: abastecimento.valorTotal,
-      justificativaAlteracao: abastecimento.justificativaAlteracao,
     };
 
     const savedEntity =
@@ -295,7 +294,6 @@ export class AbastecimentoService {
       valorTotal: entity.valorTotal,
       dataAbastecimento: entity.dataAbastecimento,
       valorUnitario: entity.valorUnitario,
-      justificativaAlteracao: entity.justificativaAlteracao,
       idTipoCombustivel: entity.idTipoCombustivel,
       nomeTipoCombustivel: entity.tipoCombustivel?.nome ?? null,
       idCorrida: entity.idCorrida?.idCorrida,
@@ -309,7 +307,7 @@ export class AbastecimentoService {
       valorTotal: dto.valorTotal,
       dataAbastecimento: dto.dataAbastecimento,
       valorUnitario: dto.valorUnitario,
-      justificativaAlteracao: dto.justificativaAlteracao,
+      
     };
   }
 }
