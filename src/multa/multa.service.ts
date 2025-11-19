@@ -14,6 +14,7 @@ import { CorridaService } from '../corrida/corrida.service';
 import { EmailService } from '../email/email.service';
 import { UsuarioService } from '../usuario/usuario.service';
 
+
 @Injectable()
 export class MultaService {
   constructor(
@@ -42,7 +43,7 @@ export class MultaService {
 
     try {
       const corridaEncontrada =
-        await this.corridaService.encontrarMotoristaPorPlacaEData(
+        await this.corridaService.encontrarCorridaPorPlacaEData(
           multa.placaVeiculo,
           multa.dataInfracao,
         );
@@ -53,6 +54,10 @@ export class MultaService {
           nomeMotorista:
             corridaEncontrada.nomeMotorista || 'Motorista não identificado',
         };
+
+        console.log(
+          `Multa associada ao motorista: ${motoristaResponsavel.nomeMotorista} (ID: ${motoristaResponsavel.idMotorista})`,
+        );
       }
     } catch (error) {
       console.warn('Não foi possível associar motorista à multa:', error);
@@ -65,11 +70,8 @@ export class MultaService {
       placaVeiculo: multa.placaVeiculo,
       dataInfracao: multa.dataInfracao,
       autoInfracao: multa.autoInfracao,
-      deletada: false,
-      idMotorista: motoristaResponsavel
-        ? motoristaResponsavel.idMotorista
-        : null,
     };
+
 
     const savedMulta = await this.MultaRepository.save(multaToSave);
 
@@ -118,7 +120,7 @@ export class MultaService {
     }
 
     return {
-      multa: dto,
+      multa: this.mapEntityToDto(savedMulta),
       motoristaResponsavel,
     };
   }
@@ -181,7 +183,7 @@ export class MultaService {
 
     const dadosAntigos = { ...foundMulta };
 
-    foundMulta.deletada = true;
+    foundMulta.ativa = false;
 
     const updatedMulta = await this.MultaRepository.save(foundMulta);
 
@@ -232,6 +234,7 @@ export class MultaService {
     await this.logService.logChange(logData);
   }
 
+
   private mapEntityToDto(MultaEntity: MultaEntity): MultaDto {
     return {
       idMulta: MultaEntity.idMulta,
@@ -241,9 +244,7 @@ export class MultaService {
       placaVeiculo: MultaEntity.placaVeiculo,
       dataInfracao: MultaEntity.dataInfracao,
       autoInfracao: MultaEntity.autoInfracao,
-      deletada: MultaEntity.deletada,
-      idMotorista: MultaEntity.idMotorista,
-      nomeMotorista: MultaEntity.motorista?.nome,
+      ativa: MultaEntity.ativa,
     };
   }
 
@@ -255,8 +256,7 @@ export class MultaService {
       placaVeiculo: MultaDto.placaVeiculo,
       dataInfracao: MultaDto.dataInfracao,
       autoInfracao: MultaDto.autoInfracao,
-      deletada: MultaDto.deletada,
-      idMotorista: MultaDto.idMotorista ?? null,
+      ativa: MultaDto.ativa,
     };
   }
 }
