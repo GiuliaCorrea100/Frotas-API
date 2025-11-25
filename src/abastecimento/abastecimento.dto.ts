@@ -10,6 +10,7 @@ export class AbastecimentoDto {
   quantidade: number;
   valorUnitario: number;
   valorTotal: number;
+  ativo?: boolean;
 
   nomeTipoCombustivel?: string;
 }

@@ -35,6 +35,9 @@ export class AbastecimentoEntity {
   @Column({ type: 'decimal', name: 'valor_total' })
   valorTotal: number;
 
+  @Column({ type: 'boolean', name: 'ativo' })
+  ativo?: boolean;
+
 
   //CHAVE ESTRANGEIRA
   @ManyToOne(() => TipoCombustivelEntity)

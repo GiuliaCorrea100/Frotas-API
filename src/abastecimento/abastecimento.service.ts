@@ -61,6 +61,7 @@ export class AbastecimentoService {
       quantidade: abastecimento.quantidade,
       valorUnitario: abastecimento.valorUnitario,
       valorTotal: abastecimento.valorTotal,
+      
     };
 
     const savedEntity =
@@ -261,6 +262,39 @@ export class AbastecimentoService {
     await this.logService.logChange(logData);
   }
 
+  async softRemove(
+    idAbastecimento: number,
+    currentUserId?: number,
+    currentUserName?: string,
+  ) {
+    const foundAbastecimento = await this.abastecimentoRepository.findOne({
+      where: { idAbastecimento },
+    });
+
+
+    if (!foundAbastecimento) {
+      throw new NotFoundException(`Item with id ${idAbastecimento} not found`);
+    }
+
+    const dadosAntigos = { ...foundAbastecimento };
+
+    foundAbastecimento.ativo = false;
+
+    const updatedAbastecimento = await this.abastecimentoRepository.save(foundAbastecimento);
+
+    // const logData: LogDto = {
+    //   nomeTabela: 'percurso',
+    //   idAbastecimento: idAbastecimento,
+    //   operacao: 'UPDATE',
+    //   dadosAntigos: dadosAntigos,
+    //   dadosNovos: updatedPercurso,
+    //   idUsuario: currentUserId,
+    //   usuario: currentUserName,
+    // };
+
+    // await this.logService.logChange(logData);
+  }
+
   async ConsumoPorCampus(): Promise<{ campus: string; litrosTotal: number }[]> {
     try {
       const detalhesPorCampus = await this.abastecimentoRepository
@@ -297,6 +331,8 @@ export class AbastecimentoService {
       idTipoCombustivel: entity.idTipoCombustivel,
       nomeTipoCombustivel: entity.tipoCombustivel?.nome ?? null,
       idCorrida: entity.idCorrida?.idCorrida,
+      ativo: entity.ativo,
+      
     };
   }
 
@@ -307,7 +343,7 @@ export class AbastecimentoService {
       valorTotal: dto.valorTotal,
       dataAbastecimento: dto.dataAbastecimento,
       valorUnitario: dto.valorUnitario,
-      
+      ativo: dto.ativo,
     };
   }
 }
