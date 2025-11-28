@@ -88,6 +88,24 @@ export class ocorrenciaController {
     );
   }
 
+  @Patch('/deletar-ocorrencia/:idOcorrencia')
+  @UseGuards(AuthGuard)
+  async softRemove(
+    @Param('idOcorrencia') idOcorrencia: number,
+    @Request() req: any,
+  ): Promise<void> {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+    console.log(idOcorrencia);
+
+    return this.ocorrenciaService.softRemove(
+      
+      idOcorrencia,
+      currentUserId,
+      currentUserName,
+    );
+  }
+
   @Delete('/:idOcorrencia')
   @UseGuards(AuthGuard)
   remove(@Param('idOcorrencia') idOcorrencia: number, @Request() req: any) {
