@@ -195,6 +195,7 @@ export class PercursoService {
       where: { idPercurso },
     });
 
+
     if (!foundPercurso) {
       throw new NotFoundException(`Item with id ${idPercurso} not found`);
     }
@@ -255,6 +256,8 @@ export class PercursoService {
 
     await this.logService.logChange(logData);
   }
+
+  
 
   private mapEntityToDto(entity: PercursoEntity): PercursoDto {
     return {

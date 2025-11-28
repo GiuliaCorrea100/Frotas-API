@@ -100,6 +100,24 @@ export class AbastecimentoController {
     );
   }
 
+  @Patch('/deletar-abastecimento/:idAbastecimento')
+  @UseGuards(AuthGuard)
+  async softRemove(
+    @Param('idAbastecimento') idAbastecimento: number,
+    @Request() req: any,
+  ): Promise<void> {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+    console.log(idAbastecimento);
+
+    return this.abastecimentoService.softRemove(
+      
+      idAbastecimento,
+      currentUserId,
+      currentUserName,
+    );
+  }
+
   @Delete('/:idAbastecimento')
   remove(
     @Param('idAbastecimento') idAbastecimento: number,
