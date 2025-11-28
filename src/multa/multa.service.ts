@@ -58,20 +58,14 @@ export class MultaService {
             corridaEncontrada.nomeMotorista || 'Motorista não identificado',
         };
       }
-    } catch (error) {
-      console.warn('Não foi possível associar motorista à multa:', error);
-    }
+    } catch (error) {}
 
     let urlArquivo = null;
 
     if (arquivo) {
       try {
         urlArquivo = await this.anexoService.salvarArquivo(arquivo);
-      } catch (error) {
-        console.error('❌ Erro ao salvar arquivo:', error);
-      }
-    } else {
-      console.log('ℹ️ Nenhum arquivo para salvar');
+      } catch (error) {}
     }
 
     const multaToSave: MultaEntity = {
@@ -87,7 +81,6 @@ export class MultaService {
         : null,
       ativa: true,
     };
-
 
     const savedMulta = await this.MultaRepository.save(multaToSave);
 
@@ -122,9 +115,7 @@ export class MultaService {
             },
           );
         }
-      } catch (emailError) {
-        console.warn('Erro ao tentar enviar email da multa:', emailError);
-      }
+      } catch (emailError) {}
     }
 
     const dto = this.mapEntityToDto(savedMulta);
@@ -234,6 +225,41 @@ export class MultaService {
     const mergedEntity = this.MultaRepository.merge(foundMulta, updateData);
 
     const updatedMulta = await this.MultaRepository.save(mergedEntity);
+
+    const logData: LogDto = {
+      nomeTabela: 'multa',
+      idRegistro: idMulta,
+      operacao: 'UPDATE',
+      dadosAntigos: dadosAntigos,
+      dadosNovos: updatedMulta,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    await this.logService.logChange(logData);
+  }
+
+  async atualizarArquivo(
+    idMulta: number,
+    arquivo: Express.Multer.File,
+    currentUserId?: number,
+    currentUserName?: string,
+  ) {
+    const foundMulta = await this.MultaRepository.findOne({
+      where: { idMulta },
+    });
+
+    if (!foundMulta) {
+      throw new NotFoundException(`Multa com id ${idMulta} não encontrada`);
+    }
+
+    const dadosAntigos = { ...foundMulta };
+
+    const urlArquivo = await this.anexoService.salvarArquivo(arquivo);
+
+    foundMulta.urlArquivo = urlArquivo;
+
+    const updatedMulta = await this.MultaRepository.save(foundMulta);
 
     const logData: LogDto = {
       nomeTabela: 'multa',

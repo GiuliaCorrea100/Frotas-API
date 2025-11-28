@@ -83,7 +83,6 @@ export class MultaController {
     @Request() req: any,
     @UploadedFile() arquivo?: Express.Multer.File,
   ) {
-
     const currentUserId = req.user?.sub;
     const currentUserName = req.user?.login;
 
@@ -116,6 +115,25 @@ export class MultaController {
     await this.multaService.update(
       params.idMulta,
       multa,
+      currentUserId,
+      currentUserName,
+    );
+  }
+
+  @Put('/:idMulta/arquivo')
+  @UseGuards(AuthGuard)
+  @UseInterceptors(FileInterceptor('arquivo'))
+  async atualizarArquivo(
+    @Param('idMulta') idMulta: number,
+    @UploadedFile() arquivo: Express.Multer.File,
+    @Request() req: any,
+  ) {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+
+    await this.multaService.atualizarArquivo(
+      idMulta,
+      arquivo,
       currentUserId,
       currentUserName,
     );
