@@ -9,14 +9,15 @@ export class MultaDto {
   ativa?: boolean;
   idMotorista?: number;
   nomeMotorista?: string;
+  urlArquivo?: string;
 }
 
 export interface FindAllParameters {
-  codigoInfracao: number;
-  classificacao: string;
-  valorInfracao: number;
-  placaVeiculo: string;
-  dataInfracao: Date;
+  codigoInfracao?: number;
+  classificacao?: string;
+  valorInfracao?: number;
+  placaVeiculo?: string;
+  dataInfracao?: Date;
 }
 
 export class MultaRouteParameters {

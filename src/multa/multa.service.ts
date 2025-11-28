@@ -13,7 +13,7 @@ import { LogDto } from '../log/log.dto';
 import { CorridaService } from '../corrida/corrida.service';
 import { EmailService } from '../email/email.service';
 import { UsuarioService } from '../usuario/usuario.service';
-
+import { AnexoService } from '../anexo/anexo.service';
 
 @Injectable()
 export class MultaService {
@@ -25,11 +25,14 @@ export class MultaService {
     private readonly corridaService: CorridaService,
     private readonly emailService: EmailService,
     private readonly usuarioService: UsuarioService,
+    private readonly anexoService: AnexoService,
   ) {}
+
   private multa: MultaDto[] = [];
 
   async create(
     multa: MultaDto,
+    arquivo?: Express.Multer.File,
     currentUserId?: number,
     currentUserName?: string,
   ): Promise<{
@@ -54,13 +57,15 @@ export class MultaService {
           nomeMotorista:
             corridaEncontrada.nomeMotorista || 'Motorista não identificado',
         };
-
-        console.log(
-          `Multa associada ao motorista: ${motoristaResponsavel.nomeMotorista} (ID: ${motoristaResponsavel.idMotorista})`,
-        );
       }
-    } catch (error) {
-      console.warn('Não foi possível associar motorista à multa:', error);
+    } catch (error) {}
+
+    let urlArquivo = null;
+
+    if (arquivo) {
+      try {
+        urlArquivo = await this.anexoService.salvarArquivo(arquivo);
+      } catch (error) {}
     }
 
     const multaToSave: MultaEntity = {
@@ -70,11 +75,12 @@ export class MultaService {
       placaVeiculo: multa.placaVeiculo,
       dataInfracao: multa.dataInfracao,
       autoInfracao: multa.autoInfracao,
+      urlArquivo: urlArquivo,
       idMotorista: motoristaResponsavel
         ? motoristaResponsavel.idMotorista
         : null,
+      ativa: true,
     };
-
 
     const savedMulta = await this.MultaRepository.save(multaToSave);
 
@@ -106,14 +112,10 @@ export class MultaService {
               placa: multa.placaVeiculo,
               data: new Date(multa.dataInfracao).toLocaleDateString('pt-BR'),
               descricao: multa.classificacao,
-            }
+            },
           );
-        } else {
-          console.log('Usuário sem email cadastrado, não será enviado');
         }
-      } catch (emailError) {
-        console.warn('Erro ao tentar enviar email da multa:', emailError);
-      }
+      } catch (emailError) {}
     }
 
     const dto = this.mapEntityToDto(savedMulta);
@@ -123,7 +125,7 @@ export class MultaService {
     }
 
     return {
-      multa: this.mapEntityToDto(savedMulta),
+      multa: dto,
       motoristaResponsavel,
     };
   }
@@ -237,6 +239,40 @@ export class MultaService {
     await this.logService.logChange(logData);
   }
 
+  async atualizarArquivo(
+    idMulta: number,
+    arquivo: Express.Multer.File,
+    currentUserId?: number,
+    currentUserName?: string,
+  ) {
+    const foundMulta = await this.MultaRepository.findOne({
+      where: { idMulta },
+    });
+
+    if (!foundMulta) {
+      throw new NotFoundException(`Multa com id ${idMulta} não encontrada`);
+    }
+
+    const dadosAntigos = { ...foundMulta };
+
+    const urlArquivo = await this.anexoService.salvarArquivo(arquivo);
+
+    foundMulta.urlArquivo = urlArquivo;
+
+    const updatedMulta = await this.MultaRepository.save(foundMulta);
+
+    const logData: LogDto = {
+      nomeTabela: 'multa',
+      idRegistro: idMulta,
+      operacao: 'UPDATE',
+      dadosAntigos: dadosAntigos,
+      dadosNovos: updatedMulta,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    await this.logService.logChange(logData);
+  }
 
   private mapEntityToDto(MultaEntity: MultaEntity): MultaDto {
     return {
@@ -248,6 +284,7 @@ export class MultaService {
       dataInfracao: MultaEntity.dataInfracao,
       autoInfracao: MultaEntity.autoInfracao,
       ativa: MultaEntity.ativa,
+      urlArquivo: MultaEntity.urlArquivo,
     };
   }
 

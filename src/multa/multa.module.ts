@@ -7,9 +7,17 @@ import { LogModule } from 'src/log/log.module';
 import { CorridaModule } from 'src/corrida/corrida.module';
 import { UsuarioModule } from '../usuario/usuario.module';
 import { EmailModule } from '../email/email.module';
+import { AnexoModule } from '../anexo/anexo.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([MultaEntity]), CorridaModule, LogModule, EmailModule, UsuarioModule],
+  imports: [
+    TypeOrmModule.forFeature([MultaEntity]),
+    CorridaModule,
+    LogModule,
+    EmailModule,
+    UsuarioModule,
+    AnexoModule,
+  ],
   controllers: [MultaController],
   providers: [MultaService],
 })
