@@ -13,4 +13,7 @@ export class OcorrenciaEntity {
 
   @Column({ type: 'timestamptz', name: 'data_registro' })
   dataRegistro: Date;
+
+  @Column({ type: 'boolean', name: 'ativa'})
+  ativa?: boolean;
 }

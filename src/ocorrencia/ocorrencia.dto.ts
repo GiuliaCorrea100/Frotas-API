@@ -3,6 +3,7 @@ export class ocorrenciaDto {
   descricao: string;
   idCorrida?: number;
   dataRegistro: Date;
+  ativa?: boolean;
 }
 
 export interface FindAllParameters {

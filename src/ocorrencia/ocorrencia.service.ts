@@ -189,12 +189,48 @@ export class ocorrenciaService {
     await this.logService.logChange(logData);
   }
 
+  async softRemove(
+    idOcorrencia: number,
+    currentUserId?: number,
+    currentUserName?: string,
+  ) {
+    const foundOcorrencia = await this.ocorrenciaRepository.findOne({
+      where: { idOcorrencia },
+    });
+
+
+    if (!foundOcorrencia) {
+      throw new NotFoundException(`Item with id ${idOcorrencia} not found`);
+    }
+
+    const dadosAntigos = { ...foundOcorrencia };
+
+    foundOcorrencia.ativa = false;
+
+    const updatedOcorrencia = await this.ocorrenciaRepository.save(foundOcorrencia);
+
+    // const logData: LogDto = {
+    //   nomeTabela: 'percurso',
+    //   idAbastecimento: idAbastecimento,
+    //   operacao: 'UPDATE',
+    //   dadosAntigos: dadosAntigos,
+    //   dadosNovos: updatedPercurso,
+    //   idUsuario: currentUserId,
+    //   usuario: currentUserName,
+    // };
+
+    // await this.logService.logChange(logData);
+  }
+
+
+
   private mapEntityToDto(OcorrenciaEntity: OcorrenciaEntity): ocorrenciaDto {
     return {
       idOcorrencia: OcorrenciaEntity.idOcorrencia,
       descricao: OcorrenciaEntity.descricao,
       idCorrida: OcorrenciaEntity.idCorrida,
       dataRegistro: OcorrenciaEntity.dataRegistro,
+      ativa: OcorrenciaEntity.ativa,
     };
   }
 
@@ -205,6 +241,7 @@ export class ocorrenciaService {
       descricao: ocorrenciaDto.descricao,
       idCorrida: ocorrenciaDto.idCorrida,
       dataRegistro: ocorrenciaDto.dataRegistro,
+      ativa: ocorrenciaDto.ativa,
     };
   }
 }
