@@ -35,9 +35,6 @@ export class AbastecimentoEntity {
   @Column({ type: 'decimal', name: 'valor_total' })
   valorTotal: number;
 
-  @Column({ type: 'varchar', name: 'justificativa_alteracao', nullable: true })
-  justificativaAlteracao?: string;
-
   //CHAVE ESTRANGEIRA
   @ManyToOne(() => TipoCombustivelEntity)
   @JoinColumn({ name: 'id_tipo_combustivel' })

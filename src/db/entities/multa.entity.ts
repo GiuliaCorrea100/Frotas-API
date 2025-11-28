@@ -37,6 +37,8 @@ export class MultaEntity {
   @Column({ type: 'int', name: 'num_auto_infracao' })
   autoInfracao: number;
 
+  @Column({ type: 'varchar', name: 'url_arquivo', nullable: true })
+  urlArquivo?: string;
 
   @Column({ type: 'int', name: 'id_motorista', nullable: true })
   idMotorista?: number;

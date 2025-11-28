@@ -18,6 +18,8 @@ import { DbSigaaModule } from './dbsigaa/dbsigaa.module';
 import { UsuarioSigaaModule } from './usuariosigaa/usuariosigaa.module';
 import { ServidorsigaaModule } from './servidorsigaa/servidorsigaa.module';
 import { EmailModule } from './email/email.module';
+import { AnexoModule } from './anexo/anexo.module';
+
 
 @Module({
   imports: [
@@ -38,6 +40,7 @@ import { EmailModule } from './email/email.module';
     PercursoModule,
     AuthModule,
     EmailModule,
+    AnexoModule,
   ],
   controllers: [AppController],
   providers: [AppService],
