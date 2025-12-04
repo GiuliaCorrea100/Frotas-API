@@ -8,6 +8,7 @@ import {
   UploadedFile,
   BadRequestException,
   Res,
+  Body,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AnexoService } from './anexo.service';
@@ -53,6 +54,20 @@ export class AnexoController {
     try {
       const filePath = await this.anexoService.getArquivo(fileName);
       return res.download(filePath);
+    } catch (error) {
+      throw new BadRequestException(getErrorMessage(error));
+    }
+  }
+
+  @Delete('remover-por-url')
+  async deleteFileByUrl(@Body() body: { urlArquivo: string }) {
+    try {
+      if (!body.urlArquivo) {
+        throw new BadRequestException('URL do arquivo não fornecida');
+      }
+
+      await this.anexoService.deletarArquivoPorUrl(body.urlArquivo);
+      return { message: 'Arquivo deletado com sucesso' };
     } catch (error) {
       throw new BadRequestException(getErrorMessage(error));
     }

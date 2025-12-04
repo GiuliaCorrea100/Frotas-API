@@ -19,7 +19,6 @@ export class AnexoService {
   }
 
   async salvarArquivo(file: Express.Multer.File): Promise<string> {
-
     if (!file) {
       throw new BadRequestException('Nenhum arquivo foi enviado');
     }
@@ -49,11 +48,10 @@ export class AnexoService {
       await fs.promises.writeFile(filePath, file.buffer);
 
       const finalPath = `uploads/multas/${fileName}`;
-      console.log(`Arquivo salvo com sucesso: ${finalPath}`);
 
       return finalPath;
     } catch (error) {
-      console.error('❌ Erro ao salvar arquivo:', error);
+      console.error('Erro ao salvar arquivo:', error);
       throw new BadRequestException('Erro ao salvar arquivo: ' + getErrorMessage(error));
     }
   }
@@ -78,5 +76,19 @@ export class AnexoService {
     } catch (error) {
       throw new BadRequestException('Erro ao deletar arquivo: ' + getErrorMessage(error));
     }
+  }
+
+  async deletarArquivoPorUrl(urlArquivo: string): Promise<void> {
+    if (!urlArquivo) {
+      return;
+    }
+
+    const fileName = urlArquivo.split('/').pop();
+
+    if (!fileName) {
+      throw new BadRequestException('Nome do arquivo inválido');
+    }
+
+    return this.deletarArquivo(fileName);
   }
 }
