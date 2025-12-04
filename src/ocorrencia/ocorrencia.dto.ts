@@ -2,7 +2,8 @@ export class ocorrenciaDto {
   idOcorrencia?: number;
   descricao: string;
   idCorrida?: number;
-  dataRegistro: Date;
+  //dataRegistro: Date;
+  dataOcorrencia: Date;
   ativa?: boolean;
 }
 
