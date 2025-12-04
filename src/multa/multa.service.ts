@@ -331,8 +331,18 @@ export class MultaService {
       autoInfracao: MultaEntity.autoInfracao,
       ativa: MultaEntity.ativa,
       urlArquivo: MultaEntity.urlArquivo,
+      idMotorista: MultaEntity.idMotorista,
+      nomeMotorista: MultaEntity.motorista?.nome,
+      motorista: MultaEntity.motorista
+        ? {
+            idUsuario: MultaEntity.motorista.idUsuario,
+            nome: MultaEntity.motorista.nome,
+            email: MultaEntity.motorista.email,
+          }
+        : undefined,
     };
   }
+
 
   private mapDtoToEntity(MultaDto: MultaDto): Partial<MultaEntity> {
     return {

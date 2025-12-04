@@ -51,7 +51,7 @@ export class AnexoService {
 
       return finalPath;
     } catch (error) {
-      console.error('Erro ao salvar arquivo:', error);
+      console.error('❌ Erro ao salvar arquivo:', error);
       throw new BadRequestException('Erro ao salvar arquivo: ' + getErrorMessage(error));
     }
   }
