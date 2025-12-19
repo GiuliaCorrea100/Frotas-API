@@ -10,6 +10,11 @@ export class MultaDto {
   idMotorista?: number;
   nomeMotorista?: string;
   urlArquivo?: string;
+  motorista?: {
+    idUsuario?: number;
+    nome?: string;
+    email?: string;
+  };
 }
 
 export interface FindAllParameters {

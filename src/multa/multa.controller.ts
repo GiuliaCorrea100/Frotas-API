@@ -11,6 +11,7 @@ import {
   UseGuards,
   UseInterceptors,
   UploadedFile,
+  Delete,
 } from '@nestjs/common';
 import {
   MultaDto,
@@ -134,6 +135,22 @@ export class MultaController {
     await this.multaService.atualizarArquivo(
       idMulta,
       arquivo,
+      currentUserId,
+      currentUserName,
+    );
+  }
+
+  @Delete('/:idMulta/arquivo')
+  @UseGuards(AuthGuard)
+  async removerArquivo(
+    @Param('idMulta') idMulta: number,
+    @Request() req: any,
+  ) {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+
+    await this.multaService.removerArquivo(
+      idMulta,
       currentUserId,
       currentUserName,
     );
