@@ -274,6 +274,52 @@ export class MultaService {
     await this.logService.logChange(logData);
   }
 
+  async removerArquivo(
+    idMulta: number,
+    currentUserId?: number,
+    currentUserName?: string,
+  ) {
+    const foundMulta = await this.MultaRepository.findOne({
+      where: { idMulta },
+    });
+
+    if (!foundMulta) {
+      throw new NotFoundException(`Multa com id ${idMulta} não encontrada`);
+    }
+
+    if (!foundMulta.urlArquivo) {
+      return;
+    }
+
+    const dadosAntigos = { ...foundMulta };
+
+    const urlArquivoParaDeletar = foundMulta.urlArquivo;
+
+    foundMulta.urlArquivo = null;
+    const updatedMulta = await this.MultaRepository.save(foundMulta);
+
+    try {
+      await this.anexoService.deletarArquivoPorUrl(urlArquivoParaDeletar);
+    } catch (error) {
+      console.error(
+        'Erro ao deletar arquivo físico, mas multa foi atualizada:',
+        error,
+      );
+    }
+
+    const logData: LogDto = {
+      nomeTabela: 'multa',
+      idRegistro: idMulta,
+      operacao: 'UPDATE',
+      dadosAntigos: dadosAntigos,
+      dadosNovos: updatedMulta,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    await this.logService.logChange(logData);
+  }
+
   private mapEntityToDto(MultaEntity: MultaEntity): MultaDto {
     return {
       idMulta: MultaEntity.idMulta,
@@ -285,8 +331,18 @@ export class MultaService {
       autoInfracao: MultaEntity.autoInfracao,
       ativa: MultaEntity.ativa,
       urlArquivo: MultaEntity.urlArquivo,
+      idMotorista: MultaEntity.idMotorista,
+      nomeMotorista: MultaEntity.motorista?.nome,
+      motorista: MultaEntity.motorista
+        ? {
+            idUsuario: MultaEntity.motorista.idUsuario,
+            nome: MultaEntity.motorista.nome,
+            email: MultaEntity.motorista.email,
+          }
+        : undefined,
     };
   }
+
 
   private mapDtoToEntity(MultaDto: MultaDto): Partial<MultaEntity> {
     return {
