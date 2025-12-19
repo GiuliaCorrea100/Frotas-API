@@ -52,6 +52,8 @@ export class ocorrenciaController {
       currentUserId,
       currentUserName,
     );
+
+    
   }
 
   @Put('/:idOcorrencia')
@@ -71,18 +73,18 @@ export class ocorrenciaController {
     );
   }
 
-  @Patch(':id/descricao')
+  @Patch(':id/')
   @UseGuards(AuthGuard)
-  async updateDescricao(
+  async updateOcorrencia(
     @Param('id') id: number,
-    @Body('descricao') descricao: string,
+    @Body() ocorrencia: ocorrenciaDto,
     @Request() req: any,
   ) {
     const currentUserId = req.user?.sub;
     const currentUserName = req.user?.login;
-    return this.ocorrenciaService.updateDescricao(
+    return this.ocorrenciaService.updateOcorrencia(
       id,
-      descricao,
+      ocorrencia,
       currentUserId,
       currentUserName,
     );
