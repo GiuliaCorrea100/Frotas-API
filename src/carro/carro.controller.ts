@@ -89,6 +89,16 @@ export class CarroController {
     return this.carroService.inativar(idCarro, currentUserId, currentUserName);
   }
 
+  @Patch('/atualizar-odometro/:idCarro')
+  async atualizarOdometro(
+    @Param('idCarro') idCarro: number, 
+    @Body() body: { odometro: number },
+    @Request() req: any) {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+    return this.carroService.atualizarOdometro(idCarro, body.odometro, currentUserId, currentUserName);
+  }
+
   @Patch(':idCarro/situacao')
   async atualizarSituacao(
     @Param('idCarro') idCarro: number,

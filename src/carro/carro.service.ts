@@ -52,6 +52,43 @@ export class carroService {
     return this.mapEntityToDto(carroAtualizado);
   }
 
+
+  async atualizarOdometro(
+    idCarro: number,
+    odometro: number,
+    currentUserId?: number,
+    currentUserName?: string,
+  ): Promise<CarroDto> {
+    const carro = await this.carroRepository.findOne({ where: { idCarro } });
+
+    if (!carro) {
+      throw new NotFoundException(`Item with id ${idCarro} not found`);
+    }
+
+    
+
+    const dadosAntigos = { ...carro };
+
+    
+    carro.odometro = odometro.toString();
+
+    const carroAtualizado = await this.carroRepository.save(carro);
+
+    const logData: LogDto = {
+      nomeTabela: 'carro',
+      idRegistro: idCarro,
+      operacao: 'UPDATE',
+      dadosAntigos: dadosAntigos,
+      dadosNovos: carroAtualizado,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    await this.logService.logChange(logData);
+
+    return this.mapEntityToDto(carroAtualizado);
+  }
+
   async create(
     carro: CarroDto,
     currentUserId?: number,
