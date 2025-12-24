@@ -71,7 +71,6 @@ export class CorridaService {
     currentUserId?: number,
     currentUserName?: string,
   ): Promise<CorridaDto> {
-    // Ajustar Hora do dataTermino
     if (corrida.dataTermino) {
       const dataTermino = new Date(corrida.dataTermino);
       const dataTerminoUTC = new Date(
@@ -281,7 +280,6 @@ export class CorridaService {
 
     const dadosAntigos = { ...corrida };
 
-    // Ajustar Hora do dataTermino
     let dataTerminoAjustada = dados.dataTermino ?? corrida.dataTermino;
     if (dados.dataTermino) {
       const dataTermino = new Date(dados.dataTermino);
@@ -469,6 +467,54 @@ export class CorridaService {
           .map((entity) => this.mapEntityToDto(entity)),
         ...proximasCorridas.map((entity) => this.mapEntityToDto(entity)),
       ],
+    };
+  }
+
+  async encontrarCorridaPorPlacaEData(
+    placaVeiculo: string,
+    dataInfracao: Date,
+  ): Promise<CorridaDto | null> {
+    try {
+      const corrida = await this.corridaRepository
+        .createQueryBuilder('corrida')
+        .innerJoinAndSelect('corrida.carro', 'carro')
+        .innerJoinAndSelect('corrida.motorista', 'motorista')
+        .where('carro.placa = :placa', { placa: placaVeiculo })
+        .andWhere('corrida.situacao = :situacao', { situacao: 'FINALIZADA' })
+        .andWhere(':dataInfracao BETWEEN corrida.dataInicio AND corrida.dataTermino')
+        .setParameter('dataInfracao', dataInfracao)
+        .getOne();
+
+      return corrida ? this.mapEntityToDto(corrida) : null;
+    } catch (error) {
+      console.error('Erro ao buscar corrida por placa e data:', error);
+      return null;
+    }
+  }
+
+  async encontrarMotoristaPorPlacaEData(
+    placaVeiculo: string,
+    data: Date,
+  ): Promise<{
+    idMotorista: number;
+    nomeMotorista: string;
+  } | null> {
+    const corrida = await this.corridaRepository.findOne({
+      where: {
+        carro: { 
+          placa: placaVeiculo,
+        },
+        dataInicio: LessThanOrEqual(data),
+        dataTermino: MoreThanOrEqual(data),
+      },
+      relations: ['motorista', 'carro'],
+    });
+
+    if (!corrida) return null;
+
+    return {
+      idMotorista: corrida.idMotorista,
+      nomeMotorista: corrida.motorista?.nome || null,
     };
   }
 

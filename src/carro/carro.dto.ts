@@ -1,7 +1,6 @@
 export class CarroDto {
   idCarro?: number;
   tombo: number;
-  qrCode: string;
   placa: string;
   odometro: string;
   modelo: string;

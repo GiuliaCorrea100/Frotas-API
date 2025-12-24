@@ -38,7 +38,44 @@ export class carroService {
     const carroAtualizado = await this.carroRepository.save(carro);
 
     const logData: LogDto = {
-      nomeTabela: 'carros',
+      nomeTabela: 'carro',
+      idRegistro: idCarro,
+      operacao: 'UPDATE',
+      dadosAntigos: dadosAntigos,
+      dadosNovos: carroAtualizado,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    await this.logService.logChange(logData);
+
+    return this.mapEntityToDto(carroAtualizado);
+  }
+
+
+  async atualizarOdometro(
+    idCarro: number,
+    odometro: number,
+    currentUserId?: number,
+    currentUserName?: string,
+  ): Promise<CarroDto> {
+    const carro = await this.carroRepository.findOne({ where: { idCarro } });
+
+    if (!carro) {
+      throw new NotFoundException(`Item with id ${idCarro} not found`);
+    }
+
+    
+
+    const dadosAntigos = { ...carro };
+
+    
+    carro.odometro = odometro.toString();
+
+    const carroAtualizado = await this.carroRepository.save(carro);
+
+    const logData: LogDto = {
+      nomeTabela: 'carro',
       idRegistro: idCarro,
       operacao: 'UPDATE',
       dadosAntigos: dadosAntigos,
@@ -69,7 +106,6 @@ export class carroService {
 
     const carroToSave: Partial<CarroEntity> = {
       tombo: carro.tombo,
-      qrCode: carro.qrCode,
       modelo: carro.modelo,
       placa: carro.placa,
       odometro: carro.odometro,
@@ -275,7 +311,6 @@ export class carroService {
     return {
       idCarro: CarroEntity.idCarro,
       tombo: CarroEntity.tombo,
-      qrCode: CarroEntity.qrCode,
       placa: CarroEntity.placa,
       odometro: CarroEntity.odometro,
       modelo: CarroEntity.modelo,
@@ -292,7 +327,6 @@ export class carroService {
   private mapDtoToentity(CarroDto: CarroDto): Partial<CarroEntity> {
     return {
       tombo: CarroDto.tombo,
-      qrCode: CarroDto.qrCode,
       placa: CarroDto.placa,
       odometro: CarroDto.odometro,
       modelo: CarroDto.modelo,
