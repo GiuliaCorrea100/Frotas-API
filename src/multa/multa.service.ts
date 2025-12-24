@@ -1,10 +1,19 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  Inject,
+  forwardRef,
+} from '@nestjs/common';
 import { MultaDto, FindAllParameters } from './multa.dto';
 import { MultaEntity } from 'src/db/entities/multa.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like, FindOptionsWhere } from 'typeorm';
 import { LogService } from '../log/log.service';
 import { LogDto } from '../log/log.dto';
+import { CorridaService } from '../corrida/corrida.service';
+import { EmailService } from '../email/email.service';
+import { UsuarioService } from '../usuario/usuario.service';
+import { AnexoService } from '../anexo/anexo.service';
 
 @Injectable()
 export class MultaService {
@@ -12,14 +21,53 @@ export class MultaService {
     @InjectRepository(MultaEntity)
     private readonly MultaRepository: Repository<MultaEntity>,
     private readonly logService: LogService,
+    @Inject(forwardRef(() => CorridaService))
+    private readonly corridaService: CorridaService,
+    private readonly emailService: EmailService,
+    private readonly usuarioService: UsuarioService,
+    private readonly anexoService: AnexoService,
   ) {}
+
   private multa: MultaDto[] = [];
 
   async create(
     multa: MultaDto,
+    arquivo?: Express.Multer.File,
     currentUserId?: number,
     currentUserName?: string,
-  ) {
+  ): Promise<{
+    multa: MultaDto;
+    motoristaResponsavel?: {
+      idMotorista: number;
+      nomeMotorista: string;
+    } | null;
+  }> {
+    let motoristaResponsavel = null;
+
+    try {
+      const corridaEncontrada =
+        await this.corridaService.encontrarCorridaPorPlacaEData(
+          multa.placaVeiculo,
+          multa.dataInfracao,
+        );
+
+      if (corridaEncontrada) {
+        motoristaResponsavel = {
+          idMotorista: corridaEncontrada.idMotorista,
+          nomeMotorista:
+            corridaEncontrada.nomeMotorista || 'Motorista não identificado',
+        };
+      }
+    } catch (error) {}
+
+    let urlArquivo = null;
+
+    if (arquivo) {
+      try {
+        urlArquivo = await this.anexoService.salvarArquivo(arquivo);
+      } catch (error) {}
+    }
+
     const multaToSave: MultaEntity = {
       codigoInfracao: multa.codigoInfracao,
       classificacao: multa.classificacao,
@@ -27,6 +75,11 @@ export class MultaService {
       placaVeiculo: multa.placaVeiculo,
       dataInfracao: multa.dataInfracao,
       autoInfracao: multa.autoInfracao,
+      urlArquivo: urlArquivo,
+      idMotorista: motoristaResponsavel
+        ? motoristaResponsavel.idMotorista
+        : null,
+      ativa: true,
     };
 
     const savedMulta = await this.MultaRepository.save(multaToSave);
@@ -43,12 +96,44 @@ export class MultaService {
 
     await this.logService.logChange(logData);
 
-    return savedMulta;
+    if (motoristaResponsavel && motoristaResponsavel.idMotorista) {
+      try {
+        const motorista = (await this.usuarioService.findById(
+          motoristaResponsavel.idMotorista,
+        )) as any;
+
+        if (motorista && motorista.email) {
+          await this.emailService.sendMail(
+            motorista.email,
+            'Notificação de Multa',
+            'notificarMulta.hbs',
+            {
+              nome: motorista.nome,
+              placa: multa.placaVeiculo,
+              data: new Date(multa.dataInfracao).toLocaleDateString('pt-BR'),
+              descricao: multa.classificacao,
+            },
+          );
+        }
+      } catch (emailError) {}
+    }
+
+    const dto = this.mapEntityToDto(savedMulta);
+    if (motoristaResponsavel) {
+      dto.idMotorista = motoristaResponsavel.idMotorista;
+      dto.nomeMotorista = motoristaResponsavel.nomeMotorista;
+    }
+
+    return {
+      multa: dto,
+      motoristaResponsavel,
+    };
   }
 
   async findById(idMulta: number): Promise<MultaDto> {
     const foundMulta = await this.MultaRepository.findOne({
       where: { idMulta },
+      relations: ['motorista'],
     });
 
     if (!foundMulta) {
@@ -82,6 +167,7 @@ export class MultaService {
 
     const multaFound = await this.MultaRepository.find({
       where: searchParams,
+      relations: ['motorista'],
     });
 
     return multaFound.map((MultaEntity) => this.mapEntityToDto(MultaEntity));
@@ -102,7 +188,7 @@ export class MultaService {
 
     const dadosAntigos = { ...foundMulta };
 
-    foundMulta.deletada = true;
+    foundMulta.ativa = false;
 
     const updatedMulta = await this.MultaRepository.save(foundMulta);
 
@@ -153,6 +239,87 @@ export class MultaService {
     await this.logService.logChange(logData);
   }
 
+  async atualizarArquivo(
+    idMulta: number,
+    arquivo: Express.Multer.File,
+    currentUserId?: number,
+    currentUserName?: string,
+  ) {
+    const foundMulta = await this.MultaRepository.findOne({
+      where: { idMulta },
+    });
+
+    if (!foundMulta) {
+      throw new NotFoundException(`Multa com id ${idMulta} não encontrada`);
+    }
+
+    const dadosAntigos = { ...foundMulta };
+
+    const urlArquivo = await this.anexoService.salvarArquivo(arquivo);
+
+    foundMulta.urlArquivo = urlArquivo;
+
+    const updatedMulta = await this.MultaRepository.save(foundMulta);
+
+    const logData: LogDto = {
+      nomeTabela: 'multa',
+      idRegistro: idMulta,
+      operacao: 'UPDATE',
+      dadosAntigos: dadosAntigos,
+      dadosNovos: updatedMulta,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    await this.logService.logChange(logData);
+  }
+
+  async removerArquivo(
+    idMulta: number,
+    currentUserId?: number,
+    currentUserName?: string,
+  ) {
+    const foundMulta = await this.MultaRepository.findOne({
+      where: { idMulta },
+    });
+
+    if (!foundMulta) {
+      throw new NotFoundException(`Multa com id ${idMulta} não encontrada`);
+    }
+
+    if (!foundMulta.urlArquivo) {
+      return;
+    }
+
+    const dadosAntigos = { ...foundMulta };
+
+    const urlArquivoParaDeletar = foundMulta.urlArquivo;
+
+    foundMulta.urlArquivo = null;
+    const updatedMulta = await this.MultaRepository.save(foundMulta);
+
+    try {
+      await this.anexoService.deletarArquivoPorUrl(urlArquivoParaDeletar);
+    } catch (error) {
+      console.error(
+        'Erro ao deletar arquivo físico, mas multa foi atualizada:',
+        error,
+      );
+    }
+
+    const logData: LogDto = {
+      nomeTabela: 'multa',
+      idRegistro: idMulta,
+      operacao: 'UPDATE',
+      dadosAntigos: dadosAntigos,
+      dadosNovos: updatedMulta,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    await this.logService.logChange(logData);
+  }
+
   private mapEntityToDto(MultaEntity: MultaEntity): MultaDto {
     return {
       idMulta: MultaEntity.idMulta,
@@ -162,9 +329,20 @@ export class MultaService {
       placaVeiculo: MultaEntity.placaVeiculo,
       dataInfracao: MultaEntity.dataInfracao,
       autoInfracao: MultaEntity.autoInfracao,
-      deletada: MultaEntity.deletada,
+      ativa: MultaEntity.ativa,
+      urlArquivo: MultaEntity.urlArquivo,
+      idMotorista: MultaEntity.idMotorista,
+      nomeMotorista: MultaEntity.motorista?.nome,
+      motorista: MultaEntity.motorista
+        ? {
+            idUsuario: MultaEntity.motorista.idUsuario,
+            nome: MultaEntity.motorista.nome,
+            email: MultaEntity.motorista.email,
+          }
+        : undefined,
     };
   }
+
 
   private mapDtoToEntity(MultaDto: MultaDto): Partial<MultaEntity> {
     return {
@@ -174,7 +352,7 @@ export class MultaService {
       placaVeiculo: MultaDto.placaVeiculo,
       dataInfracao: MultaDto.dataInfracao,
       autoInfracao: MultaDto.autoInfracao,
-      deletada: MultaDto.deletada,
+      ativa: MultaDto.ativa,
     };
   }
 }

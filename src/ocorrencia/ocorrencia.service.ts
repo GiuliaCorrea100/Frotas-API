@@ -22,7 +22,7 @@ export class ocorrenciaService {
     const entity = new OcorrenciaEntity();
     entity.descricao = ocorrencia.descricao;
     entity.idCorrida = ocorrencia.idCorrida;
-    entity.dataRegistro = new Date();
+    entity.dataOcorrencia = ocorrencia.dataOcorrencia;
 
     const savedOcorrencia = await this.ocorrenciaRepository.save(entity);
 
@@ -120,9 +120,9 @@ export class ocorrenciaService {
     await this.logService.logChange(logData);
   }
 
-  async updateDescricao(
+  async updateOcorrencia(
     idOcorrencia: number,
-    descricao: string,
+    ocorrencia: ocorrenciaDto,
     currentUserId?: number,
     currentUserName?: string,
   ) {
@@ -136,11 +136,16 @@ export class ocorrenciaService {
 
     const dadosAntigos = { ...foundOcorrencia };
 
-    await this.ocorrenciaRepository.update(idOcorrencia, { descricao });
+    foundOcorrencia.descricao = ocorrencia.descricao;
+    foundOcorrencia.dataOcorrencia = ocorrencia.dataOcorrencia;
 
-    const updatedOcorrencia = await this.ocorrenciaRepository.findOne({
-      where: { idOcorrencia },
-    });
+    const updatedOcorrencia = await this.ocorrenciaRepository.save(foundOcorrencia);
+
+    // await this.ocorrenciaRepository.update(idOcorrencia, { descricao });
+
+    // const updatedOcorrencia = await this.ocorrenciaRepository.findOne({
+    //   where: { idOcorrencia },
+    // });
 
     const logData: LogDto = {
       nomeTabela: 'ocorrencia',
@@ -189,12 +194,48 @@ export class ocorrenciaService {
     await this.logService.logChange(logData);
   }
 
+  async softRemove(
+    idOcorrencia: number,
+    currentUserId?: number,
+    currentUserName?: string,
+  ) {
+    const foundOcorrencia = await this.ocorrenciaRepository.findOne({
+      where: { idOcorrencia },
+    });
+
+
+    if (!foundOcorrencia) {
+      throw new NotFoundException(`Item with id ${idOcorrencia} not found`);
+    }
+
+    const dadosAntigos = { ...foundOcorrencia };
+
+    foundOcorrencia.ativa = false;
+
+    const updatedOcorrencia = await this.ocorrenciaRepository.save(foundOcorrencia);
+
+    // const logData: LogDto = {
+    //   nomeTabela: 'percurso',
+    //   idAbastecimento: idAbastecimento,
+    //   operacao: 'UPDATE',
+    //   dadosAntigos: dadosAntigos,
+    //   dadosNovos: updatedPercurso,
+    //   idUsuario: currentUserId,
+    //   usuario: currentUserName,
+    // };
+
+    // await this.logService.logChange(logData);
+  }
+
+
+
   private mapEntityToDto(OcorrenciaEntity: OcorrenciaEntity): ocorrenciaDto {
     return {
       idOcorrencia: OcorrenciaEntity.idOcorrencia,
       descricao: OcorrenciaEntity.descricao,
       idCorrida: OcorrenciaEntity.idCorrida,
-      dataRegistro: OcorrenciaEntity.dataRegistro,
+      dataOcorrencia: OcorrenciaEntity.dataOcorrencia,
+      ativa: OcorrenciaEntity.ativa,
     };
   }
 
@@ -204,7 +245,8 @@ export class ocorrenciaService {
     return {
       descricao: ocorrenciaDto.descricao,
       idCorrida: ocorrenciaDto.idCorrida,
-      dataRegistro: ocorrenciaDto.dataRegistro,
+      dataOcorrencia: ocorrenciaDto.dataOcorrencia,
+      ativa: ocorrenciaDto.ativa,
     };
   }
 }

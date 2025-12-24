@@ -9,6 +9,9 @@ import {
   Patch,
   Request,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
+  Delete,
 } from '@nestjs/common';
 import {
   MultaDto,
@@ -17,14 +20,15 @@ import {
 } from './multa.dto';
 import { MultaService } from './multa.service';
 import { AuthGuard } from '../auth/auth.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('multa')
 export class MultaController {
-  constructor(private readonly MultaService: MultaService) {}
+  constructor(private readonly multaService: MultaService) {}
 
   @Get('/:idMulta')
   async findById(@Param('idMulta') idMulta: number): Promise<MultaDto> {
-    return this.MultaService.findById(idMulta);
+    return this.multaService.findById(idMulta);
   }
 
   @Patch('/deletar-multa/:idMulta')
@@ -36,7 +40,7 @@ export class MultaController {
     const currentUserId = req.user?.sub;
     const currentUserName = req.user?.login;
 
-    return this.MultaService.softRemove(
+    return this.multaService.softRemove(
       idMulta,
       currentUserId,
       currentUserName,
@@ -45,19 +49,56 @@ export class MultaController {
 
   @Get()
   async findAll(@Query() params: FindAllParameters): Promise<MultaDto[]> {
-    return this.MultaService.findAll(params);
+    return this.multaService.findAll(params);
   }
 
   @Post()
   @UseGuards(AuthGuard)
+  @UseInterceptors(FileInterceptor('arquivo'))
   async create(
     @Body() multa: MultaDto,
     @Request() req: any,
-  ): Promise<MultaDto> {
+    @UploadedFile() arquivo?: Express.Multer.File,
+  ): Promise<{
+    multa: MultaDto;
+    motoristaResponsavel?: {
+      idMotorista: number;
+      nomeMotorista: string;
+    } | null;
+  }> {
     const currentUserId = req.user?.sub;
     const currentUserName = req.user?.login;
-    return await this.MultaService.create(
+    return await this.multaService.create(
       multa,
+      arquivo,
+      currentUserId,
+      currentUserName,
+    );
+  }
+
+  @Post('com-arquivo')
+  @UseGuards(AuthGuard)
+  @UseInterceptors(FileInterceptor('arquivo'))
+  async criarMultaComArquivo(
+    @Body() body: any,
+    @Request() req: any,
+    @UploadedFile() arquivo?: Express.Multer.File,
+  ) {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+
+    const dados = {
+      codigoInfracao: Number(body.codigoInfracao),
+      classificacao: body.classificacao,
+      valorInfracao: Number(body.valorInfracao),
+      placaVeiculo: body.placaVeiculo,
+      dataInfracao: new Date(body.dataInfracao),
+      autoInfracao: Number(body.autoInfracao),
+    };
+
+    return await this.multaService.create(
+      dados,
+      arquivo,
       currentUserId,
       currentUserName,
     );
@@ -72,9 +113,44 @@ export class MultaController {
   ) {
     const currentUserId = req.user?.sub;
     const currentUserName = req.user?.login;
-    await this.MultaService.update(
+    await this.multaService.update(
       params.idMulta,
       multa,
+      currentUserId,
+      currentUserName,
+    );
+  }
+
+  @Put('/:idMulta/arquivo')
+  @UseGuards(AuthGuard)
+  @UseInterceptors(FileInterceptor('arquivo'))
+  async atualizarArquivo(
+    @Param('idMulta') idMulta: number,
+    @UploadedFile() arquivo: Express.Multer.File,
+    @Request() req: any,
+  ) {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+
+    await this.multaService.atualizarArquivo(
+      idMulta,
+      arquivo,
+      currentUserId,
+      currentUserName,
+    );
+  }
+
+  @Delete('/:idMulta/arquivo')
+  @UseGuards(AuthGuard)
+  async removerArquivo(
+    @Param('idMulta') idMulta: number,
+    @Request() req: any,
+  ) {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+
+    await this.multaService.removerArquivo(
+      idMulta,
       currentUserId,
       currentUserName,
     );

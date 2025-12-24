@@ -186,6 +186,39 @@ export class PercursoService {
     });
   }
 
+   async softRemove(
+    idPercurso: number,
+    currentUserId?: number,
+    currentUserName?: string,
+  ) {
+    const foundPercurso = await this.percursoRepository.findOne({
+      where: { idPercurso },
+    });
+
+
+    if (!foundPercurso) {
+      throw new NotFoundException(`Item with id ${idPercurso} not found`);
+    }
+
+    const dadosAntigos = { ...foundPercurso };
+
+    foundPercurso.ativo = false;
+
+    const updatedPercurso = await this.percursoRepository.save(foundPercurso);
+
+    const logData: LogDto = {
+      nomeTabela: 'percurso',
+      idRegistro: idPercurso,
+      operacao: 'UPDATE',
+      dadosAntigos: dadosAntigos,
+      dadosNovos: updatedPercurso,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    await this.logService.logChange(logData);
+  }
+
   async updatePercurso(
     id: number,
     percurso: PercursoDto,
@@ -224,6 +257,8 @@ export class PercursoService {
     await this.logService.logChange(logData);
   }
 
+  
+
   private mapEntityToDto(entity: PercursoEntity): PercursoDto {
     return {
       idPercurso: entity.idPercurso,
@@ -234,6 +269,7 @@ export class PercursoService {
       chegadaHora: entity.chegadaHora,
       chegadaOdometro: entity.chegadaOdometro,
       localOrigem: entity.localOrigem,
+      ativo: entity.ativo,
     };
   }
 }

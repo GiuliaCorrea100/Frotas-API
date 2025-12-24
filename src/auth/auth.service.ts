@@ -53,6 +53,7 @@ export class AuthService {
           idPessoaSigaa: loginFound.idPessoaSigaa,
           administrador: false,
           nome: loginFound.nome,
+          email: loginFound.email,
         };
         usuarioFrota = await this.usuarioService.create(novoUsuario);
         console.log(
@@ -100,7 +101,7 @@ export class AuthService {
         administrador: true,
         nome: 'ADMINISTRADOR FROTAS',
         idUsuario: 1,
-        email: 'administradorfrotas@unir.br',
+        email: 'giuliarafaela32@gmail.com',
         idPessoaSigaa: 999998, // ID fictício
       },
       {
@@ -109,7 +110,7 @@ export class AuthService {
         administrador: false,
         nome: 'MOTORISTA FROTAS',
         idUsuario: 2,
-        email: 'motoristateste@unir.br',
+        email: 'nataly.tobias11@gmail.com',
         idPessoaSigaa: 999999, // ID fictício
       },
     ];

@@ -3,6 +3,7 @@ export class UsuarioDto {
   idPessoaSigaa: number;
   administrador: boolean; //TRUE-adm FALSE-motorista
   nome: string;
+  email?: string
 }
 
 export interface FindAllParameters {
