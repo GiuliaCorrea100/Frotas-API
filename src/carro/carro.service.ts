@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CarroEntity } from 'src/db/entities/carro.entity';
 import { TipoCombustivelEntity } from 'src/db/entities/tipoCombustivel.entity';
@@ -19,81 +23,21 @@ export class carroService {
     private readonly logService: LogService,
   ) {}
 
-  async atualizarSituacao(
-    idCarro: number,
-    situacao: string,
-    currentUserId?: number,
-    currentUserName?: string,
-  ): Promise<CarroDto> {
-    const carro = await this.carroRepository.findOne({ where: { idCarro } });
-
-    if (!carro) {
-      throw new NotFoundException(`Carro com id ${idCarro} não encontrado`);
-    }
-
-    const dadosAntigos = { ...carro };
-
-    carro.situacao = situacao;
-
-    const carroAtualizado = await this.carroRepository.save(carro);
-
-    const logData: LogDto = {
-      nomeTabela: 'carro',
-      idRegistro: idCarro,
-      operacao: 'UPDATE',
-      dadosAntigos: dadosAntigos,
-      dadosNovos: carroAtualizado,
-      idUsuario: currentUserId,
-      usuario: currentUserName,
-    };
-
-    await this.logService.logChange(logData);
-
-    return this.mapEntityToDto(carroAtualizado);
-  }
-
-
-  async atualizarOdometro(
-    idCarro: number,
-    odometro: number,
-    currentUserId?: number,
-    currentUserName?: string,
-  ): Promise<CarroDto> {
-    const carro = await this.carroRepository.findOne({ where: { idCarro } });
-
-    if (!carro) {
-      throw new NotFoundException(`Item with id ${idCarro} not found`);
-    }
-
-    
-
-    const dadosAntigos = { ...carro };
-
-    
-    carro.odometro = odometro.toString();
-
-    const carroAtualizado = await this.carroRepository.save(carro);
-
-    const logData: LogDto = {
-      nomeTabela: 'carro',
-      idRegistro: idCarro,
-      operacao: 'UPDATE',
-      dadosAntigos: dadosAntigos,
-      dadosNovos: carroAtualizado,
-      idUsuario: currentUserId,
-      usuario: currentUserName,
-    };
-
-    await this.logService.logChange(logData);
-
-    return this.mapEntityToDto(carroAtualizado);
-  }
-
   async create(
     carro: CarroDto,
     currentUserId?: number,
     currentUserName?: string,
   ) {
+    const carroDuplicado = await this.carroRepository.findOne({
+      where: [{ placa: ILike(carro.placa) }, { tombo: carro.tombo }],
+    });
+
+    if (carroDuplicado) {
+      throw new ConflictException(
+        'Já existe um veículo cadastrado com estes dados.',
+      );
+    }
+
     const tipoCombustivel = await this.tipoCombustivelRepository.findOne({
       where: { idTipoCombustivel: carro.idTipoCombustivel },
     });
@@ -239,6 +183,72 @@ export class carroService {
     };
 
     await this.logService.logChange(logData);
+  }
+
+  async atualizarSituacao(
+    idCarro: number,
+    situacao: string,
+    currentUserId?: number,
+    currentUserName?: string,
+  ): Promise<CarroDto> {
+    const carro = await this.carroRepository.findOne({ where: { idCarro } });
+
+    if (!carro) {
+      throw new NotFoundException(`Carro com id ${idCarro} não encontrado`);
+    }
+
+    const dadosAntigos = { ...carro };
+
+    carro.situacao = situacao;
+
+    const carroAtualizado = await this.carroRepository.save(carro);
+
+    const logData: LogDto = {
+      nomeTabela: 'carro',
+      idRegistro: idCarro,
+      operacao: 'UPDATE',
+      dadosAntigos: dadosAntigos,
+      dadosNovos: carroAtualizado,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    await this.logService.logChange(logData);
+
+    return this.mapEntityToDto(carroAtualizado);
+  }
+
+  async atualizarOdometro(
+    idCarro: number,
+    odometro: number,
+    currentUserId?: number,
+    currentUserName?: string,
+  ): Promise<CarroDto> {
+    const carro = await this.carroRepository.findOne({ where: { idCarro } });
+
+    if (!carro) {
+      throw new NotFoundException(`Item with id ${idCarro} not found`);
+    }
+
+    const dadosAntigos = { ...carro };
+
+    carro.odometro = odometro.toString();
+
+    const carroAtualizado = await this.carroRepository.save(carro);
+
+    const logData: LogDto = {
+      nomeTabela: 'carro',
+      idRegistro: idCarro,
+      operacao: 'UPDATE',
+      dadosAntigos: dadosAntigos,
+      dadosNovos: carroAtualizado,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    await this.logService.logChange(logData);
+
+    return this.mapEntityToDto(carroAtualizado);
   }
 
   async remove(

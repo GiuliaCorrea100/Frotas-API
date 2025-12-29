@@ -16,6 +16,7 @@ export class CarroDto {
 
 export interface FindAllParameters {
   modelo: string;
+  placa: string;
   ano: number;
 }
 
