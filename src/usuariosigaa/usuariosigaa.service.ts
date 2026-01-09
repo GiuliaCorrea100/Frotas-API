@@ -19,14 +19,14 @@ export class UsuarioSigaaService {
       .leftJoinAndSelect('usuario.pessoa', 'pessoa')
       .leftJoinAndSelect('usuario.servidor', 'servidor')
       .where('usuario.login = :login', { login })
+      .andWhere('usuario.tipo IN (:...tipos)', { tipos: [1, 6] }) // 1 - Servidor, 6 - Docente externo?
+      .andWhere('servidor.idAtivo IN (:...ativos)', { ativos: [1, 7, 10, 11] }) // 1- Ativo, 7 - Cedido, 10 - Não informado e 11 - Estagiário?
       .getOne();
 
     if (!loginFound) {
-      return null;
-    }
-
-    if (!loginFound.servidor) {
-      throw new UnauthorizedException('Apenas servidores podem acessar o sistema');
+      throw new UnauthorizedException(
+        'Usuário não econtrado ou sem vínculo ativo como servidor na instituição',
+     );
     }
 
     return this.mapEntityToDto(loginFound, loginFound.pessoa.nome, loginFound.email);
