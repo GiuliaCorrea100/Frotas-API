@@ -532,7 +532,7 @@ export class CorridaService {
       idCarro: corridaEntity.idCarro,
       placaVeiculo: corridaEntity.carro?.placa,
       dataHoraLiberacaoChave: corridaEntity.dataHoraLiberacaoChave,
-      datHoraRecebimentoChave: corridaEntity.dataHoraRecebimentoChave,
+      dataHoraRecebimentoChave: corridaEntity.dataHoraRecebimentoChave,
     };
   }
 

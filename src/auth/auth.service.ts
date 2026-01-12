@@ -56,9 +56,17 @@ export class AuthService {
           email: loginFound.email,
         };
         usuarioFrota = await this.usuarioService.create(novoUsuario);
-        console.log(
-          `Usuário ${usuarioFrota.idUsuario} cadastrado. Nome: ${usuarioFrota.nome}.`,
-        );
+      } else {
+        // Caso o usuário já exista, confere o e-mail (atual do SIGAA e Frotas) para atualizar caso seja necessário
+        if (
+          loginFound.email &&
+          loginFound.email !== usuarioFrota.email
+        ) {
+          usuarioFrota = await this.usuarioService.update(
+            usuarioFrota.idUsuario,
+            { ...usuarioFrota, email: loginFound.email },
+          );
+        }
       }
 
       const payload = {

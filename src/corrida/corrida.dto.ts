@@ -7,7 +7,7 @@ export class CorridaDto {
   idMotorista: number;
 
   chaveEmprestada: boolean;
-  datHoraRecebimentoChave: Date;
+  dataHoraRecebimentoChave: Date;
   dataHoraLiberacaoChave: Date;
 
   idCarro: number;
