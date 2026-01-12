@@ -1,7 +1,9 @@
 /* eslint-disable prettier/prettier */
+/* src/dbsigaa/dbsigaa.module */
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { SigaaPoolManager } from './sigaa-pool-manager.service';
 
 @Module({
   imports: [
@@ -25,7 +27,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
               `Variáveis de ambiente faltando para conexão SIGAA: ${missingVars.join(', ')}`,
             );
           }
-          return {
+          
+          const pgConfig: any = {
             type: 'postgres',
             host: configService.get<string>('DB_HOST_SIGAA'),
             port: +configService.get<string>('DB_PORT_SIGAA'),
@@ -35,19 +38,33 @@ import { TypeOrmModule } from '@nestjs/typeorm';
             entities: [__dirname + '/entities/**/*.entity.{js,ts}'],
             migrations: [__dirname + '/migrations/**/*.{js,ts}'],
             synchronize: false,
+            poolSize: 25,
+            connectTimeoutMS: 10000,
+            extra: {
+              max: 25,
+              min: 5,
+              idleTimeoutMillis: 1800000,
+              connectionTimeoutMillis: 10000,
+            }
           };
+          
+          return pgConfig;
         } else {
           // Configuração para modo TEST (conexão mock)
-          return {
+          const sqliteConfig: any = {
             type: 'sqlite',
             database: ':memory:',
-            entities: [], // Não carrega entidades no modo TEST
-            synchronize: false, 
+            entities: [],
+            synchronize: false,
           };
+          
+          return sqliteConfig;
         }
       },
       inject: [ConfigService],
     }),
   ],
+  providers: [SigaaPoolManager],
+  exports: [SigaaPoolManager],
 })
 export class DbSigaaModule {}

@@ -1,4 +1,5 @@
 /* eslint-disable prettier/prettier */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Injectable, Optional, UnauthorizedException } from '@nestjs/common';
 import { UsuarioService } from '../usuario/usuario.service';
 import { ConfigService } from '@nestjs/config';
@@ -6,17 +7,19 @@ import { AuthResponseDto } from './auth.dto';
 import { JwtService } from '@nestjs/jwt';
 import { md5 } from 'src/util/md5';
 import { UsuarioSigaaService } from 'src/usuariosigaa/usuariosigaa.service';
+import { GoogleRecaptchaValidator } from '@nestlab/google-recaptcha';
 
 @Injectable()
 export class AuthService {
   private jwtExpirationTimeInSeconds: number;
-
 
   constructor(
     private readonly usuarioService: UsuarioService,
     private readonly usuarioSigaaService: UsuarioSigaaService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly recaptchaValidator: GoogleRecaptchaValidator,
+
   ) {
     const expirationTime = this.configService.get<number>('JWT_EXPIRATION_TIME');
     if (expirationTime === undefined) {
@@ -67,6 +70,7 @@ export class AuthService {
         nome: loginFound.nome,
         administrador: usuarioFrota.administrador,
         idUsuario: usuarioFrota.idUsuario,
+        email: loginFound.email,
       };
 
       const token = this.jwtService.sign(payload, {
@@ -128,6 +132,7 @@ export class AuthService {
       nome: usuario.nome,
       administrador: usuario.administrador,
       idUsuario: usuario.idUsuario,
+      email: usuario.email,
     };
 
     const token = this.jwtService.sign(payload, {
@@ -145,5 +150,47 @@ export class AuthService {
     };
   }
 
-  
+  async renewToken(token: string): Promise<AuthResponseDto> {
+    try {
+      // Verifica se o token é válido e decodifica
+      const decoded = this.jwtService.verify(token);
+      
+      // Verifica se tem os campos obrigatórios
+      if (!decoded.sub || !decoded.login || !decoded.nome) {
+        throw new UnauthorizedException('Token com dados incompletos');
+      }
+
+      // Gera novo token com os mesmos dados do token antigo
+      const newToken = this.jwtService.sign(
+        {
+          sub: decoded.sub, // ID do usuário
+          login: decoded.login, // Login/CPF
+          nome: decoded.nome, // Nome completo
+          administrador: decoded.administrador || false, // Permissão de admin
+          idUsuario: decoded.idUsuario || decoded.sub, // ID do usuário (fallback)
+          email: decoded.email || '', // Email
+        },
+        {
+          expiresIn: `${this.jwtExpirationTimeInSeconds}s`,
+        }
+      );
+
+      //console.log(`Token renovado para: ${decoded.nome} (${decoded.login})`);
+
+      // Retorna os mesmos dados que estavam no token original
+      return {
+        token: newToken,
+        expiresIn: this.jwtExpirationTimeInSeconds,
+        username: decoded.login,
+        administrador: decoded.administrador || false,
+        nome: decoded.nome,
+        email: decoded.email || '',
+        idUsuario: decoded.idUsuario || decoded.sub,
+      };
+    } catch (error) {
+      console.error('❌ Erro na renovação do token:', error);
+      
+    }
+  }
+
 }
