@@ -1,10 +1,9 @@
 /* eslint-disable prettier/prettier */
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UsuarioSigaaDto } from './usuariosigaa.dto';
 import { UsuarioSigaaEntity } from 'src/dbsigaa/entities/usuariosigaa.entity';
-import { ServidorSigaaEntity } from 'src/dbsigaa/entities/servidorsigaa.entity';
 import { md5 } from 'src/util/md5';
 
 @Injectable()
@@ -13,9 +12,6 @@ export class UsuarioSigaaService {
   constructor(
     @InjectRepository(UsuarioSigaaEntity, 'sigaaConnection')
     private readonly usuarioSigaaRepository: Repository<UsuarioSigaaEntity>,
-    
-    @InjectRepository(ServidorSigaaEntity, 'sigaaConnection')
-    private readonly servidorRepository: Repository<ServidorSigaaEntity>,
   ) { }
 
   async findByUserLogin(login: string): Promise<UsuarioSigaaDto | null> {
@@ -23,10 +19,14 @@ export class UsuarioSigaaService {
       .leftJoinAndSelect('usuario.pessoa', 'pessoa')
       .leftJoinAndSelect('usuario.servidor', 'servidor')
       .where('usuario.login = :login', { login })
+      .andWhere('usuario.tipo IN (:...tipos)', { tipos: [1] }) // 1 - Servidor
+      .andWhere('servidor.idAtivo IN (:...ativos)', { ativos: [1, 7, 10, 11] }) // 1- Ativo, 7 - Cedido, 10 - Não informado e 11 - Estagiário?
       .getOne();
 
     if (!loginFound) {
-      return null;
+      throw new UnauthorizedException(
+        'Usuário não econtrado ou sem vínculo ativo como servidor na instituição',
+     );
     }
 
     return this.mapEntityToDto(loginFound, loginFound.pessoa.nome, loginFound.email);
@@ -67,7 +67,7 @@ export class UsuarioSigaaService {
     }
   }
 
-  private mapEntityToDto(userEntity: UsuarioSigaaEntity, nome: string, email: string, tipoUsuario?: string): UsuarioSigaaDto {
+  private mapEntityToDto(userEntity: UsuarioSigaaEntity, nome: string, email: string): UsuarioSigaaDto {
     return {
       idUsuarioSigaa: userEntity.idUsuarioSigaa,
       idPessoaSigaa: userEntity.idPessoaSigaa,
@@ -75,7 +75,6 @@ export class UsuarioSigaaService {
       senha: userEntity.senha,
       nome: nome,
       email: email,
-       ...(tipoUsuario && { tipoUsuario })
     }
   }
 }
