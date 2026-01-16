@@ -10,6 +10,7 @@ export class MultaDto {
   idMotorista?: number;
   nomeMotorista?: string;
   urlArquivo?: string;
+  urlComprovantePagamento?: string;
   motorista?: {
     idUsuario?: number;
     nome?: string;

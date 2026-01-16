@@ -320,6 +320,39 @@ export class MultaService {
     await this.logService.logChange(logData);
   }
 
+  async atualizarComprovantePagamento(
+    idMulta: number,
+    arquivo: Express.Multer.File,
+    currentUserId?: number,
+    currentUserName?: string,
+  ) {
+    const foundMulta = await this.MultaRepository.findOne({
+      where: { idMulta },
+    });
+
+    if (!foundMulta) {
+      throw new NotFoundException(`Multa com id ${idMulta} não encontrada`);
+    }
+
+    const dadosAntigos = { ...foundMulta };
+
+    const url = await this.anexoService.salvarArquivo(arquivo);
+
+    foundMulta.urlComprovantePagamento = url;
+
+    const updatedMulta = await this.MultaRepository.save(foundMulta);
+
+    await this.logService.logChange({
+      nomeTabela: 'multa',
+      idRegistro: idMulta,
+      operacao: 'UPDATE',
+      dadosAntigos,
+      dadosNovos: updatedMulta,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    });
+  }
+
   private mapEntityToDto(MultaEntity: MultaEntity): MultaDto {
     return {
       idMulta: MultaEntity.idMulta,
@@ -331,6 +364,7 @@ export class MultaService {
       autoInfracao: MultaEntity.autoInfracao,
       ativa: MultaEntity.ativa,
       urlArquivo: MultaEntity.urlArquivo,
+      urlComprovantePagamento: MultaEntity.urlComprovantePagamento,
       idMotorista: MultaEntity.idMotorista,
       nomeMotorista: MultaEntity.motorista?.nome,
       motorista: MultaEntity.motorista
@@ -353,6 +387,7 @@ export class MultaService {
       dataInfracao: MultaDto.dataInfracao,
       autoInfracao: MultaDto.autoInfracao,
       ativa: MultaDto.ativa,
+      urlComprovantePagamento: MultaDto.urlComprovantePagamento,
     };
   }
 }

@@ -140,6 +140,25 @@ export class MultaController {
     );
   }
 
+  @Put('/:idMulta/comprovante')
+  @UseGuards(AuthGuard)
+  @UseInterceptors(FileInterceptor('arquivo'))
+  async atualizarComprovante(
+    @Param('idMulta') idMulta: number,
+    @UploadedFile() arquivo: Express.Multer.File,
+    @Request() req: any,
+  ) {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+
+    await this.multaService.atualizarComprovantePagamento(
+      idMulta,
+      arquivo,
+      currentUserId,
+      currentUserName,
+    );
+  }
+
   @Delete('/:idMulta/arquivo')
   @UseGuards(AuthGuard)
   async removerArquivo(
