@@ -248,4 +248,70 @@ export class RelatorioService {
       tabela,
     };
   }
+
+  async getAbastecimentos(ano: number) {
+    // buscar abastecimentos do ano
+    const abastecimentos = await this.abastecimentoService.findByAno(ano);
+
+    // total litro e valor
+    const totalLitros = abastecimentos.reduce(
+      (acc, a) => acc + (Number(a.quantidade) || 0),
+      0,
+    );
+
+    const totalValor = abastecimentos.reduce(
+      (acc, a) => acc + (Number(a.valorTotal) || 0),
+      0,
+    );
+
+    // custo por tipo de combustível
+    const custoPorCombustivelMap: Record<string, number> = {};
+    for (const a of abastecimentos) {
+      const tipo = a.tipoCombustivel?.nome || 'Não especificado';
+      custoPorCombustivelMap[tipo] =
+        (custoPorCombustivelMap[tipo] || 0) + (Number(a.valorTotal) || 0);
+    }
+    const custoPorCombustivel = Object.entries(custoPorCombustivelMap).map(
+      ([name, value]) => ({ name, value }),
+    );
+
+    // consumo mensal (litros e valor)
+    const meses = Array.from({ length: 12 }, (_, i) => i);
+    const consumoMensal = meses.map((mes) => {
+      let litros = 0;
+      let valor = 0;
+      for (const a of abastecimentos) {
+        const data = new Date(a.dataAbastecimento);
+        if (data.getFullYear() === ano && data.getMonth() === mes) {
+          litros += Number(a.quantidade) || 0;
+          valor += Number(a.valorTotal) || 0;
+        }
+      }
+      const nomeMes = new Date(0, mes).toLocaleString('pt-BR', {
+        month: 'short',
+      });
+      const mesFormatado = nomeMes.charAt(0).toUpperCase() + nomeMes.slice(1);
+      return { mes: mesFormatado, Litros: litros, Valor: valor };
+    });
+
+    const tabela = abastecimentos.map((a) => ({
+      id: a.idAbastecimento,
+      data: a.dataAbastecimento,
+      placa: a.corrida?.carro?.placa || 'N/A',
+      motorista: a.corrida?.motorista?.nome || 'N/A',
+      tipoCombustivel: a.tipoCombustivel?.nome || 'N/A',
+      quantidade: Number(a.quantidade) || 0,
+      valorTotal: Number(a.valorTotal) || 0,
+    }));
+
+    return {
+      resumo: {
+        totalLitros,
+        totalValor,
+      },
+      custoPorCombustivel,
+      consumoMensal,
+      tabela,
+    };
+  }
 }

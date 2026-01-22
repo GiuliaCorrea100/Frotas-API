@@ -38,6 +38,8 @@ export class AbastecimentoEntity {
   @Column({ type: 'boolean', name: 'ativo' })
   ativo?: boolean;
 
+  @Column({ type: 'int', name: 'id_corrida' })
+  idCorrida: number;
 
   //CHAVE ESTRANGEIRA
   @ManyToOne(() => TipoCombustivelEntity)
@@ -46,5 +48,5 @@ export class AbastecimentoEntity {
 
   @ManyToOne(() => CorridaEntity)
   @JoinColumn({ name: 'id_corrida' })
-  idCorrida: CorridaEntity;
+  corrida: CorridaEntity;
 }

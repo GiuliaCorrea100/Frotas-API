@@ -44,4 +44,11 @@ export class RelatorioController {
     const ano = Number(anoStr) || new Date().getFullYear();
     return this.relatorioService.getVeiculos(ano);
   }
+
+  // Aba de Abastecimentos
+  @Get('abastecimentos')
+  async getAbastecimentos(@Query('ano') anoStr?: string) {
+    const ano = Number(anoStr) || new Date().getFullYear();
+    return this.relatorioService.getAbastecimentos(ano);
+  }
 }
