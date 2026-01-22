@@ -272,7 +272,10 @@ export class RelatorioService {
         (custoPorCombustivelMap[tipo] || 0) + (Number(a.valorTotal) || 0);
     }
     const custoPorCombustivel = Object.entries(custoPorCombustivelMap).map(
-      ([name, value]) => ({ name, value }),
+      ([name, value]) => ({
+        name,
+        value: Number(value.toFixed(2)),
+      }),
     );
 
     // consumo mensal (litros e valor)

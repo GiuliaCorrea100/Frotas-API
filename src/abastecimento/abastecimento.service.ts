@@ -85,7 +85,7 @@ export class AbastecimentoService {
   async findById(idAbastecimento: number): Promise<AbastecimentoDto> {
     const foundAbastecimento = await this.abastecimentoRepository.findOne({
       where: { idAbastecimento },
-      relations: ['tipoCombustivel', 'idCorrida'],
+      relations: ['tipoCombustivel', 'corrida'],
     });
 
     if (!foundAbastecimento) {
@@ -99,8 +99,8 @@ export class AbastecimentoService {
     const foundAbastecimentos = await this.abastecimentoRepository
       .createQueryBuilder('abastecimento')
       .leftJoinAndSelect('abastecimento.tipoCombustivel', 'combustivel')
-      .leftJoinAndSelect('abastecimento.idCorrida', 'corrida')
-      .where('abastecimento.idCorrida = :idCorrida', { idCorrida })
+      .leftJoinAndSelect('abastecimento.corrida', 'corrida')
+      .where('corrida.idCorrida = :idCorrida', { idCorrida })
       .getMany();
 
     if (!foundAbastecimentos) {
