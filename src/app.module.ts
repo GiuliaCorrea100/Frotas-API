@@ -20,6 +20,7 @@ import { ServidorsigaaModule } from './servidorsigaa/servidorsigaa.module';
 import { EmailModule } from './email/email.module';
 import { AnexoModule } from './anexo/anexo.module';
 import { GoogleRecaptchaModule } from '@nestlab/google-recaptcha';
+import { RelatorioModule } from './relatorio/relatorio.module';
 
 
 @Module({
@@ -48,6 +49,7 @@ import { GoogleRecaptchaModule } from '@nestlab/google-recaptcha';
         actions: ['SignUp', 'SignIn', 'login'],
         score: 0.8,
     }),
+    RelatorioModule,
 
   ],
   controllers: [AppController],
