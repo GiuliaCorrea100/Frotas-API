@@ -297,15 +297,26 @@ export class RelatorioService {
       return { mes: mesFormatado, Litros: litros, Valor: valor };
     });
 
-    const tabela = abastecimentos.map((a) => ({
-      id: a.idAbastecimento,
-      data: a.dataAbastecimento,
-      placa: a.corrida?.carro?.placa || 'N/A',
-      motorista: a.corrida?.motorista?.nome || 'N/A',
-      tipoCombustivel: a.tipoCombustivel?.nome || 'N/A',
-      quantidade: Number(a.quantidade) || 0,
-      valorTotal: Number(a.valorTotal) || 0,
-    }));
+    // consumo por campus (localidade_fisica)
+    const consumoPorCampusMap: Record<
+      string,
+      { litros: number; valor: number }
+    > = {};
+    for (const a of abastecimentos) {
+      const campus = a.corrida?.carro?.localidadeFisica || 'Não especificado';
+      if (!consumoPorCampusMap[campus]) {
+        consumoPorCampusMap[campus] = { litros: 0, valor: 0 };
+      }
+      consumoPorCampusMap[campus].litros += Number(a.quantidade) || 0;
+      consumoPorCampusMap[campus].valor += Number(a.valorTotal) || 0;
+    }
+    const consumoPorCampus = Object.entries(consumoPorCampusMap)
+      .map(([campus, { litros, valor }]) => ({
+        campus,
+        litros: Number(litros.toFixed(2)),
+        valor: Number(valor.toFixed(2)),
+      }))
+      .sort((a, b) => b.litros - a.litros);
 
     return {
       resumo: {
@@ -314,7 +325,7 @@ export class RelatorioService {
       },
       custoPorCombustivel,
       consumoMensal,
-      tabela,
+      consumoPorCampus,
     };
   }
 
