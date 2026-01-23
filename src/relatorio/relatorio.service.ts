@@ -317,4 +317,60 @@ export class RelatorioService {
       tabela,
     };
   }
+
+  // async getMultas(ano: number) {
+  //   // buscar multas do ano
+
+  //   // resumo por classificaçã
+
+  //   // multas por veículo
+
+  //   // multas por mês
+
+  //   return {
+  //     resumo: {
+  //       totalMultas: multas.length,
+  //     },
+  //     porTipoInfracao,
+  //     multasPorVeiculo,
+  //     multasPorMes,
+  //     tabela,
+  //   };
+  // }
+
+  async getOcorrencias(ano: number) {
+    // buscar ocorrências do ano com joins
+    const ocorrencias = await this.ocorrenciaService.findByAno(ano);
+
+    // ocorrências por veículo
+    const ocorrenciasPorVeiculoMap: Record<string, number> = {};
+    for (const o of ocorrencias) {
+      const placa = o.corrida?.carro?.placa || 'N/A';
+      ocorrenciasPorVeiculoMap[placa] =
+        (ocorrenciasPorVeiculoMap[placa] || 0) + 1;
+    }
+    const ocorrenciasPorVeiculo = Object.entries(ocorrenciasPorVeiculoMap)
+      .map(([placa, quantidade]) => ({
+        placa,
+        quantidade,
+      }))
+      .sort((a, b) => b.quantidade - a.quantidade);
+
+    const tabela = ocorrencias.map((o) => ({
+      id: o.idOcorrencia,
+      dataOcorrencia: o.dataOcorrencia,
+      placa: o.corrida?.carro?.placa || 'N/A',
+      motorista: o.corrida?.motorista?.nome || 'N/A',
+      descricao: o.descricao || 'N/A',
+    }));
+
+    return {
+      resumo: {
+        totalOcorrencias: ocorrencias.length,
+      },
+
+      ocorrenciasPorVeiculo,
+      tabela,
+    };
+  }
 }

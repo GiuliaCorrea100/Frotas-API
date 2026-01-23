@@ -82,6 +82,17 @@ export class ocorrenciaService {
     return ocorrenciaFound.map((entity) => this.mapEntityToDto(entity));
   }
 
+  async findByAno(ano: number): Promise<OcorrenciaEntity[]> {
+    return this.ocorrenciaRepository
+      .createQueryBuilder('o')
+      .innerJoinAndSelect('o.corrida', 'corrida')
+      .innerJoinAndSelect('corrida.carro', 'carro')
+      .innerJoinAndSelect('corrida.motorista', 'motorista')
+      .where('EXTRACT(YEAR FROM o.dataOcorrencia) = :ano', { ano })
+      .orderBy('o.dataOcorrencia', 'DESC')
+      .getMany();
+  }
+
   async update(
     idOcorrencia: number,
     ocorrencia: ocorrenciaDto,
@@ -139,7 +150,8 @@ export class ocorrenciaService {
     foundOcorrencia.descricao = ocorrencia.descricao;
     foundOcorrencia.dataOcorrencia = ocorrencia.dataOcorrencia;
 
-    const updatedOcorrencia = await this.ocorrenciaRepository.save(foundOcorrencia);
+    const updatedOcorrencia =
+      await this.ocorrenciaRepository.save(foundOcorrencia);
 
     // await this.ocorrenciaRepository.update(idOcorrencia, { descricao });
 
@@ -203,7 +215,6 @@ export class ocorrenciaService {
       where: { idOcorrencia },
     });
 
-
     if (!foundOcorrencia) {
       throw new NotFoundException(`Item with id ${idOcorrencia} not found`);
     }
@@ -212,7 +223,8 @@ export class ocorrenciaService {
 
     foundOcorrencia.ativa = false;
 
-    const updatedOcorrencia = await this.ocorrenciaRepository.save(foundOcorrencia);
+    const updatedOcorrencia =
+      await this.ocorrenciaRepository.save(foundOcorrencia);
 
     // const logData: LogDto = {
     //   nomeTabela: 'percurso',
@@ -226,8 +238,6 @@ export class ocorrenciaService {
 
     // await this.logService.logChange(logData);
   }
-
-
 
   private mapEntityToDto(OcorrenciaEntity: OcorrenciaEntity): ocorrenciaDto {
     return {
