@@ -54,13 +54,14 @@ export class MultaController {
 
   @Post()
   @UseGuards(AuthGuard)
-  @UseInterceptors(FileInterceptor('arquivo'))
+  @UseInterceptors(FileInterceptor('file'))
   async create(
     @Body() multa: MultaDto,
     @Request() req: any,
-    @UploadedFile() arquivo?: Express.Multer.File,
+    @UploadedFile() file?: Express.Multer.File,
   ): Promise<{
     multa: MultaDto;
+    mensagem?: string;
     motoristaResponsavel?: {
       idMotorista: number;
       nomeMotorista: string;
@@ -70,7 +71,7 @@ export class MultaController {
     const currentUserName = req.user?.login;
     return await this.multaService.create(
       multa,
-      arquivo,
+      file,
       currentUserId,
       currentUserName,
     );
