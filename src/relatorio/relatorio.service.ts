@@ -15,92 +15,6 @@ export class RelatorioService {
     private readonly ocorrenciaService: ocorrenciaService,
   ) {}
 
-  async getCorridas(ano: number): Promise<{
-    resumo: {
-      totalCorridas: number;
-      porSituacao: { situacao: string; quantidade: number }[];
-    };
-    desempenhoMotoristas: {
-      idMotorista: number | null;
-      nome: string;
-      corridas: number;
-    }[];
-    tabela: {
-      id: number;
-      motorista: string;
-      veiculo: string;
-      situacao: string;
-      dataInicio: string;
-      dataTermino: string | null;
-      localSaida: string | null;
-    }[];
-  }> {
-    const inicio = new Date(ano, 0, 1, 0, 0, 0);
-    const fim = new Date(ano, 11, 31, 23, 59, 59);
-
-    // 1) buscar corridas do ano
-    const corridas = await this.corridaService.findByAno(ano);
-
-    // resumo.totalCorridas
-    const totalCorridas = corridas.length;
-
-    // resumo.porSituacao
-    const mapaSituacao: Record<string, number> = {};
-    for (const c of corridas) {
-      const sit = c.situacao || 'N/A';
-      mapaSituacao[sit] = (mapaSituacao[sit] || 0) + 1;
-    }
-    const porSituacao = Object.entries(mapaSituacao).map(
-      ([situacao, quantidade]) => ({
-        situacao,
-        quantidade,
-      }),
-    );
-
-    // topMotoristas
-    const mapaMotoristas = new Map<
-      number | null,
-      { idMotorista: number | null; nome: string; corridas: number }
-    >();
-
-    for (const c of corridas) {
-      const id = c.motorista?.idUsuario ?? null;
-      const nome = c.motorista?.nome ?? 'N/A';
-
-      const atual = mapaMotoristas.get(id) ?? {
-        idMotorista: id,
-        nome,
-        corridas: 0,
-      };
-      atual.corridas++;
-      mapaMotoristas.set(id, atual);
-    }
-
-    const desempenhoMotoristas = Array.from(mapaMotoristas.values())
-      .sort((a, b) => b.corridas - a.corridas)
-      .slice(0, 10);
-
-    // tabela
-    const tabela = corridas.map((c) => ({
-      id: c.idCorrida,
-      motorista: c.motorista?.nome ?? c.motorista.nome ?? 'N/A',
-      veiculo: c.carro?.placa ?? c.carro.placa ?? 'N/A',
-      situacao: c.situacao ?? 'N/A',
-      dataInicio: c.dataInicio?.toISOString(),
-      dataTermino: c.dataTermino?.toISOString() ?? null,
-      localSaida: c.localDeSaida ?? null,
-    }));
-
-    return {
-      resumo: {
-        totalCorridas,
-        porSituacao,
-      },
-      desempenhoMotoristas,
-      tabela,
-    };
-  }
-
   async getVisaoGeral(ano: number) {
     const inicio = new Date(ano, 0, 1, 0, 0, 0);
     const fim = new Date(ano, 11, 31, 23, 59, 59);
@@ -142,6 +56,91 @@ export class RelatorioService {
     };
   }
 
+  async getCorridas(ano: number): Promise<{
+    resumo: {
+      totalCorridas: number;
+      porSituacao: { situacao: string; quantidade: number }[];
+    };
+    desempenhoMotoristas: {
+      idMotorista: number | null;
+      nome: string;
+      corridas: number;
+    }[];
+    tabela: {
+      id: number;
+      motorista: string;
+      veiculo: string;
+      situacao: string;
+      dataInicio: string;
+      dataTermino: string | null;
+      localSaida: string | null;
+    }[];
+  }> {
+    const inicio = new Date(ano, 0, 1, 0, 0, 0);
+    const fim = new Date(ano, 11, 31, 23, 59, 59);
+
+    // Buscar corridas do ano
+    const corridas = await this.corridaService.findByAno(ano);
+
+    const totalCorridas = corridas.length;
+
+    // Resumo por situação
+    const mapaSituacao: Record<string, number> = {};
+    for (const c of corridas) {
+      const sit = c.situacao || 'N/A';
+      mapaSituacao[sit] = (mapaSituacao[sit] || 0) + 1;
+    }
+    const porSituacao = Object.entries(mapaSituacao).map(
+      ([situacao, quantidade]) => ({
+        situacao,
+        quantidade,
+      }),
+    );
+
+    // Desempenho dos motoristas - ranking
+    const mapaMotoristas = new Map<
+      number | null,
+      { idMotorista: number | null; nome: string; corridas: number }
+    >();
+
+    for (const c of corridas) {
+      const id = c.motorista?.idUsuario ?? null;
+      const nome = c.motorista?.nome ?? 'N/A';
+
+      const atual = mapaMotoristas.get(id) ?? {
+        idMotorista: id,
+        nome,
+        corridas: 0,
+      };
+      atual.corridas++;
+      mapaMotoristas.set(id, atual);
+    }
+
+    const desempenhoMotoristas = Array.from(mapaMotoristas.values())
+      .sort((a, b) => b.corridas - a.corridas)
+      .slice(0, 10);
+
+    // Tabela detalhada
+    const tabela = corridas.map((c) => ({
+      id: c.idCorrida,
+      motorista: c.motorista?.nome ?? c.motorista.nome ?? 'N/A',
+      veiculo: c.carro?.placa ?? c.carro.placa ?? 'N/A',
+      situacao: c.situacao ?? 'N/A',
+      dataInicio: c.dataInicio?.toISOString(),
+      dataTermino: c.dataTermino?.toISOString() ?? null,
+      localSaida: c.localDeSaida ?? null,
+    }));
+
+    return {
+      resumo: {
+        totalCorridas,
+        porSituacao,
+      },
+      desempenhoMotoristas,
+      tabela,
+    };
+  }
+
   async getVeiculos(ano: number): Promise<{
     resumo: {
       totalVeiculos: number;
@@ -161,16 +160,16 @@ export class RelatorioService {
       statusUtilizacao: 'Normal' | 'Ocioso' | 'Superutilizado';
     }[];
   }> {
-    // 1) buscar carros (frota)
+    // Buscar carros (frota)
     const carros = await this.carroService.findAll({
       modelo: '',
       placa: '',
     });
 
-    // 2) buscar corridas do ano (para uso/ociosidade)
+    // Buscar corridas do ano (para uso/ociosidade)
     const corridasAno = await this.corridaService.findByAno(ano);
 
-    // 3) resumo por situação
+    // Resumo por situação
     const situacaoCounts = carros.reduce((acc: Record<string, number>, c) => {
       const situacao = c.situacao || 'INDEFINIDA';
       acc[situacao] = (acc[situacao] || 0) + 1;
@@ -189,7 +188,7 @@ export class RelatorioService {
       (situacaoCounts['RESERVADO'] || 0) + (situacaoCounts['VIAGEM'] || 0);
     const emManutencao = situacaoCounts['MANUTENCAO'] || 0;
 
-    // 4) mapa de corridas por veículo
+    // Mapa de corridas por veículo
     const corridasPorVeiculo = corridasAno.reduce(
       (acc: Record<number, number>, c: any) => {
         const idCarro = c.veiculo?.idCarro || c.idCarro;
@@ -210,7 +209,7 @@ export class RelatorioService {
       .sort((a, b) => b.corridas - a.corridas)
       .slice(0, 10);
 
-    // 5) tabela detalhada + cálculo de ociosos
+    // Tabela detalhada + cálculo de ociosos
     const tabela = carros.map((v: any) => {
       const totalCorridas = corridasPorVeiculo[v.idCarro] || 0;
 
@@ -253,7 +252,7 @@ export class RelatorioService {
     // buscar abastecimentos do ano
     const abastecimentos = await this.abastecimentoService.findByAno(ano);
 
-    // total litro e valor
+    // Total (litros e valor)
     const totalLitros = abastecimentos.reduce(
       (acc, a) => acc + (Number(a.quantidade) || 0),
       0,
@@ -264,7 +263,7 @@ export class RelatorioService {
       0,
     );
 
-    // custo por tipo de combustível
+    // Custo por tipo de combustível
     const custoPorCombustivelMap: Record<string, number> = {};
     for (const a of abastecimentos) {
       const tipo = a.tipoCombustivel?.nome || 'Não especificado';
@@ -278,7 +277,7 @@ export class RelatorioService {
       }),
     );
 
-    // consumo mensal (litros e valor)
+    // Consumo mensal (litros e valor)
     const meses = Array.from({ length: 12 }, (_, i) => i);
     const consumoMensal = meses.map((mes) => {
       let litros = 0;
@@ -294,10 +293,14 @@ export class RelatorioService {
         month: 'short',
       });
       const mesFormatado = nomeMes.charAt(0).toUpperCase() + nomeMes.slice(1);
-      return { mes: mesFormatado, Litros: litros, Valor: valor };
+      return {
+        mes: mesFormatado,
+        Litros: Number(litros.toFixed(2)),
+        Valor: Number(valor.toFixed(2)),
+      };
     });
 
-    // consumo por campus (localidade_fisica)
+    // Consumo por campus (localidade_fisica do veículo)
     const consumoPorCampusMap: Record<
       string,
       { litros: number; valor: number }
@@ -350,10 +353,10 @@ export class RelatorioService {
   // }
 
   async getOcorrencias(ano: number) {
-    // buscar ocorrências do ano com joins
+    // Buscar ocorrências do ano com joins
     const ocorrencias = await this.ocorrenciaService.findByAno(ano);
 
-    // ocorrências por veículo
+    // Ocorrências por veículo
     const ocorrenciasPorVeiculoMap: Record<string, number> = {};
     for (const o of ocorrencias) {
       const placa = o.corrida?.carro?.placa || 'N/A';
