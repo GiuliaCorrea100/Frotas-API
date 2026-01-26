@@ -370,21 +370,12 @@ export class RelatorioService {
       }))
       .sort((a, b) => b.quantidade - a.quantidade);
 
-    const tabela = ocorrencias.map((o) => ({
-      id: o.idOcorrencia,
-      dataOcorrencia: o.dataOcorrencia,
-      placa: o.corrida?.carro?.placa || 'N/A',
-      motorista: o.corrida?.motorista?.nome || 'N/A',
-      descricao: o.descricao || 'N/A',
-    }));
-
     return {
       resumo: {
         totalOcorrencias: ocorrencias.length,
       },
 
       ocorrenciasPorVeiculo,
-      tabela,
     };
   }
 }
