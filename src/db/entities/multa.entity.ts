@@ -1,6 +1,5 @@
 import {
   Column,
-  CreateDateColumn,
   Entity,
   PrimaryGeneratedColumn,
   ManyToOne,
@@ -28,7 +27,7 @@ export class MultaEntity {
   @Column({ type: 'varchar', name: 'placa_veiculo' })
   placaVeiculo: string;
 
-  @CreateDateColumn({
+  @Column({
     type: 'timestamp without time zone',
     name: 'data_infracao',
   })
@@ -37,8 +36,18 @@ export class MultaEntity {
   @Column({ type: 'int', name: 'num_auto_infracao' })
   autoInfracao: number;
 
+  @Column({ type: 'varchar', name: 'situacao', nullable: true })
+  situacao?: string;
+
   @Column({ type: 'varchar', name: 'url_arquivo', nullable: true })
   urlArquivo?: string;
+
+  @Column({
+    type: 'varchar',
+    name: 'url_comprovante_pagamento',
+    nullable: true,
+  })
+  urlComprovantePagamento?: string;
 
   @Column({ type: 'int', name: 'id_motorista', nullable: true })
   idMotorista?: number;

@@ -37,12 +37,15 @@ export class MultaService {
     currentUserName?: string,
   ): Promise<{
     multa: MultaDto;
+    mensagem?: string;
     motoristaResponsavel?: {
       idMotorista: number;
       nomeMotorista: string;
     } | null;
   }> {
     let motoristaResponsavel = null;
+    let situacao = 'MOTORISTA NAO IDENTIFICADO';
+    let mensagem: string | undefined;
 
     try {
       const corridaEncontrada =
@@ -57,8 +60,13 @@ export class MultaService {
           nomeMotorista:
             corridaEncontrada.nomeMotorista || 'Motorista não identificado',
         };
+        situacao = 'ATRIBUIDA';
+      } else {
+        mensagem = 'Não foi possível identificar o motorista responsável pela multa.';
       }
-    } catch (error) {}
+    } catch (error) {
+      mensagem = 'Não foi possível identificar o motorista responsável pela multa.';
+    }
 
     let urlArquivo = null;
 
@@ -75,12 +83,13 @@ export class MultaService {
       placaVeiculo: multa.placaVeiculo,
       dataInfracao: multa.dataInfracao,
       autoInfracao: multa.autoInfracao,
+      situacao: situacao,
       urlArquivo: urlArquivo,
       idMotorista: motoristaResponsavel
         ? motoristaResponsavel.idMotorista
         : null,
       ativa: true,
-    };
+    } as MultaEntity;
 
     const savedMulta = await this.MultaRepository.save(multaToSave);
 
@@ -119,13 +128,10 @@ export class MultaService {
     }
 
     const dto = this.mapEntityToDto(savedMulta);
-    if (motoristaResponsavel) {
-      dto.idMotorista = motoristaResponsavel.idMotorista;
-      dto.nomeMotorista = motoristaResponsavel.nomeMotorista;
-    }
-
+    
     return {
       multa: dto,
+      mensagem,
       motoristaResponsavel,
     };
   }
@@ -216,7 +222,7 @@ export class MultaService {
     });
 
     if (!foundMulta) {
-      throw new NotFoundException(`Item with id ${multa.idMulta} not found`);
+      throw new NotFoundException(`Item with id ${idMulta} not found`);
     }
 
     const dadosAntigos = { ...foundMulta };
@@ -320,6 +326,39 @@ export class MultaService {
     await this.logService.logChange(logData);
   }
 
+  async atualizarComprovantePagamento(
+    idMulta: number,
+    arquivo: Express.Multer.File,
+    currentUserId?: number,
+    currentUserName?: string,
+  ) {
+    const foundMulta = await this.MultaRepository.findOne({
+      where: { idMulta },
+    });
+
+    if (!foundMulta) {
+      throw new NotFoundException(`Multa com id ${idMulta} não encontrada`);
+    }
+
+    const dadosAntigos = { ...foundMulta };
+
+    const url = await this.anexoService.salvarArquivo(arquivo);
+
+    foundMulta.urlComprovantePagamento = url;
+
+    const updatedMulta = await this.MultaRepository.save(foundMulta);
+
+    await this.logService.logChange({
+      nomeTabela: 'multa',
+      idRegistro: idMulta,
+      operacao: 'UPDATE',
+      dadosAntigos,
+      dadosNovos: updatedMulta,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    });
+  }
+
   private mapEntityToDto(MultaEntity: MultaEntity): MultaDto {
     return {
       idMulta: MultaEntity.idMulta,
@@ -329,8 +368,10 @@ export class MultaService {
       placaVeiculo: MultaEntity.placaVeiculo,
       dataInfracao: MultaEntity.dataInfracao,
       autoInfracao: MultaEntity.autoInfracao,
+      situacao: MultaEntity.situacao,
       ativa: MultaEntity.ativa,
       urlArquivo: MultaEntity.urlArquivo,
+      urlComprovantePagamento: MultaEntity.urlComprovantePagamento,
       idMotorista: MultaEntity.idMotorista,
       nomeMotorista: MultaEntity.motorista?.nome,
       motorista: MultaEntity.motorista
@@ -343,7 +384,6 @@ export class MultaService {
     };
   }
 
-
   private mapDtoToEntity(MultaDto: MultaDto): Partial<MultaEntity> {
     return {
       codigoInfracao: MultaDto.codigoInfracao,
@@ -352,7 +392,9 @@ export class MultaService {
       placaVeiculo: MultaDto.placaVeiculo,
       dataInfracao: MultaDto.dataInfracao,
       autoInfracao: MultaDto.autoInfracao,
+      situacao: MultaDto.situacao,
       ativa: MultaDto.ativa,
+      urlComprovantePagamento: MultaDto.urlComprovantePagamento,
     };
   }
 }
