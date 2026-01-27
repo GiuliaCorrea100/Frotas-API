@@ -18,5 +18,6 @@ import { LogModule } from 'src/log/log.module';
   ],
   controllers: [AbastecimentoController],
   providers: [AbastecimentoService],
+  exports: [AbastecimentoService],
 })
 export class AbastecimentoModule {}

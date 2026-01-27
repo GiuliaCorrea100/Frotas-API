@@ -8,9 +8,9 @@ export class ocorrenciaDto {
 }
 
 export interface FindAllParameters {
-  descricao: string;
-  idCorrida: number;
-  dataRegistro: Date;
+  descricao?: string;
+  idCorrida?: number;
+  dataRegistro?: Date;
 }
 
 export class CorridasRouteParameters {

@@ -13,5 +13,6 @@ import { CarroEntity } from 'src/db/entities/carro.entity';
   ],
   controllers: [CarroController],
   providers: [carroService],
+  exports: [carroService],
 })
 export class CarroModule {}
