@@ -23,7 +23,7 @@ export interface MotoristaDashboardDto {
 }
 
 export interface FindAllParameters {
-  localDeSaida: string;
+  localDeSaida?: string;
 }
 
 export class CorridasRouteParameters {
