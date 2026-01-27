@@ -335,7 +335,7 @@ export class RelatorioService {
   // async getMultas(ano: number) {
   //   // buscar multas do ano
 
-  //   // resumo por classificaçã
+  //   // resumo por classificação
 
   //   // multas por veículo
 
