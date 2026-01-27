@@ -1,6 +1,5 @@
 import {
   Column,
-  CreateDateColumn,
   Entity,
   PrimaryGeneratedColumn,
   ManyToOne,
@@ -28,7 +27,7 @@ export class MultaEntity {
   @Column({ type: 'varchar', name: 'placa_veiculo' })
   placaVeiculo: string;
 
-  @CreateDateColumn({
+  @Column({
     type: 'timestamp without time zone',
     name: 'data_infracao',
   })
