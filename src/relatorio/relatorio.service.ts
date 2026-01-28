@@ -332,25 +332,53 @@ export class RelatorioService {
     };
   }
 
-  // async getMultas(ano: number) {
-  //   // buscar multas do ano
+  // relatorio.service.ts → getMultas
+  async getMultas(ano: number) {
+    const multas = await this.multaService.findByAno(ano);
 
-  //   // resumo por classificação
+    const totalMultas = multas.length;
 
-  //   // multas por veículo
+    const multasPorClassificacao = await this.multaService.groupByClassificacao(
+      multas,
+      'classificacao',
+    );
 
-  //   // multas por mês
+    const multasPorVeiculoRaw = await this.multaService.groupByClassificacao(
+      multas,
+      'placaVeiculo',
+      'N/A',
+    );
+    const multasPorVeiculo = multasPorVeiculoRaw.sort(
+      (a, b) => b.quantidade - a.quantidade,
+    );
 
-  //   return {
-  //     resumo: {
-  //       totalMultas: multas.length,
-  //     },
-  //     porTipoInfracao,
-  //     multasPorVeiculo,
-  //     multasPorMes,
-  //     tabela,
-  //   };
-  // }
+    const meses = Array.from({ length: 12 }, (_, i) => i);
+    const multasPorMes = meses.map((mes) => {
+      let quantidade = 0;
+      for (const m of multas) {
+        if (!m.dataInfracao) continue;
+        const data = new Date(m.dataInfracao);
+        if (data.getFullYear() === ano && data.getMonth() === mes) {
+          quantidade++;
+        }
+      }
+      const nomeMes = new Date(0, mes).toLocaleString('pt-BR', {
+        month: 'short',
+      });
+      const mesFormatado = nomeMes.charAt(0).toUpperCase() + nomeMes.slice(1);
+      return {
+        mes: mesFormatado,
+        quantidade,
+      };
+    });
+
+    return {
+      resumo: { totalMultas },
+      multasPorClassificacao,
+      multasPorVeiculo,
+      multasPorMes,
+    };
+  }
 
   async getOcorrencias(ano: number) {
     // Buscar ocorrências do ano com joins

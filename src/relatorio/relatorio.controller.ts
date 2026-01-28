@@ -53,11 +53,11 @@ export class RelatorioController {
   }
 
   // Aba de Multas
-  // @Get('multas')
-  // async getMultas(@Query('ano') anoStr?: string) {
-  //   const ano = Number(anoStr) || new Date().getFullYear();
-  //   return this.relatorioService.getMultas(ano);
-  // }
+  @Get('multas')
+  async getMultas(@Query('ano') anoStr?: string) {
+    const ano = Number(anoStr) || new Date().getFullYear();
+    return this.relatorioService.getMultas(ano);
+  }
 
   // Aba de Ocorrências
   @Get('ocorrencias')
