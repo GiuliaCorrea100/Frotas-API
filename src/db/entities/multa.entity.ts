@@ -4,6 +4,7 @@ import {
   PrimaryGeneratedColumn,
   ManyToOne,
   JoinColumn,
+  CreateDateColumn,
 } from 'typeorm';
 import { UsuarioEntity } from './usuario.entity';
 
@@ -27,10 +28,7 @@ export class MultaEntity {
   @Column({ type: 'varchar', name: 'placa_veiculo' })
   placaVeiculo: string;
 
-  @Column({
-    type: 'timestamp without time zone',
-    name: 'data_infracao',
-  })
+  @CreateDateColumn({ type: 'timestamptz', name: 'data_infracao'})
   dataInfracao: Date;
 
   @Column({ type: 'int', name: 'num_auto_infracao' })
