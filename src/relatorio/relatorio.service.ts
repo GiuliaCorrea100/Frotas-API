@@ -352,31 +352,10 @@ export class RelatorioService {
       (a, b) => b.quantidade - a.quantidade,
     );
 
-    const meses = Array.from({ length: 12 }, (_, i) => i);
-    const multasPorMes = meses.map((mes) => {
-      let quantidade = 0;
-      for (const m of multas) {
-        if (!m.dataInfracao) continue;
-        const data = new Date(m.dataInfracao);
-        if (data.getFullYear() === ano && data.getMonth() === mes) {
-          quantidade++;
-        }
-      }
-      const nomeMes = new Date(0, mes).toLocaleString('pt-BR', {
-        month: 'short',
-      });
-      const mesFormatado = nomeMes.charAt(0).toUpperCase() + nomeMes.slice(1);
-      return {
-        mes: mesFormatado,
-        quantidade,
-      };
-    });
-
     return {
       resumo: { totalMultas },
       multasPorClassificacao,
       multasPorVeiculo,
-      multasPorMes,
     };
   }
 
