@@ -7,7 +7,7 @@ import {
 import { MultaDto, FindAllParameters } from './multa.dto';
 import { MultaEntity } from 'src/db/entities/multa.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like, FindOptionsWhere } from 'typeorm';
+import { Repository, Like, FindOptionsWhere, Between } from 'typeorm';
 import { LogService } from '../log/log.service';
 import { LogDto } from '../log/log.dto';
 import { CorridaService } from '../corrida/corrida.service';
@@ -62,10 +62,12 @@ export class MultaService {
         };
         situacao = 'ATRIBUIDA';
       } else {
-        mensagem = 'Não foi possível identificar o motorista responsável pela multa.';
+        mensagem =
+          'Não foi possível identificar o motorista responsável pela multa.';
       }
     } catch (error) {
-      mensagem = 'Não foi possível identificar o motorista responsável pela multa.';
+      mensagem =
+        'Não foi possível identificar o motorista responsável pela multa.';
     }
 
     let urlArquivo = null;
@@ -128,7 +130,7 @@ export class MultaService {
     }
 
     const dto = this.mapEntityToDto(savedMulta);
-    
+
     return {
       multa: dto,
       mensagem,
@@ -177,6 +179,34 @@ export class MultaService {
     });
 
     return multaFound.map((MultaEntity) => this.mapEntityToDto(MultaEntity));
+  }
+
+  async findByAno(ano: number): Promise<MultaEntity[]> {
+    return await this.MultaRepository.createQueryBuilder('m')
+      .leftJoinAndSelect('m.motorista', 'motorista')
+      .where("date_trunc('year', m.dataInfracao) = :ano", {
+        ano: `${ano}-01-01`,
+      })
+      .andWhere('m.ativa = :ativa', { ativa: true })
+      .orderBy('m.dataInfracao', 'DESC')
+      .getMany();
+  }
+
+  // Agrupa multas por classificação
+  async groupByClassificacao(
+    multas: MultaEntity[],
+    prop: 'classificacao' | 'placaVeiculo',
+    defaultValue: string = 'Não especificado',
+  ) {
+    const map: Record<string, number> = {};
+    for (const m of multas) {
+      const key = m[prop] || defaultValue;
+      map[key] = (map[key] || 0) + 1;
+    }
+    return Object.entries(map).map(([key, quantidade]) => ({
+      [prop]: key,
+      quantidade,
+    }));
   }
 
   async softRemove(

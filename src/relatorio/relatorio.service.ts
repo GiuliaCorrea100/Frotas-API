@@ -332,25 +332,37 @@ export class RelatorioService {
     };
   }
 
-  // async getMultas(ano: number) {
-  //   // buscar multas do ano
+  async getMultas(ano: number) {
+    const multas = await this.multaService.findByAno(ano);
 
-  //   // resumo por classificação
+    const totalMultas = multas.length;
 
-  //   // multas por veículo
+    const multasPorClassificacao = await this.multaService.groupByClassificacao(
+      multas,
+      'classificacao',
+    );
 
-  //   // multas por mês
+    const multasPorVeiculoRaw = await this.multaService.groupByClassificacao(
+      multas,
+      'placaVeiculo',
+      'N/A',
+    );
+    const multasPorVeiculo = multasPorVeiculoRaw.sort(
+      (a, b) => b.quantidade - a.quantidade,
+    );
 
-  //   return {
-  //     resumo: {
-  //       totalMultas: multas.length,
-  //     },
-  //     porTipoInfracao,
-  //     multasPorVeiculo,
-  //     multasPorMes,
-  //     tabela,
-  //   };
-  // }
+    const totalCusto = multas.reduce((total, m) => {
+      return total + (Number(m.valorInfracao) || 0);
+    }, 0);
+
+    const totalCustoMultasFormatado = Number(totalCusto.toFixed(2));
+
+    return {
+      resumo: { totalMultas, totalCustoMultas: totalCustoMultasFormatado },
+      multasPorClassificacao,
+      multasPorVeiculo,
+    };
+  }
 
   async getOcorrencias(ano: number) {
     // Buscar ocorrências do ano com joins
