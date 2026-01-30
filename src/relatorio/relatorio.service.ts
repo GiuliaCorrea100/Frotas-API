@@ -332,7 +332,6 @@ export class RelatorioService {
     };
   }
 
-  // relatorio.service.ts → getMultas
   async getMultas(ano: number) {
     const multas = await this.multaService.findByAno(ano);
 
@@ -352,8 +351,14 @@ export class RelatorioService {
       (a, b) => b.quantidade - a.quantidade,
     );
 
+    const totalCusto = multas.reduce((total, m) => {
+      return total + (Number(m.valorInfracao) || 0);
+    }, 0);
+
+    const totalCustoMultasFormatado = Number(totalCusto.toFixed(2));
+
     return {
-      resumo: { totalMultas },
+      resumo: { totalMultas, totalCustoMultas: totalCustoMultasFormatado },
       multasPorClassificacao,
       multasPorVeiculo,
     };

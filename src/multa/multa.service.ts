@@ -181,7 +181,6 @@ export class MultaService {
     return multaFound.map((MultaEntity) => this.mapEntityToDto(MultaEntity));
   }
 
-  // MultaService
   async findByAno(ano: number): Promise<MultaEntity[]> {
     return await this.MultaRepository.createQueryBuilder('m')
       .leftJoinAndSelect('m.motorista', 'motorista')
@@ -193,7 +192,7 @@ export class MultaService {
       .getMany();
   }
 
-  /** Agrupa multas por propriedade e retorna array formatado */
+  // Agrupa multas por classificação
   async groupByClassificacao(
     multas: MultaEntity[],
     prop: 'classificacao' | 'placaVeiculo',
