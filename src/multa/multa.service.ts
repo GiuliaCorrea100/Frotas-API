@@ -14,6 +14,7 @@ import { CorridaService } from '../corrida/corrida.service';
 import { EmailService } from '../email/email.service';
 import { UsuarioService } from '../usuario/usuario.service';
 import { AnexoService } from '../anexo/anexo.service';
+import { CorridaDto } from '../corrida/corrida.dto';
 
 @Injectable()
 export class MultaService {
@@ -29,6 +30,31 @@ export class MultaService {
   ) {}
 
   private multa: MultaDto[] = [];
+
+  async encontrarCorridaPorPlacaEData(
+    placaVeiculo: string,
+    dataInfracao: Date,
+  ): Promise<CorridaDto | null> {
+    try {
+      const corrida = await this.MultaRepository.manager
+        .getRepository('CorridaEntity')
+        .createQueryBuilder('corrida')
+        .innerJoinAndSelect('corrida.carro', 'carro')
+        .innerJoinAndSelect('corrida.motorista', 'motorista')
+        .where('carro.placa = :placa', { placa: placaVeiculo })
+        .andWhere('corrida.situacao = :situacao', { situacao: 'FINALIZADA' })
+        .andWhere(
+          ':dataInfracao BETWEEN corrida.dataHoraLiberacaoChave AND corrida.dataHoraRecebimentoChave',
+        )
+        .setParameter('dataInfracao', dataInfracao)
+        .getOne();
+
+      return corrida ? (corrida as any) : null;
+    } catch (error) {
+      console.error('Erro ao buscar corrida por placa e horário:', error);
+      return null;
+    }
+  }
 
   async create(
     multa: MultaDto,
@@ -48,26 +74,19 @@ export class MultaService {
     let mensagem: string | undefined;
 
     try {
-      const corridaEncontrada =
-        await this.corridaService.encontrarCorridaPorPlacaEData(
-          multa.placaVeiculo,
-          multa.dataInfracao,
-        );
+      motoristaResponsavel = await this.corridaService.encontrarMotoristaPorPlacaEHorarioExato(
+        multa.placaVeiculo,
+        multa.dataInfracao,
+      );
 
-      if (corridaEncontrada) {
-        motoristaResponsavel = {
-          idMotorista: corridaEncontrada.idMotorista,
-          nomeMotorista:
-            corridaEncontrada.nomeMotorista || 'Motorista não identificado',
-        };
+      if (motoristaResponsavel) {
         situacao = 'ATRIBUIDA';
       } else {
-        mensagem =
-          'Não foi possível identificar o motorista responsável pela multa.';
+        mensagem = 'Não foi possível identificar o motorista responsável pela multa no horário especificado.';
       }
     } catch (error) {
-      mensagem =
-        'Não foi possível identificar o motorista responsável pela multa.';
+      console.error('Erro ao buscar motorista:', error);
+      mensagem = 'Erro ao identificar o motorista responsável.';
     }
 
     let urlArquivo = null;
@@ -192,7 +211,6 @@ export class MultaService {
       .getMany();
   }
 
-  // Agrupa multas por classificação
   async groupByClassificacao(
     multas: MultaEntity[],
     prop: 'classificacao' | 'placaVeiculo',

@@ -12,6 +12,7 @@ import {
   UseInterceptors,
   UploadedFile,
   Delete,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   MultaDto,
@@ -88,14 +89,18 @@ export class MultaController {
     const currentUserId = req.user?.sub;
     const currentUserName = req.user?.login;
 
-    const [ano, mes, dia] = body.dataInfracao.split('-').map(Number);
+    const dataHoraInfracao = new Date(body.dataInfracao);
+
+    if (isNaN(dataHoraInfracao.getTime())) {
+      throw new BadRequestException('Data/hora da infração inválida');
+    }
 
     const dados = {
       codigoInfracao: Number(body.codigoInfracao),
       classificacao: body.classificacao,
       valorInfracao: Number(body.valorInfracao),
       placaVeiculo: body.placaVeiculo,
-      dataInfracao: new Date(ano, mes - 1, dia),
+      dataInfracao: dataHoraInfracao,
       autoInfracao: Number(body.autoInfracao),
     };
 
