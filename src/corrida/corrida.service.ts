@@ -529,6 +529,28 @@ export class CorridaService {
     };
   }
 
+  async encontrarMotoristaPorPlacaEHorarioExato(
+    placaVeiculo: string,
+    dataHoraInfracao: Date,
+  ): Promise<{ idMotorista: number; nomeMotorista: string } | null> {
+    const corrida = await this.corridaRepository.findOne({
+      where: {
+        carro: { placa: placaVeiculo },
+        dataHoraLiberacaoChave: LessThanOrEqual(dataHoraInfracao),
+        dataHoraRecebimentoChave: MoreThanOrEqual(dataHoraInfracao),
+        situacao: 'FINALIZADA',
+      },
+      relations: ['motorista', 'carro'],
+    });
+
+    if (!corrida) return null;
+
+    return {
+      idMotorista: corrida.idMotorista,
+      nomeMotorista: corrida.motorista?.nome || 'Motorista não identificado',
+    };
+  }
+
   private mapEntityToDto(corridaEntity: CorridaEntity): CorridaDto {
     return {
       idCorrida: corridaEntity.idCorrida,
