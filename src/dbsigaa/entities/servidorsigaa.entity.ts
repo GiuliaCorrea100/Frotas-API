@@ -9,4 +9,7 @@ export class ServidorSigaaEntity {
 
     @Column({type: 'integer', name: 'id_pessoa'})
     idPessoa: number;
+
+    @Column({type: 'integer', name: 'id_ativo'})
+    idAtivo: number;
 }

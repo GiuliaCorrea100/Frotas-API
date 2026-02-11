@@ -14,12 +14,12 @@ import { LogDto } from '../log/log.dto';
 @Injectable()
 export class UsuarioService {
   async findById(idUsuario: number): Promise<UsuarioEntity | null> {
-  const foundUser = await this.UsuarioRepository.findOne({
-    where: { idUsuario },
-  });
+    const foundUser = await this.UsuarioRepository.findOne({
+      where: { idUsuario },
+    });
 
-  return foundUser ?? null;
-}
+    return foundUser ?? null;
+  }
   constructor(
     @InjectRepository(UsuarioEntity)
     private readonly UsuarioRepository: Repository<UsuarioEntity>,
@@ -211,6 +211,7 @@ export class UsuarioService {
     };
 
     await this.logService.logChange(logData);
+    return updatedUser as UsuarioDto;
   }
 
   async remove(
@@ -272,7 +273,7 @@ export class UsuarioService {
       idPessoaSigaa: usuarioDto.idPessoaSigaa,
       administrador: usuarioDto.administrador,
       nome: usuarioDto.nome,
-      email:usuarioDto.email,
+      email: usuarioDto.email,
     };
   }
 }

@@ -21,11 +21,14 @@ export class UsuarioSigaaEntity {
     @Column({type: 'integer', name: 'id_servidor'})
     idServidor: number;
 
+    @Column({type: 'integer', name: 'tipo'})
+    tipo: number;
+
     @Column({type: 'character varying', name: 'email'})
     email: string;
 
-    @ManyToOne(() => PessoaSigaaEntity)  // Relacionamento ManyToOne
-    @JoinColumn({ name: 'id_pessoa' })  // Especifica a coluna de junção
+    @ManyToOne(() => PessoaSigaaEntity)
+    @JoinColumn({ name: 'id_pessoa' })
     pessoa: PessoaSigaaEntity;
 
     @OneToOne(() => ServidorSigaaEntity)

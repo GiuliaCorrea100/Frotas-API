@@ -16,7 +16,7 @@ export class AbastecimentoDto {
 }
 
 export interface FindAllParameters {
-  dataAbastecimento: Date;
+  dataAbastecimento?: Date;
 }
 
 export class AbastecimentoRouteParameters {

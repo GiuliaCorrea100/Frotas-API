@@ -8,7 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { AbastecimentoEntity } from 'src/db/entities/abastecimento.entity';
 import { CorridaEntity } from 'src/db/entities/corrida.entity';
 import { TipoCombustivelEntity } from 'src/db/entities/tipoCombustivel.entity';
-import { FindOptionsWhere, Repository } from 'typeorm';
+import { Between, FindOptionsWhere, Repository } from 'typeorm';
 import { AbastecimentoDto, FindAllParameters } from './abastecimento.dto';
 import { LogService } from '../log/log.service';
 import { LogDto } from '../log/log.dto';
@@ -55,13 +55,13 @@ export class AbastecimentoService {
 
     const abastecimentoToSave: AbastecimentoEntity = {
       idTipoCombustivel: abastecimento.idTipoCombustivel,
-      idCorrida: corrida,
+      idCorrida: abastecimento.idCorrida,
+      corrida: corrida,
       codigoPagamento: abastecimento.codigoPagamento,
       dataAbastecimento: abastecimento.dataAbastecimento,
       quantidade: abastecimento.quantidade,
       valorUnitario: abastecimento.valorUnitario,
       valorTotal: abastecimento.valorTotal,
-      
     };
 
     const savedEntity =
@@ -85,7 +85,7 @@ export class AbastecimentoService {
   async findById(idAbastecimento: number): Promise<AbastecimentoDto> {
     const foundAbastecimento = await this.abastecimentoRepository.findOne({
       where: { idAbastecimento },
-      relations: ['tipoCombustivel', 'idCorrida'],
+      relations: ['tipoCombustivel', 'corrida'],
     });
 
     if (!foundAbastecimento) {
@@ -99,8 +99,8 @@ export class AbastecimentoService {
     const foundAbastecimentos = await this.abastecimentoRepository
       .createQueryBuilder('abastecimento')
       .leftJoinAndSelect('abastecimento.tipoCombustivel', 'combustivel')
-      .leftJoinAndSelect('abastecimento.idCorrida', 'corrida')
-      .where('abastecimento.idCorrida = :idCorrida', { idCorrida })
+      .leftJoinAndSelect('abastecimento.corrida', 'corrida')
+      .where('corrida.idCorrida = :idCorrida', { idCorrida })
       .getMany();
 
     if (!foundAbastecimentos) {
@@ -118,10 +118,27 @@ export class AbastecimentoService {
 
     const abastecimentosFound = await this.abastecimentoRepository.find({
       where: searchParams,
-      relations: ['tipoCombustivel', 'idCorrida'],
+      relations: ['tipoCombustivel', 'corrida'],
     });
 
     return abastecimentosFound.map((entity) => this.mapEntityToDto(entity));
+  }
+
+  async findByAno(ano: number): Promise<AbastecimentoEntity[]> {
+    const inicio = new Date(ano, 0, 1);
+    const fim = new Date(ano, 11, 31, 23, 59, 59);
+
+    return this.abastecimentoRepository.find({
+      where: {
+        dataAbastecimento: Between(inicio, fim),
+      },
+      relations: [
+        'tipoCombustivel',
+        'corrida',
+        'corrida.carro',
+        'corrida.motorista',
+      ],
+    });
   }
 
   async update(
@@ -166,7 +183,7 @@ export class AbastecimentoService {
           `Item with id ${abastecimento.idCorrida} not found`,
         );
       }
-      updateData.idCorrida = corrida;
+      updateData.idCorrida = abastecimento.idCorrida;
     }
 
     await this.abastecimentoRepository.update(idAbastecimento, updateData);
@@ -271,7 +288,6 @@ export class AbastecimentoService {
       where: { idAbastecimento },
     });
 
-
     if (!foundAbastecimento) {
       throw new NotFoundException(`Item with id ${idAbastecimento} not found`);
     }
@@ -280,7 +296,8 @@ export class AbastecimentoService {
 
     foundAbastecimento.ativo = false;
 
-    const updatedAbastecimento = await this.abastecimentoRepository.save(foundAbastecimento);
+    const updatedAbastecimento =
+      await this.abastecimentoRepository.save(foundAbastecimento);
 
     // const logData: LogDto = {
     //   nomeTabela: 'percurso',
@@ -330,9 +347,8 @@ export class AbastecimentoService {
       valorUnitario: entity.valorUnitario,
       idTipoCombustivel: entity.idTipoCombustivel,
       nomeTipoCombustivel: entity.tipoCombustivel?.nome ?? null,
-      idCorrida: entity.idCorrida?.idCorrida,
+      idCorrida: entity.idCorrida,
       ativo: entity.ativo,
-      
     };
   }
 

@@ -20,5 +20,6 @@ import { AnexoModule } from '../anexo/anexo.module';
   ],
   controllers: [MultaController],
   providers: [MultaService],
+  exports: [MultaService],
 })
 export class MultaModule {}

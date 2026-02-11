@@ -19,6 +19,8 @@ import { UsuarioSigaaModule } from './usuariosigaa/usuariosigaa.module';
 import { ServidorsigaaModule } from './servidorsigaa/servidorsigaa.module';
 import { EmailModule } from './email/email.module';
 import { AnexoModule } from './anexo/anexo.module';
+import { GoogleRecaptchaModule } from '@nestlab/google-recaptcha';
+import { RelatorioModule } from './relatorio/relatorio.module';
 
 
 @Module({
@@ -41,6 +43,14 @@ import { AnexoModule } from './anexo/anexo.module';
     AuthModule,
     EmailModule,
     AnexoModule,
+    GoogleRecaptchaModule.forRoot({
+        secretKey: process.env.GOOGLE_RECAPTCHA_SECRET_KEY,
+        response: (req) => req.headers['recaptcha-token'],
+        actions: ['SignUp', 'SignIn', 'login'],
+        score: 0.8,
+    }),
+    RelatorioModule,
+
   ],
   controllers: [AppController],
   providers: [AppService],
