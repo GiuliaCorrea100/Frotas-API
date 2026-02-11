@@ -12,6 +12,7 @@ import {
   UseInterceptors,
   UploadedFile,
   Delete,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   MultaDto,
@@ -54,13 +55,14 @@ export class MultaController {
 
   @Post()
   @UseGuards(AuthGuard)
-  @UseInterceptors(FileInterceptor('arquivo'))
+  @UseInterceptors(FileInterceptor('file'))
   async create(
     @Body() multa: MultaDto,
     @Request() req: any,
-    @UploadedFile() arquivo?: Express.Multer.File,
+    @UploadedFile() file?: Express.Multer.File,
   ): Promise<{
     multa: MultaDto;
+    mensagem?: string;
     motoristaResponsavel?: {
       idMotorista: number;
       nomeMotorista: string;
@@ -70,7 +72,7 @@ export class MultaController {
     const currentUserName = req.user?.login;
     return await this.multaService.create(
       multa,
-      arquivo,
+      file,
       currentUserId,
       currentUserName,
     );
@@ -87,12 +89,18 @@ export class MultaController {
     const currentUserId = req.user?.sub;
     const currentUserName = req.user?.login;
 
+    const dataHoraInfracao = new Date(body.dataInfracao);
+
+    if (isNaN(dataHoraInfracao.getTime())) {
+      throw new BadRequestException('Data/hora da infração inválida');
+    }
+
     const dados = {
       codigoInfracao: Number(body.codigoInfracao),
       classificacao: body.classificacao,
       valorInfracao: Number(body.valorInfracao),
       placaVeiculo: body.placaVeiculo,
-      dataInfracao: new Date(body.dataInfracao),
+      dataInfracao: dataHoraInfracao,
       autoInfracao: Number(body.autoInfracao),
     };
 
@@ -133,6 +141,25 @@ export class MultaController {
     const currentUserName = req.user?.login;
 
     await this.multaService.atualizarArquivo(
+      idMulta,
+      arquivo,
+      currentUserId,
+      currentUserName,
+    );
+  }
+
+  @Put('/:idMulta/comprovante')
+  @UseGuards(AuthGuard)
+  @UseInterceptors(FileInterceptor('arquivo'))
+  async atualizarComprovante(
+    @Param('idMulta') idMulta: number,
+    @UploadedFile() arquivo: Express.Multer.File,
+    @Request() req: any,
+  ) {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+
+    await this.multaService.atualizarComprovantePagamento(
       idMulta,
       arquivo,
       currentUserId,

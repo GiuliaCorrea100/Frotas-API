@@ -1,4 +1,11 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { CorridaEntity } from './corrida.entity';
 
 @Entity({ name: 'ocorrencia' })
 export class OcorrenciaEntity {
@@ -17,7 +24,10 @@ export class OcorrenciaEntity {
   @Column({ type: 'timestamptz', name: 'data_ocorrencia' })
   dataOcorrencia: Date;
 
-
-  @Column({ type: 'boolean', name: 'ativa'})
+  @Column({ type: 'boolean', name: 'ativa' })
   ativa?: boolean;
+
+  @ManyToOne(() => CorridaEntity, { nullable: false })
+  @JoinColumn({ name: 'id_corrida', referencedColumnName: 'idCorrida' })
+  corrida?: CorridaEntity;
 }

@@ -7,13 +7,14 @@ import {
 import { MultaDto, FindAllParameters } from './multa.dto';
 import { MultaEntity } from 'src/db/entities/multa.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like, FindOptionsWhere } from 'typeorm';
+import { Repository, Like, FindOptionsWhere, Between } from 'typeorm';
 import { LogService } from '../log/log.service';
 import { LogDto } from '../log/log.dto';
 import { CorridaService } from '../corrida/corrida.service';
 import { EmailService } from '../email/email.service';
 import { UsuarioService } from '../usuario/usuario.service';
 import { AnexoService } from '../anexo/anexo.service';
+import { CorridaDto } from '../corrida/corrida.dto';
 
 @Injectable()
 export class MultaService {
@@ -30,6 +31,31 @@ export class MultaService {
 
   private multa: MultaDto[] = [];
 
+  async encontrarCorridaPorPlacaEData(
+    placaVeiculo: string,
+    dataInfracao: Date,
+  ): Promise<CorridaDto | null> {
+    try {
+      const corrida = await this.MultaRepository.manager
+        .getRepository('CorridaEntity')
+        .createQueryBuilder('corrida')
+        .innerJoinAndSelect('corrida.carro', 'carro')
+        .innerJoinAndSelect('corrida.motorista', 'motorista')
+        .where('carro.placa = :placa', { placa: placaVeiculo })
+        .andWhere('corrida.situacao = :situacao', { situacao: 'FINALIZADA' })
+        .andWhere(
+          ':dataInfracao BETWEEN corrida.dataHoraLiberacaoChave AND corrida.dataHoraRecebimentoChave',
+        )
+        .setParameter('dataInfracao', dataInfracao)
+        .getOne();
+
+      return corrida ? (corrida as any) : null;
+    } catch (error) {
+      console.error('Erro ao buscar corrida por placa e horário:', error);
+      return null;
+    }
+  }
+
   async create(
     multa: MultaDto,
     arquivo?: Express.Multer.File,
@@ -37,28 +63,31 @@ export class MultaService {
     currentUserName?: string,
   ): Promise<{
     multa: MultaDto;
+    mensagem?: string;
     motoristaResponsavel?: {
       idMotorista: number;
       nomeMotorista: string;
     } | null;
   }> {
     let motoristaResponsavel = null;
+    let situacao = 'MOTORISTA NAO IDENTIFICADO';
+    let mensagem: string | undefined;
 
     try {
-      const corridaEncontrada =
-        await this.corridaService.encontrarCorridaPorPlacaEData(
-          multa.placaVeiculo,
-          multa.dataInfracao,
-        );
+      motoristaResponsavel = await this.corridaService.encontrarMotoristaPorPlacaEHorarioExato(
+        multa.placaVeiculo,
+        multa.dataInfracao,
+      );
 
-      if (corridaEncontrada) {
-        motoristaResponsavel = {
-          idMotorista: corridaEncontrada.idMotorista,
-          nomeMotorista:
-            corridaEncontrada.nomeMotorista || 'Motorista não identificado',
-        };
+      if (motoristaResponsavel) {
+        situacao = 'ATRIBUIDA';
+      } else {
+        mensagem = 'Não foi possível identificar o motorista responsável pela multa no horário especificado.';
       }
-    } catch (error) {}
+    } catch (error) {
+      console.error('Erro ao buscar motorista:', error);
+      mensagem = 'Erro ao identificar o motorista responsável.';
+    }
 
     let urlArquivo = null;
 
@@ -75,12 +104,13 @@ export class MultaService {
       placaVeiculo: multa.placaVeiculo,
       dataInfracao: multa.dataInfracao,
       autoInfracao: multa.autoInfracao,
+      situacao: situacao,
       urlArquivo: urlArquivo,
       idMotorista: motoristaResponsavel
         ? motoristaResponsavel.idMotorista
         : null,
       ativa: true,
-    };
+    } as MultaEntity;
 
     const savedMulta = await this.MultaRepository.save(multaToSave);
 
@@ -119,13 +149,10 @@ export class MultaService {
     }
 
     const dto = this.mapEntityToDto(savedMulta);
-    if (motoristaResponsavel) {
-      dto.idMotorista = motoristaResponsavel.idMotorista;
-      dto.nomeMotorista = motoristaResponsavel.nomeMotorista;
-    }
 
     return {
       multa: dto,
+      mensagem,
       motoristaResponsavel,
     };
   }
@@ -173,6 +200,33 @@ export class MultaService {
     return multaFound.map((MultaEntity) => this.mapEntityToDto(MultaEntity));
   }
 
+  async findByAno(ano: number): Promise<MultaEntity[]> {
+    return await this.MultaRepository.createQueryBuilder('m')
+      .leftJoinAndSelect('m.motorista', 'motorista')
+      .where("date_trunc('year', m.dataInfracao) = :ano", {
+        ano: `${ano}-01-01`,
+      })
+      .andWhere('m.ativa = :ativa', { ativa: true })
+      .orderBy('m.dataInfracao', 'DESC')
+      .getMany();
+  }
+
+  async groupByClassificacao(
+    multas: MultaEntity[],
+    prop: 'classificacao' | 'placaVeiculo',
+    defaultValue: string = 'Não especificado',
+  ) {
+    const map: Record<string, number> = {};
+    for (const m of multas) {
+      const key = m[prop] || defaultValue;
+      map[key] = (map[key] || 0) + 1;
+    }
+    return Object.entries(map).map(([key, quantidade]) => ({
+      [prop]: key,
+      quantidade,
+    }));
+  }
+
   async softRemove(
     idMulta: number,
     currentUserId?: number,
@@ -216,7 +270,7 @@ export class MultaService {
     });
 
     if (!foundMulta) {
-      throw new NotFoundException(`Item with id ${multa.idMulta} not found`);
+      throw new NotFoundException(`Item with id ${idMulta} not found`);
     }
 
     const dadosAntigos = { ...foundMulta };
@@ -320,6 +374,39 @@ export class MultaService {
     await this.logService.logChange(logData);
   }
 
+  async atualizarComprovantePagamento(
+    idMulta: number,
+    arquivo: Express.Multer.File,
+    currentUserId?: number,
+    currentUserName?: string,
+  ) {
+    const foundMulta = await this.MultaRepository.findOne({
+      where: { idMulta },
+    });
+
+    if (!foundMulta) {
+      throw new NotFoundException(`Multa com id ${idMulta} não encontrada`);
+    }
+
+    const dadosAntigos = { ...foundMulta };
+
+    const url = await this.anexoService.salvarArquivo(arquivo);
+
+    foundMulta.urlComprovantePagamento = url;
+
+    const updatedMulta = await this.MultaRepository.save(foundMulta);
+
+    await this.logService.logChange({
+      nomeTabela: 'multa',
+      idRegistro: idMulta,
+      operacao: 'UPDATE',
+      dadosAntigos,
+      dadosNovos: updatedMulta,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    });
+  }
+
   private mapEntityToDto(MultaEntity: MultaEntity): MultaDto {
     return {
       idMulta: MultaEntity.idMulta,
@@ -329,8 +416,10 @@ export class MultaService {
       placaVeiculo: MultaEntity.placaVeiculo,
       dataInfracao: MultaEntity.dataInfracao,
       autoInfracao: MultaEntity.autoInfracao,
+      situacao: MultaEntity.situacao,
       ativa: MultaEntity.ativa,
       urlArquivo: MultaEntity.urlArquivo,
+      urlComprovantePagamento: MultaEntity.urlComprovantePagamento,
       idMotorista: MultaEntity.idMotorista,
       nomeMotorista: MultaEntity.motorista?.nome,
       motorista: MultaEntity.motorista
@@ -343,7 +432,6 @@ export class MultaService {
     };
   }
 
-
   private mapDtoToEntity(MultaDto: MultaDto): Partial<MultaEntity> {
     return {
       codigoInfracao: MultaDto.codigoInfracao,
@@ -352,7 +440,9 @@ export class MultaService {
       placaVeiculo: MultaDto.placaVeiculo,
       dataInfracao: MultaDto.dataInfracao,
       autoInfracao: MultaDto.autoInfracao,
+      situacao: MultaDto.situacao,
       ativa: MultaDto.ativa,
+      urlComprovantePagamento: MultaDto.urlComprovantePagamento,
     };
   }
 }

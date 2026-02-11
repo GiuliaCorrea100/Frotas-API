@@ -6,10 +6,12 @@ export class MultaDto {
   placaVeiculo: string;
   dataInfracao: Date;
   autoInfracao: number;
+  situacao?: string;
   ativa?: boolean;
   idMotorista?: number;
   nomeMotorista?: string;
   urlArquivo?: string;
+  urlComprovantePagamento?: string;
   motorista?: {
     idUsuario?: number;
     nome?: string;

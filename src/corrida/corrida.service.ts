@@ -173,6 +173,15 @@ export class CorridaService {
     return corridaFound.map((entity) => this.mapEntityToDto(entity));
   }
 
+  async findByAno(ano: number): Promise<CorridaEntity[]> {
+    const inicio = new Date(ano, 0, 1, 0, 0, 0);
+    const fim = new Date(ano, 11, 31, 23, 59, 59);
+    return this.corridaRepository.find({
+      where: { dataInicio: Between(inicio, fim) },
+      relations: ['motorista', 'carro'],
+    });
+  }
+
   async emprestarChave(
     idCorrida: number,
     currentUserId?: number,
@@ -481,7 +490,9 @@ export class CorridaService {
         .innerJoinAndSelect('corrida.motorista', 'motorista')
         .where('carro.placa = :placa', { placa: placaVeiculo })
         .andWhere('corrida.situacao = :situacao', { situacao: 'FINALIZADA' })
-        .andWhere(':dataInfracao BETWEEN corrida.dataInicio AND corrida.dataTermino')
+        .andWhere(
+          ':dataInfracao BETWEEN corrida.dataInicio AND corrida.dataTermino',
+        )
         .setParameter('dataInfracao', dataInfracao)
         .getOne();
 
@@ -501,7 +512,7 @@ export class CorridaService {
   } | null> {
     const corrida = await this.corridaRepository.findOne({
       where: {
-        carro: { 
+        carro: {
           placa: placaVeiculo,
         },
         dataInicio: LessThanOrEqual(data),
@@ -515,6 +526,28 @@ export class CorridaService {
     return {
       idMotorista: corrida.idMotorista,
       nomeMotorista: corrida.motorista?.nome || null,
+    };
+  }
+
+  async encontrarMotoristaPorPlacaEHorarioExato(
+    placaVeiculo: string,
+    dataHoraInfracao: Date,
+  ): Promise<{ idMotorista: number; nomeMotorista: string } | null> {
+    const corrida = await this.corridaRepository.findOne({
+      where: {
+        carro: { placa: placaVeiculo },
+        dataHoraLiberacaoChave: LessThanOrEqual(dataHoraInfracao),
+        dataHoraRecebimentoChave: MoreThanOrEqual(dataHoraInfracao),
+        situacao: 'FINALIZADA',
+      },
+      relations: ['motorista', 'carro'],
+    });
+
+    if (!corrida) return null;
+
+    return {
+      idMotorista: corrida.idMotorista,
+      nomeMotorista: corrida.motorista?.nome || 'Motorista não identificado',
     };
   }
 
@@ -532,7 +565,7 @@ export class CorridaService {
       idCarro: corridaEntity.idCarro,
       placaVeiculo: corridaEntity.carro?.placa,
       dataHoraLiberacaoChave: corridaEntity.dataHoraLiberacaoChave,
-      datHoraRecebimentoChave: corridaEntity.dataHoraRecebimentoChave,
+      dataHoraRecebimentoChave: corridaEntity.dataHoraRecebimentoChave,
     };
   }
 
