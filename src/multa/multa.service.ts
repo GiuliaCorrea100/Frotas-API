@@ -166,6 +166,7 @@ export class MultaService {
     if (!foundMulta) {
       throw new NotFoundException(`Item with id ${idMulta} not found`);
     }
+    
     return this.mapEntityToDto(foundMulta);
   }
 
@@ -389,6 +390,8 @@ export class MultaService {
     }
 
     const dadosAntigos = { ...foundMulta };
+
+    foundMulta.situacao = "ANALISE PENDENTE"
 
     const url = await this.anexoService.salvarArquivo(arquivo);
 
