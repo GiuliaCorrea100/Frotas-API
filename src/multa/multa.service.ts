@@ -374,6 +374,38 @@ export class MultaService {
     await this.logService.logChange(logData);
   }
 
+  async aprovarPagamento(
+    idMulta: number,
+    currentUserId?: number,
+    currentUserName?: string,
+  ) {
+    const multa = await this.MultaRepository.findOne({
+      where: { idMulta },
+    });
+
+    if (!multa) {
+      throw new NotFoundException(`Multa ${idMulta} não encontrada`);
+    }
+
+    const dadosAntigos = { ...multa };
+
+    multa.situacao = 'QUITADA/PAGA';
+
+    const multaAtualizada = await this.MultaRepository.save(multa);
+
+    await this.logService.logChange({
+      nomeTabela: 'multa',
+      idRegistro: multa.idMulta,
+      operacao: 'UPDATE',
+      dadosAntigos,
+      dadosNovos: multaAtualizada,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    });
+
+    return multaAtualizada;
+  }
+
   async atualizarComprovantePagamento(
     idMulta: number,
     arquivo: Express.Multer.File,
