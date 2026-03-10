@@ -164,6 +164,7 @@ export class MultaService {
     if (!foundMulta) {
       throw new NotFoundException(`Item with id ${idMulta} not found`);
     }
+    
     return this.mapEntityToDto(foundMulta);
   }
 
@@ -454,6 +455,8 @@ export class MultaService {
 
     const dadosAntigos = { ...foundMulta };
 
+    foundMulta.situacao = "ANALISE PENDENTE"
+
     const url = await this.anexoService.salvarArquivo(arquivo);
 
     foundMulta.urlComprovantePagamento = url;
@@ -469,7 +472,24 @@ export class MultaService {
       idUsuario: currentUserId,
       usuario: currentUserName,
     });
+
+    const administradores = await this.usuarioService.findAll({ administrador: true });
+    const motorista = await this.usuarioService.findById(currentUserId);
+
+    for (const admin of administradores) {
+      await this.emailService.sendMail(
+        admin.email, 
+        'Upload de Comprovante de Pagamento',
+        'notificarComprovantePagamento.hbs',
+        {
+          nome: admin.nome,           
+          motorista: motorista.nome,
+        },
+      );
   }
+
+}
+
 
   private mapEntityToDto(MultaEntity: MultaEntity): MultaDto {
     return {
