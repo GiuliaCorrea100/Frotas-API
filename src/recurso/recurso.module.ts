@@ -7,6 +7,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { RecursoEntity } from 'src/db/entities/recurso.entity';
 import { AnexoModule } from 'src/anexo/anexo.module';
 import { MultaEntity } from 'src/db/entities/multa.entity';
+import { EmailModule } from 'src/email/email.module';
+import { UsuarioModule } from 'src/usuario/usuario.module';
 
 
 @Module({
@@ -14,6 +16,8 @@ import { MultaEntity } from 'src/db/entities/multa.entity';
     TypeOrmModule.forFeature([RecursoEntity, MultaEntity]),
     MultaModule,
     LogModule,
+    EmailModule,
+    UsuarioModule,
     AnexoModule,
   ], 
   controllers: [RecursoController],

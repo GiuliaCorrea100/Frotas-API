@@ -408,7 +408,24 @@ export class MultaService {
       idUsuario: currentUserId,
       usuario: currentUserName,
     });
+
+    const administradores = await this.usuarioService.findAll({ administrador: true });
+    const motorista = await this.usuarioService.findById(currentUserId);
+
+    for (const admin of administradores) {
+      await this.emailService.sendMail(
+        admin.email, 
+        'Upload de Comprovante de Pagamento',
+        'notificarComprovantePagamento.hbs',
+        {
+          nome: admin.nome,           
+          motorista: motorista.nome,
+        },
+      );
   }
+
+}
+
 
   private mapEntityToDto(MultaEntity: MultaEntity): MultaDto {
     return {

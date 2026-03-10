@@ -41,7 +41,7 @@ export class RecursoController {
         idMulta: body.idMulta,
     };
     
-    return this.recursoService.create(recursoDto, arquivo);
+    return this.recursoService.create(recursoDto, arquivo, currentUserId, currentUserName);
 }
 
 

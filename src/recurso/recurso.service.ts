@@ -7,17 +7,23 @@ import { Repository } from 'typeorm';
 import { RecursoEntity } from 'src/db/entities/recurso.entity';
 import { AnexoService } from 'src/anexo/anexo.service';
 import { MultaEntity } from 'src/db/entities/multa.entity';
+import { EmailService } from 'src/email/email.service';
+import { UsuarioService } from 'src/usuario/usuario.service';
 
 
 @Injectable()
 export class RecursoService {
-  MultaRepository: any;
+  // MultaRepository: any;
+  // emailService: any;
+  // usuarioService: any;
   constructor(
     @InjectRepository(RecursoEntity)
     private readonly recursoRepository: Repository<RecursoEntity>,
 
     @InjectRepository(MultaEntity)
     private readonly multaRepository: Repository<MultaEntity>,
+    private readonly emailService: EmailService,
+    private readonly usuarioService: UsuarioService,
 
     private readonly logServices: LogService,
     private readonly anexoService: AnexoService,
@@ -59,7 +65,6 @@ export class RecursoService {
       throw new NotFoundException(`Item with id ${idMulta} not found`);
     }
 
-    console.log(foundMulta);
     foundMulta.situacao = "RECURSO SOLICITADO";
 
     await this.multaRepository.save(foundMulta);
@@ -74,15 +79,21 @@ export class RecursoService {
       usuario: currentUserName,
     };
 
-    // const logDataMulta: LogDto = {
-    //   nomeTabela: 'multa',
-    //   idRegistro: idMulta,
-    //   operacao: 'UPDATE',
-    //   dadosAntigos: foundMulta,
-    //   dadosNovos: updatedMulta,
-    //   idUsuario: foundMulta,
-    //   usuario: currentUserName,
-    // };
+    const administradores = await this.usuarioService.findAll({ administrador: true });
+    const motorista = await this.usuarioService.findById(currentUserId);
+
+    for (const admin of administradores) {
+      await this.emailService.sendMail(
+        admin.email, 
+        'Solicitação de Recurso de Multa',
+        'notificarSolicitarRecurso.hbs',
+        {
+          nome: admin.nome,           
+          motorista: motorista.nome,
+          multa: idMulta,
+        },
+      );
+  }
 
     await this.logServices.logChange(logDataRecurso);
 
