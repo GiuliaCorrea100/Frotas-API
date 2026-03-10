@@ -39,6 +39,9 @@ export class MultaEntity {
   @Column({ type: 'varchar', name: 'situacao', nullable: true })
   situacao?: string;
 
+  @Column({ type: 'varchar', name: 'motivo_reprovacao', nullable: true })
+  motivoReprovacao?: string;
+
   @Column({ type: 'varchar', name: 'url_arquivo', nullable: true })
   urlArquivo?: string;
 

@@ -167,6 +167,40 @@ export class MultaController {
     );
   }
 
+  @Patch('/:idMulta/aprovar-comprovante')
+  @UseGuards(AuthGuard)
+  async aprovarComprovante(
+    @Param('idMulta') idMulta: number,
+    @Request() req: any,
+  ) {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+
+    return this.multaService.aprovarPagamento(
+      idMulta,
+      currentUserId,
+      currentUserName,
+    );
+  }
+
+  @Patch('/:idMulta/reprovar-comprovante')
+  @UseGuards(AuthGuard)
+  async reprovarComprovante(
+    @Param('idMulta') idMulta: number,
+    @Body() body: { motivo: string },
+    @Request() req: any,
+  ) {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+
+    return this.multaService.reprovarPagamento(
+      idMulta,
+      body.motivo,
+      currentUserId,
+      currentUserName,
+    );
+  }
+
   @Delete('/:idMulta/arquivo')
   @UseGuards(AuthGuard)
   async removerArquivo(
