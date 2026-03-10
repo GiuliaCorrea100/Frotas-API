@@ -7,7 +7,7 @@ import {
 import { MultaDto, FindAllParameters } from './multa.dto';
 import { MultaEntity } from 'src/db/entities/multa.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like, FindOptionsWhere, Between } from 'typeorm';
+import { Repository, Like, FindOptionsWhere } from 'typeorm';
 import { LogService } from '../log/log.service';
 import { LogDto } from '../log/log.dto';
 import { CorridaService } from '../corrida/corrida.service';
@@ -28,8 +28,6 @@ export class MultaService {
     private readonly usuarioService: UsuarioService,
     private readonly anexoService: AnexoService,
   ) {}
-
-  private multa: MultaDto[] = [];
 
   async encontrarCorridaPorPlacaEData(
     placaVeiculo: string,
@@ -406,6 +404,40 @@ export class MultaService {
     return multaAtualizada;
   }
 
+  async reprovarPagamento(
+    idMulta: number,
+    motivo: string,
+    currentUserId?: number,
+    currentUserName?: string,
+  ) {
+    const multa = await this.MultaRepository.findOne({
+      where: { idMulta },
+    });
+
+    if (!multa) {
+      throw new NotFoundException(`Multa ${idMulta} não encontrada`);
+    }
+
+    const dadosAntigos = { ...multa };
+
+    multa.situacao = 'PENDENTE DE ACAO';
+    multa.motivoReprovacao = motivo;
+
+    const multaAtualizada = await this.MultaRepository.save(multa);
+
+    await this.logService.logChange({
+      nomeTabela: 'multa',
+      idRegistro: multa.idMulta,
+      operacao: 'UPDATE',
+      dadosAntigos,
+      dadosNovos: multaAtualizada,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    });
+
+    return multaAtualizada;
+  }
+
   async atualizarComprovantePagamento(
     idMulta: number,
     arquivo: Express.Multer.File,
@@ -449,6 +481,7 @@ export class MultaService {
       dataInfracao: MultaEntity.dataInfracao,
       autoInfracao: MultaEntity.autoInfracao,
       situacao: MultaEntity.situacao,
+      motivoReprovacao: MultaEntity.motivoReprovacao,
       ativa: MultaEntity.ativa,
       urlArquivo: MultaEntity.urlArquivo,
       urlComprovantePagamento: MultaEntity.urlComprovantePagamento,
@@ -473,6 +506,7 @@ export class MultaService {
       dataInfracao: MultaDto.dataInfracao,
       autoInfracao: MultaDto.autoInfracao,
       situacao: MultaDto.situacao,
+      motivoReprovacao: MultaDto.motivoReprovacao,
       ativa: MultaDto.ativa,
       urlComprovantePagamento: MultaDto.urlComprovantePagamento,
     };
