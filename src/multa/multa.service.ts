@@ -388,7 +388,7 @@ export class MultaService {
 
     const dadosAntigos = { ...multa };
 
-    multa.situacao = 'QUITADA/PAGA';
+    multa.situacao = 'PAGA';
 
     const multaAtualizada = await this.MultaRepository.save(multa);
 
