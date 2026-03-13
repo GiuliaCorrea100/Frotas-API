@@ -1,3 +1,4 @@
+// anexo.service.ts
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
@@ -10,15 +11,39 @@ function getErrorMessage(error: unknown): string {
 
 @Injectable()
 export class AnexoService {
-  private readonly uploadPath = join(process.cwd(), 'uploads', 'multas');
+  private readonly baseUploadPath = join(process.cwd(), 'uploads');
 
   constructor() {
-    if (!existsSync(this.uploadPath)) {
-      mkdirSync(this.uploadPath, { recursive: true });
+    // Garantir que a pasta base uploads existe
+    if (!existsSync(this.baseUploadPath)) {
+      mkdirSync(this.baseUploadPath, { recursive: true });
     }
+    
+    // Garantir que a pasta multas existe
+    const multasPath = join(this.baseUploadPath, 'multas');
+    if (!existsSync(multasPath)) {
+      mkdirSync(multasPath, { recursive: true });
+    }
+    
+    // Garantir que a pasta boletos existe
+    const boletosPath = join(this.baseUploadPath, 'boletos');
+    if (!existsSync(boletosPath)) {
+      mkdirSync(boletosPath, { recursive: true });
+    }
+    
+    // Garantir que a pasta comprovantes existe
+    const comprovantesPath = join(this.baseUploadPath, 'comprovantes');
+    if (!existsSync(comprovantesPath)) {
+      mkdirSync(comprovantesPath, { recursive: true });
+    }
+
+    console.log('✅ Pastas de upload verificadas/criadas:');
+    console.log(`   - ${multasPath}`);
+    console.log(`   - ${boletosPath}`);
+    console.log(`   - ${comprovantesPath}`);
   }
 
-  async salvarArquivo(file: Express.Multer.File): Promise<string> {
+  async salvarArquivo(file: Express.Multer.File, subPasta: string = 'multas'): Promise<string> {
     if (!file) {
       throw new BadRequestException('Nenhum arquivo foi enviado');
     }
@@ -40,14 +65,26 @@ export class AnexoService {
     }
 
     try {
+      // Criar o caminho completo para a subpasta
+      const uploadPath = join(this.baseUploadPath, subPasta);
+      
+      // Garantir que a subpasta existe
+      if (!existsSync(uploadPath)) {
+        mkdirSync(uploadPath, { recursive: true });
+        console.log(`📁 Pasta criada: ${uploadPath}`);
+      }
+
       const timestamp = Date.now();
       const randomString = Math.random().toString(36).substring(2, 15);
-      const fileName = `multa_${timestamp}_${randomString}${fileExtension}`;
-      const filePath = join(this.uploadPath, fileName);
+      const fileName = `${timestamp}_${randomString}${fileExtension}`;
+      const filePath = join(uploadPath, fileName);
 
       await fs.promises.writeFile(filePath, file.buffer);
 
-      const finalPath = `uploads/multas/${fileName}`;
+      // Retornar o caminho relativo para salvar no banco
+      const finalPath = `uploads/${subPasta}/${fileName}`;
+      
+      console.log(`✅ Arquivo salvo: ${finalPath}`);
 
       return finalPath;
     } catch (error) {
@@ -56,8 +93,23 @@ export class AnexoService {
     }
   }
 
-  async getArquivo(fileName: string): Promise<string> {
-    const filePath = join(this.uploadPath, fileName);
+  async getArquivo(fileName: string, subPasta?: string): Promise<string> {
+    // Se não soubermos a subpasta, precisamos procurar
+    if (!subPasta) {
+      // Tenta encontrar o arquivo nas possíveis subpastas
+      const possiveisPastas = ['multas', 'boletos', 'comprovantes'];
+      
+      for (const pasta of possiveisPastas) {
+        const filePath = join(this.baseUploadPath, pasta, fileName);
+        if (existsSync(filePath)) {
+          return filePath;
+        }
+      }
+      
+      throw new BadRequestException('Arquivo não encontrado');
+    }
+
+    const filePath = join(this.baseUploadPath, subPasta, fileName);
 
     if (!existsSync(filePath)) {
       throw new BadRequestException('Arquivo não encontrado');
@@ -67,15 +119,23 @@ export class AnexoService {
   }
 
   async deletarArquivo(fileName: string): Promise<void> {
-    const filePath = join(this.uploadPath, fileName);
-
-    try {
+    // Tenta encontrar e deletar o arquivo em qualquer subpasta
+    const possiveisPastas = ['multas', 'boletos', 'comprovantes'];
+    
+    for (const pasta of possiveisPastas) {
+      const filePath = join(this.baseUploadPath, pasta, fileName);
       if (existsSync(filePath)) {
-        await fs.promises.unlink(filePath);
+        try {
+          await fs.promises.unlink(filePath);
+          console.log(`✅ Arquivo deletado: ${filePath}`);
+          return;
+        } catch (error) {
+          throw new BadRequestException('Erro ao deletar arquivo: ' + getErrorMessage(error));
+        }
       }
-    } catch (error) {
-      throw new BadRequestException('Erro ao deletar arquivo: ' + getErrorMessage(error));
     }
+    
+    // Se não encontrou em nenhuma pasta, não faz nada
   }
 
   async deletarArquivoPorUrl(urlArquivo: string): Promise<void> {
@@ -83,12 +143,29 @@ export class AnexoService {
       return;
     }
 
-    const fileName = urlArquivo.split('/').pop();
+    // Extrair o nome do arquivo da URL (formato: uploads/subpasta/arquivo.ext)
+    const parts = urlArquivo.split('/');
+    const fileName = parts.pop();
+    const subPasta = parts.length > 0 ? parts[parts.length - 1] : undefined;
 
     if (!fileName) {
       throw new BadRequestException('Nome do arquivo inválido');
     }
 
-    return this.deletarArquivo(fileName);
+    // Se temos a subpasta na URL, usamos ela
+    if (subPasta && (subPasta === 'multas' || subPasta === 'boletos' || subPasta === 'comprovantes')) {
+      const filePath = join(this.baseUploadPath, subPasta, fileName);
+      try {
+        if (existsSync(filePath)) {
+          await fs.promises.unlink(filePath);
+          console.log(`✅ Arquivo deletado por URL: ${filePath}`);
+        }
+      } catch (error) {
+        throw new BadRequestException('Erro ao deletar arquivo: ' + getErrorMessage(error));
+      }
+    } else {
+      // Se não conseguir extrair a subpasta, procura em todas
+      await this.deletarArquivo(fileName);
+    }
   }
 }
