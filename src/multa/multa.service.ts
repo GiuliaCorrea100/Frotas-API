@@ -453,9 +453,9 @@ export class MultaService {
       throw new NotFoundException(`Multa com id ${idMulta} não encontrada`);
     }
 
-    const dadosAntigos = { ...foundMulta };
+    foundMulta.situacao = "ANALISE PENDENTE";
 
-    foundMulta.situacao = "ANALISE PENDENTE"
+    const dadosAntigos = { ...foundMulta };
 
     const url = await this.anexoService.salvarArquivo(arquivo);
 

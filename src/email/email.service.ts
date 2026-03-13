@@ -1,3 +1,4 @@
+/* src/email/email.service.ts */
 import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import * as hbs from 'handlebars';
@@ -25,15 +26,17 @@ export class EmailService {
     });
   }
 
-  private async renderTemplate(templateName: string, context: any) {
-    const templatePath = path.join(process.cwd(), 'src', 'email', 'template', templateName);
+  private renderTemplate(templateName: string, context: any): string {
+    const templateFileName = templateName.endsWith('.hbs')
+      ? templateName
+      : `${templateName}.hbs`;
 
+    const templatesPath = path.join(__dirname, 'template');
+    const templatePath = path.join(templatesPath, templateFileName);
 
-    const templateFile = readFileSync(templatePath, 'utf-8');
-
-    const compiledTemplate = hbs.compile(templateFile);
-
-    return compiledTemplate(context);
+    const templateSource = readFileSync(templatePath, 'utf8');
+    const template = hbs.compile(templateSource);
+    return template(context);
   }
 
   async sendMail(to: string, subject: string, template: string, context: any) {
