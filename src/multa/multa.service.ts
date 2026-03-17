@@ -377,6 +377,53 @@ export class MultaService {
     await this.logService.logChange(logData);
   }
 
+
+  async removerArquivoComprovante(
+    idMulta: number,
+    currentUserId?: number,
+    currentUserName?: string,
+  ) {
+    const foundMulta = await this.MultaRepository.findOne({
+      where: { idMulta },
+    });
+
+    if (!foundMulta) {
+      throw new NotFoundException(`Item with ${idMulta} not found`);
+    }
+
+    if (!foundMulta.urlComprovantePagamento) {
+      return;
+    }
+
+    const dadosAntigos = { ...foundMulta };
+
+    const urlArquivoParaDeletar = foundMulta.urlComprovantePagamento;
+
+    foundMulta.urlComprovantePagamento = null;
+    const updatedMulta = await this.MultaRepository.save(foundMulta);
+
+    try {
+      await this.anexoService.deletarArquivosPorUrl(urlArquivoParaDeletar, 'comprovantes');
+    } catch (error) {
+      console.error(
+        'Erro ao deletar arquivo físico, mas multa foi atualizada:',
+        error,
+      );
+    }
+
+    const logData: LogDto = {
+      nomeTabela: 'multa',
+      idRegistro: idMulta,
+      operacao: 'UPDATE',
+      dadosAntigos: dadosAntigos,
+      dadosNovos: updatedMulta,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    await this.logService.logChange(logData);
+  }
+
   async aprovarPagamento(
     idMulta: number,
     currentUserId?: number,
@@ -457,15 +504,12 @@ export class MultaService {
       throw new NotFoundException(`Multa com id ${idMulta} não encontrada`);
     }
 
+    foundMulta.situacao = "ANALISE PENDENTE";
+
     const dadosAntigos = { ...foundMulta };
 
-    foundMulta.situacao = 'ANALISE PENDENTE';
-
-    const url = await this.anexoService.salvarArquivo(
-      arquivo,
-      'boletos',
-      idMulta,
-    );
+    const url = await this.anexoService.salvarArquivos(arquivo, 'comprovantes');
+    //const url = await this.anexoService.salvarArquivo(arquivo);
 
     foundMulta.urlComprovantePagamento = url;
 
