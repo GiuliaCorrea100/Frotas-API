@@ -399,7 +399,7 @@ export class MultaService {
     const updatedMulta = await this.MultaRepository.save(foundMulta);
 
     try {
-      await this.anexoService.deletarArquivoPorUrl(urlArquivoParaDeletar);
+      await this.anexoService.deletarArquivosPorUrl(urlArquivoParaDeletar, 'comprovantes');
     } catch (error) {
       console.error(
         'Erro ao deletar arquivo físico, mas multa foi atualizada:',
@@ -504,7 +504,8 @@ export class MultaService {
 
     const dadosAntigos = { ...foundMulta };
 
-    const url = await this.anexoService.salvarArquivo(arquivo);
+    const url = await this.anexoService.salvarArquivos(arquivo, 'comprovantes');
+    //const url = await this.anexoService.salvarArquivo(arquivo);
 
     foundMulta.urlComprovantePagamento = url;
 

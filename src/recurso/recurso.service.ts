@@ -13,9 +13,6 @@ import { UsuarioService } from 'src/usuario/usuario.service';
 
 @Injectable()
 export class RecursoService {
-  // MultaRepository: any;
-  // emailService: any;
-  // usuarioService: any;
   constructor(
     @InjectRepository(RecursoEntity)
     private readonly recursoRepository: Repository<RecursoEntity>,
@@ -41,7 +38,7 @@ export class RecursoService {
 
     if (arquivo) {
       try {
-        urlArquivo = await this.anexoService.salvarArquivo(arquivo);
+        urlArquivo = await this.anexoService.salvarArquivos(arquivo, "recursos");
       } catch (error) {
          console.error('Error saving file:', error);
       }
