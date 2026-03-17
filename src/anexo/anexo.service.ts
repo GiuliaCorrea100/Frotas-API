@@ -12,23 +12,21 @@ function getErrorMessage(error: unknown): string {
 export class AnexoService {
   private readonly baseUploadPath = join(process.cwd(), 'uploads');
 
-  private readonly baseUploadPath = join(process.cwd(), 'uploads');
-
   constructor() {
     if (!existsSync(this.baseUploadPath)) {
       mkdirSync(this.baseUploadPath, { recursive: true });
     }
-    
+
     const multasPath = join(this.baseUploadPath, 'multas');
     if (!existsSync(multasPath)) {
       mkdirSync(multasPath, { recursive: true });
     }
-    
+
     const boletosPath = join(this.baseUploadPath, 'boletos');
     if (!existsSync(boletosPath)) {
       mkdirSync(boletosPath, { recursive: true });
     }
-    
+
     const comprovantesPath = join(this.baseUploadPath, 'comprovantes');
     if (!existsSync(comprovantesPath)) {
       mkdirSync(comprovantesPath, { recursive: true });
@@ -49,7 +47,14 @@ export class AnexoService {
       throw new BadRequestException('Nenhum arquivo foi enviado');
     }
 
-    const allowedExtensions = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx'];
+    const allowedExtensions = [
+      '.pdf',
+      '.jpg',
+      '.jpeg',
+      '.png',
+      '.doc',
+      '.docx',
+    ];
 
     const fileExtension = file.originalname
       .toLowerCase()
@@ -63,7 +68,9 @@ export class AnexoService {
 
     const maxSize = 5 * 1024 * 1024;
     if (file.size > maxSize) {
-      throw new BadRequestException('Arquivo muito grande. Tamanho máximo: 5MB');
+      throw new BadRequestException(
+        'Arquivo muito grande. Tamanho máximo: 5MB',
+      );
     }
 
     try {
@@ -92,21 +99,23 @@ export class AnexoService {
 
       return finalPath;
     } catch (error) {
-      throw new BadRequestException('Erro ao salvar arquivo: ' + getErrorMessage(error));
+      throw new BadRequestException(
+        'Erro ao salvar arquivo: ' + getErrorMessage(error),
+      );
     }
   }
 
   async getArquivo(fileName: string, subPasta?: string): Promise<string> {
     if (!subPasta) {
       const possiveisPastas = ['multas', 'boletos', 'comprovantes'];
-      
+
       for (const pasta of possiveisPastas) {
         const filePath = join(this.baseUploadPath, pasta, fileName);
         if (existsSync(filePath)) {
           return filePath;
         }
       }
-      
+
       throw new BadRequestException('Arquivo não encontrado');
     }
 
@@ -121,7 +130,7 @@ export class AnexoService {
 
   async deletarArquivo(fileName: string): Promise<void> {
     const possiveisPastas = ['multas', 'boletos', 'comprovantes'];
-    
+
     for (const pasta of possiveisPastas) {
       const filePath = join(this.baseUploadPath, pasta, fileName);
       if (existsSync(filePath)) {
@@ -130,14 +139,15 @@ export class AnexoService {
           console.log(`Arquivo deletado: ${filePath}`);
           return;
         } catch (error) {
-          throw new BadRequestException('Erro ao deletar arquivo: ' + getErrorMessage(error));
+          throw new BadRequestException(
+            'Erro ao deletar arquivo: ' + getErrorMessage(error),
+          );
         }
       }
     }
-    
   }
 
-    async deletarArquivoPorUrl(urlArquivo: string): Promise<void> {
+  async deletarArquivoPorUrl(urlArquivo: string): Promise<void> {
     if (!urlArquivo) {
       return;
     }
@@ -150,7 +160,12 @@ export class AnexoService {
       throw new BadRequestException('Nome do arquivo inválido');
     }
 
-    if (subPasta && (subPasta === 'multas' || subPasta === 'boletos' || subPasta === 'comprovantes')) {
+    if (
+      subPasta &&
+      (subPasta === 'multas' ||
+        subPasta === 'boletos' ||
+        subPasta === 'comprovantes')
+    ) {
       const filePath = join(this.baseUploadPath, subPasta, fileName);
       try {
         if (existsSync(filePath)) {
@@ -158,21 +173,32 @@ export class AnexoService {
           console.log(`Arquivo deletado por URL: ${filePath}`);
         }
       } catch (error) {
-        throw new BadRequestException('Erro ao deletar arquivo: ' + getErrorMessage(error));
+        throw new BadRequestException(
+          'Erro ao deletar arquivo: ' + getErrorMessage(error),
+        );
       }
     } else {
       await this.deletarArquivo(fileName);
     }
   }
 
-
   // Funções que fiz pra não dar b.o com os da giulia
-   async salvarArquivos(file: Express.Multer.File, tipo: string): Promise<string> {
+  async salvarArquivos(
+    file: Express.Multer.File,
+    tipo: string,
+  ): Promise<string> {
     if (!file) {
       throw new BadRequestException('Nenhum arquivo foi enviado');
     }
 
-    const allowedExtensions = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx'];
+    const allowedExtensions = [
+      '.pdf',
+      '.jpg',
+      '.jpeg',
+      '.png',
+      '.doc',
+      '.docx',
+    ];
     const fileExtension = file.originalname
       .toLowerCase()
       .substring(file.originalname.lastIndexOf('.'));
@@ -185,12 +211,14 @@ export class AnexoService {
 
     const maxSize = 5 * 1024 * 1024;
     if (file.size > maxSize) {
-      throw new BadRequestException('Arquivo muito grande. Tamanho máximo: 5MB');
+      throw new BadRequestException(
+        'Arquivo muito grande. Tamanho máximo: 5MB',
+      );
     }
 
     try {
       const tipoPath = join(this.baseUploadPath, tipo);
-      
+
       if (!existsSync(tipoPath)) {
         mkdirSync(tipoPath, { recursive: true });
       }
@@ -199,7 +227,6 @@ export class AnexoService {
       const randomString = Math.random().toString(36).substring(2, 15);
       const fileName = `${tipo}_${timestamp}_${randomString}${fileExtension}`;
 
-      
       const filePath = join(tipoPath, fileName);
 
       await fs.promises.writeFile(filePath, file.buffer);
@@ -209,16 +236,18 @@ export class AnexoService {
       return finalPath;
     } catch (error) {
       console.error('❌ Erro ao salvar arquivo:', error);
-      throw new BadRequestException('Erro ao salvar arquivo: ' + getErrorMessage(error));
+      throw new BadRequestException(
+        'Erro ao salvar arquivo: ' + getErrorMessage(error),
+      );
     }
   }
 
-  async deletarArquivos(fileName: string, tipo:string): Promise<void> {
-      const tipoPath = join(this.baseUploadPath, tipo);
-      
-      if (!existsSync(tipoPath)) {
-        mkdirSync(tipoPath, { recursive: true });
-      }
+  async deletarArquivos(fileName: string, tipo: string): Promise<void> {
+    const tipoPath = join(this.baseUploadPath, tipo);
+
+    if (!existsSync(tipoPath)) {
+      mkdirSync(tipoPath, { recursive: true });
+    }
 
     const filePath = join(tipoPath, fileName);
 
@@ -227,11 +256,13 @@ export class AnexoService {
         await fs.promises.unlink(filePath);
       }
     } catch (error) {
-      throw new BadRequestException('Erro ao deletar arquivo: ' + getErrorMessage(error));
+      throw new BadRequestException(
+        'Erro ao deletar arquivo: ' + getErrorMessage(error),
+      );
     }
   }
 
-  async deletarArquivosPorUrl(urlArquivo: string, tipo:string): Promise<void> {
+  async deletarArquivosPorUrl(urlArquivo: string, tipo: string): Promise<void> {
     if (!urlArquivo) {
       return;
     }
