@@ -216,4 +216,25 @@ export class MultaController {
       currentUserName,
     );
   }
+
+  @Delete('/:idMulta/comprovante')
+  @UseGuards(AuthGuard)
+  async removerArquivoComprovante(
+    @Param('idMulta') idMulta: number,
+    @Request() req: any,
+  ) {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+
+    await this.multaService.removerArquivoComprovante(
+      idMulta,
+      currentUserId,
+      currentUserName,
+    );
+  }
+
+
+
+
+
 }
