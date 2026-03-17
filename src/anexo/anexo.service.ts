@@ -38,12 +38,17 @@ export class AnexoService {
     console.log(`   - ${comprovantesPath}`);
   }
 
-  async salvarArquivo(file: Express.Multer.File, subPasta: string = 'multas'): Promise<string> {
+  async salvarArquivo(
+    file: Express.Multer.File,
+    subPasta: string = 'multas',
+    idMulta?: number,
+  ): Promise<string> {
     if (!file) {
       throw new BadRequestException('Nenhum arquivo foi enviado');
     }
 
     const allowedExtensions = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx'];
+
     const fileExtension = file.originalname
       .toLowerCase()
       .substring(file.originalname.lastIndexOf('.'));
@@ -61,26 +66,30 @@ export class AnexoService {
 
     try {
       const uploadPath = join(this.baseUploadPath, subPasta);
-      
+
       if (!existsSync(uploadPath)) {
         mkdirSync(uploadPath, { recursive: true });
-        console.log(`📁 Pasta criada: ${uploadPath}`);
       }
 
-      const timestamp = Date.now();
-      const randomString = Math.random().toString(36).substring(2, 15);
-      const fileName = `${timestamp}_${randomString}${fileExtension}`;
+      const nomeOriginal = file.originalname.replace(fileExtension, '');
+      const random8 = Math.floor(10000000 + Math.random() * 90000000);
+
+      let fileName;
+
+      if (idMulta) {
+        fileName = `${idMulta}_${nomeOriginal}_${random8}${fileExtension}`;
+      } else {
+        fileName = `${nomeOriginal}_${random8}${fileExtension}`;
+      }
+
       const filePath = join(uploadPath, fileName);
 
       await fs.promises.writeFile(filePath, file.buffer);
 
       const finalPath = `uploads/${subPasta}/${fileName}`;
-      
-      console.log(`Arquivo salvo: ${finalPath}`);
 
       return finalPath;
     } catch (error) {
-      console.error('Erro ao salvar arquivo:', error);
       throw new BadRequestException('Erro ao salvar arquivo: ' + getErrorMessage(error));
     }
   }

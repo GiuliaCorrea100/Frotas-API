@@ -308,7 +308,11 @@ export class MultaService {
 
     const dadosAntigos = { ...foundMulta };
 
-    const urlArquivo = await this.anexoService.salvarArquivo(arquivo, 'boletos');
+    const urlArquivo = await this.anexoService.salvarArquivo(
+      arquivo, 
+      'boletos', 
+      idMulta
+    );
 
     foundMulta.urlArquivo = urlArquivo;
 
@@ -457,7 +461,11 @@ export class MultaService {
 
     foundMulta.situacao = 'ANALISE PENDENTE';
 
-    const url = await this.anexoService.salvarArquivo(arquivo, 'boletos');
+    const url = await this.anexoService.salvarArquivo(
+      arquivo,
+      'boletos',
+      idMulta,
+    );
 
     foundMulta.urlComprovantePagamento = url;
 
