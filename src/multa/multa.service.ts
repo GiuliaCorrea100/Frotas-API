@@ -91,7 +91,7 @@ export class MultaService {
 
     if (arquivo) {
       try {
-        urlArquivo = await this.anexoService.salvarArquivo(arquivo);
+        urlArquivo = await this.anexoService.salvarArquivo(arquivo, 'boletos');
       } catch (error) {}
     }
 
@@ -308,7 +308,11 @@ export class MultaService {
 
     const dadosAntigos = { ...foundMulta };
 
-    const urlArquivo = await this.anexoService.salvarArquivo(arquivo);
+    const urlArquivo = await this.anexoService.salvarArquivo(
+      arquivo, 
+      'boletos', 
+      idMulta
+    );
 
     foundMulta.urlArquivo = urlArquivo;
 
@@ -435,7 +439,7 @@ export class MultaService {
 
     const dadosAntigos = { ...multa };
 
-    multa.situacao = 'QUITADA/PAGA';
+    multa.situacao = 'PAGA';
 
     const multaAtualizada = await this.MultaRepository.save(multa);
 
@@ -521,23 +525,23 @@ export class MultaService {
       usuario: currentUserName,
     });
 
-    const administradores = await this.usuarioService.findAll({ administrador: true });
+    const administradores = await this.usuarioService.findAll({
+      administrador: true,
+    });
     const motorista = await this.usuarioService.findById(currentUserId);
 
     for (const admin of administradores) {
       await this.emailService.sendMail(
-        admin.email, 
+        admin.email,
         'Upload de Comprovante de Pagamento',
         'notificarComprovantePagamento.hbs',
         {
-          nome: admin.nome,           
+          nome: admin.nome,
           motorista: motorista.nome,
         },
       );
+    }
   }
-
-}
-
 
   private mapEntityToDto(MultaEntity: MultaEntity): MultaDto {
     return {
