@@ -431,6 +431,7 @@ export class MultaService {
   ) {
     const multa = await this.MultaRepository.findOne({
       where: { idMulta },
+      relations: ['motorista'],
     });
 
     if (!multa) {
@@ -453,6 +454,35 @@ export class MultaService {
       usuario: currentUserName,
     });
 
+    try {
+
+      if (!multa.motorista) {
+        console.log('⚠️ Multa sem motorista');
+        return multaAtualizada;
+      }
+
+      if (!multa.motorista.email) {
+        console.log('⚠️ Motorista sem email');
+        return multaAtualizada;
+      }
+
+      console.log('Email motorista:', multa.motorista.email);
+
+      await this.emailService.sendMail(
+        multa.motorista.email,
+        'Comprovante aprovado',
+        'comprovanteAprovado.hbs',
+        {
+          nome: multa.motorista.nome,
+          placa: multa.placaVeiculo,
+        },
+      );
+
+      console.log('✅ Email de aprovação enviado!');
+    } catch (error) {
+      console.error('❌ Erro ao enviar email de aprovação:', error);
+    }
+
     return multaAtualizada;
   }
 
@@ -464,6 +494,7 @@ export class MultaService {
   ) {
     const multa = await this.MultaRepository.findOne({
       where: { idMulta },
+      relations: ['motorista'],
     });
 
     if (!multa) {
@@ -487,6 +518,34 @@ export class MultaService {
       usuario: currentUserName,
     });
 
+    try {
+
+      if (!multa.motorista) {
+        console.log('⚠️ Multa sem motorista');
+        return multaAtualizada;
+      }
+
+      if (!multa.motorista.email) {
+        console.log('⚠️ Motorista sem email');
+        return multaAtualizada;
+      }
+
+      await this.emailService.sendMail(
+        multa.motorista.email,
+        'Comprovante reprovado',
+        'comprovanteReprovado.hbs',
+        {
+          nome: multa.motorista.nome,
+          placa: multa.placaVeiculo,
+          motivo: motivo,
+        },
+      );
+
+      console.log('✅ Email de reprovação enviado!');
+    } catch (error) {
+      console.error('❌ Erro ao enviar email de reprovação:', error);
+    }
+
     return multaAtualizada;
   }
 
@@ -509,7 +568,6 @@ export class MultaService {
     const dadosAntigos = { ...foundMulta };
 
     const url = await this.anexoService.salvarArquivos(arquivo, 'comprovantes');
-    //const url = await this.anexoService.salvarArquivo(arquivo);
 
     foundMulta.urlComprovantePagamento = url;
 

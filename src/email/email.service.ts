@@ -1,8 +1,7 @@
-/* src/email/email.service.ts */
 import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import * as hbs from 'handlebars';
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 import * as path from 'path';
 
 @Injectable()
@@ -31,22 +30,42 @@ export class EmailService {
       ? templateName
       : `${templateName}.hbs`;
 
-    const templatesPath = path.join(__dirname, 'template');
-    const templatePath = path.join(templatesPath, templateFileName);
+    const templatePath = path.join(
+      process.cwd(),
+      'src',
+      'email',
+      'template',
+      templateFileName,
+    );
+
+    if (!existsSync(templatePath)) {
+      throw new Error(`Template não encontrado: ${templatePath}`);
+    }
 
     const templateSource = readFileSync(templatePath, 'utf8');
     const template = hbs.compile(templateSource);
+
     return template(context);
   }
 
-  async sendMail(to: string, subject: string, template: string, context: any) {
-    const html = await this.renderTemplate(template, context);
+  async sendMail(
+    to: string,
+    subject: string,
+    template: string,
+    context: any,
+  ) {
+    try {
+      const html = this.renderTemplate(template, context);
 
-    await this.transporter.sendMail({
-      from: process.env.MAIL_ADDRESS,
-      to,
-      subject,
-      html,
-    });
+      await this.transporter.sendMail({
+        from: process.env.MAIL_ADDRESS,
+        to,
+        subject,
+        html,
+      });
+    } catch (error) {
+      console.error('Erro ao enviar email:', error);
+      throw error;
+    }
   }
 }
