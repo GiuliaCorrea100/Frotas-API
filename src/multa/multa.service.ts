@@ -444,6 +444,7 @@ export class MultaService {
       foundMulta.urlComprovantePagamento;
 
     foundMulta.urlComprovantePagamento = null;
+    foundMulta.situacao = 'ATRIBUIDA';
     const updatedMulta = await this.MultaRepository.save(
       foundMulta,
     );
