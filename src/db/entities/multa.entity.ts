@@ -61,6 +61,6 @@ export class MultaEntity {
   @JoinColumn({ name: 'id_motorista', referencedColumnName: 'idUsuario' })
   motorista?: UsuarioEntity;
 
-  @OneToOne(() => RecursoEntity, (recurso) => recurso.idMulta)
+  @OneToOne(() => RecursoEntity, (recurso) => recurso.multa)
   recurso?: RecursoEntity;
 }
