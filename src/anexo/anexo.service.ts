@@ -32,10 +32,16 @@ export class AnexoService {
       mkdirSync(comprovantesPath, { recursive: true });
     }
 
+    const recursosPath = join(this.baseUploadPath, 'recursos');
+    if (!existsSync(recursosPath)) {
+      mkdirSync(recursosPath, { recursive: true });
+    }
+
     console.log('Pastas de upload verificadas/criadas:');
     console.log(`   - ${multasPath}`);
     console.log(`   - ${boletosPath}`);
     console.log(`   - ${comprovantesPath}`);
+    console.log(`   - ${recursosPath}`);
   }
 
   async salvarArquivo(
@@ -107,7 +113,7 @@ export class AnexoService {
 
   async getArquivo(fileName: string, subPasta?: string): Promise<string> {
     if (!subPasta) {
-      const possiveisPastas = ['multas', 'boletos', 'comprovantes'];
+      const possiveisPastas = ['multas', 'boletos', 'comprovantes', 'recursos'];
 
       for (const pasta of possiveisPastas) {
         const filePath = join(this.baseUploadPath, pasta, fileName);
@@ -116,20 +122,20 @@ export class AnexoService {
         }
       }
 
-      throw new BadRequestException('Arquivo não encontrado');
+      throw new BadRequestException('Arquivo não encontrado nas pastas de upload');
     }
 
     const filePath = join(this.baseUploadPath, subPasta, fileName);
 
     if (!existsSync(filePath)) {
-      throw new BadRequestException('Arquivo não encontrado');
+      throw new BadRequestException('Arquivo não encontrado na pasta especificada');
     }
 
     return filePath;
   }
 
   async deletarArquivo(fileName: string): Promise<void> {
-    const possiveisPastas = ['multas', 'boletos', 'comprovantes'];
+    const possiveisPastas = ['multas', 'boletos', 'comprovantes', 'recursos'];
 
     for (const pasta of possiveisPastas) {
       const filePath = join(this.baseUploadPath, pasta, fileName);
@@ -164,7 +170,8 @@ export class AnexoService {
       subPasta &&
       (subPasta === 'multas' ||
         subPasta === 'boletos' ||
-        subPasta === 'comprovantes')
+        subPasta === 'comprovantes' ||
+        subPasta === 'recursos')
     ) {
       const filePath = join(this.baseUploadPath, subPasta, fileName);
       try {
@@ -182,7 +189,6 @@ export class AnexoService {
     }
   }
 
-  // Funções que fiz pra não dar b.o com os da giulia
   async salvarArquivos(
     file: Express.Multer.File,
     tipo: string,
@@ -266,7 +272,7 @@ export class AnexoService {
     if (!urlArquivo) {
       return;
     }
-    console.log(urlArquivo);
+
     const fileName = urlArquivo.split('/').pop();
 
     if (!fileName) {

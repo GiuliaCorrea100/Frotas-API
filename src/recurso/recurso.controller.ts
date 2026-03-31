@@ -44,6 +44,12 @@ export class RecursoController {
     return this.recursoService.create(recursoDto, arquivo, currentUserId, currentUserName);
 }
 
+@Get('/multa/:idMulta')
+@UseGuards(AuthGuard)
+async findByMulta(@Param('idMulta') idMulta: string) {
+  return this.recursoService.findByMulta(Number(idMulta));
+}
+
 
 
 

@@ -201,6 +201,22 @@ export class MultaController {
     );
   }
 
+  @Patch('/:idMulta/aceitar-recurso')
+  @UseGuards(AuthGuard)
+  async aceitarRecurso(
+    @Param('idMulta') idMulta: number,
+    @Request() req: any,
+  ) {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+
+    return this.multaService.aceitarRecurso(
+      idMulta,
+      currentUserId,
+      currentUserName,
+    );
+  }
+
   @Delete('/:idMulta/arquivo')
   @UseGuards(AuthGuard)
   async removerArquivo(
@@ -232,9 +248,4 @@ export class MultaController {
       currentUserName,
     );
   }
-
-
-
-
-
 }
