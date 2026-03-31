@@ -158,7 +158,7 @@ export class MultaService {
   async findById(idMulta: number): Promise<MultaDto> {
     const foundMulta = await this.MultaRepository.findOne({
       where: { idMulta },
-      relations: ['motorista'],
+      relations: ['motorista', 'recurso'],
     });
 
     if (!foundMulta) {
@@ -193,7 +193,7 @@ export class MultaService {
 
     const multaFound = await this.MultaRepository.find({
       where: searchParams,
-      relations: ['motorista'],
+      relations: ['motorista', 'recurso'],
     });
 
     return multaFound.map((MultaEntity) => this.mapEntityToDto(MultaEntity));
@@ -202,6 +202,7 @@ export class MultaService {
   async findByAno(ano: number): Promise<MultaEntity[]> {
     return await this.MultaRepository.createQueryBuilder('m')
       .leftJoinAndSelect('m.motorista', 'motorista')
+      .leftJoinAndSelect('m.recurso', 'recurso')
       .where("date_trunc('year', m.dataInfracao) = :ano", {
         ano: `${ano}-01-01`,
       })
@@ -457,16 +458,12 @@ export class MultaService {
     try {
 
       if (!multa.motorista) {
-        console.log('⚠️ Multa sem motorista');
         return multaAtualizada;
       }
 
       if (!multa.motorista.email) {
-        console.log('⚠️ Motorista sem email');
         return multaAtualizada;
       }
-
-      console.log('Email motorista:', multa.motorista.email);
 
       await this.emailService.sendMail(
         multa.motorista.email,
@@ -477,11 +474,7 @@ export class MultaService {
           placa: multa.placaVeiculo,
         },
       );
-
-      console.log('✅ Email de aprovação enviado!');
-    } catch (error) {
-      console.error('❌ Erro ao enviar email de aprovação:', error);
-    }
+    } catch (error) {}
 
     return multaAtualizada;
   }
@@ -521,12 +514,10 @@ export class MultaService {
     try {
 
       if (!multa.motorista) {
-        console.log('⚠️ Multa sem motorista');
         return multaAtualizada;
       }
 
       if (!multa.motorista.email) {
-        console.log('⚠️ Motorista sem email');
         return multaAtualizada;
       }
 
@@ -540,11 +531,7 @@ export class MultaService {
           motivo: motivo,
         },
       );
-
-      console.log('✅ Email de reprovação enviado!');
-    } catch (error) {
-      console.error('❌ Erro ao enviar email de reprovação:', error);
-    }
+    } catch (error) {}
 
     return multaAtualizada;
   }
@@ -617,6 +604,7 @@ export class MultaService {
       urlComprovantePagamento: MultaEntity.urlComprovantePagamento,
       idMotorista: MultaEntity.idMotorista,
       nomeMotorista: MultaEntity.motorista?.nome,
+      possuiRecurso: !!MultaEntity.recurso,
       motorista: MultaEntity.motorista
         ? {
             idUsuario: MultaEntity.motorista.idUsuario,
