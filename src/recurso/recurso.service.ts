@@ -97,6 +97,12 @@ export class RecursoService {
     return savedRecurso;
   }
 
+  async findByMulta(idMulta: number): Promise<RecursoEntity | null> {
+    return this.recursoRepository.findOne({
+      where: { idMulta },
+    });
+  }
+
   // findAll() {
   //   return `This action returns all recurso`;
   // }

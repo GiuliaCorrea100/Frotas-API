@@ -11,6 +11,7 @@ export class MultaDto {
   ativa?: boolean;
   idMotorista?: number;
   nomeMotorista?: string;
+  possuiRecurso?: boolean;
   urlArquivo?: string;
   urlComprovantePagamento?: string;
   motorista?: {
