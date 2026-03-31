@@ -4,8 +4,10 @@ import {
   PrimaryGeneratedColumn,
   ManyToOne,
   JoinColumn,
+  OneToOne,
 } from 'typeorm';
 import { UsuarioEntity } from './usuario.entity';
+import { RecursoEntity } from './recurso.entity';
 
 @Entity({ name: 'multa' })
 export class MultaEntity {
@@ -58,4 +60,7 @@ export class MultaEntity {
   @ManyToOne(() => UsuarioEntity, { nullable: true })
   @JoinColumn({ name: 'id_motorista', referencedColumnName: 'idUsuario' })
   motorista?: UsuarioEntity;
+
+  @OneToOne(() => RecursoEntity, (recurso) => recurso.idMulta)
+  recurso?: RecursoEntity;
 }
