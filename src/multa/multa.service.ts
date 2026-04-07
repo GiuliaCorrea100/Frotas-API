@@ -87,6 +87,39 @@ export class MultaService {
     return multaAtualizada;
   }
 
+  async rejeitarRecurso(
+    idMulta: number,
+    currentUserId?: number,
+    currentUserName?: string,
+  ) {
+    const multa = await this.MultaRepository.findOne({
+      where: { idMulta },
+      relations: ['motorista'],
+    });
+
+    if (!multa) {
+      throw new NotFoundException(`Multa ${idMulta} não encontrada`);
+    }
+
+    const dadosAntigos = { ...multa };
+
+    multa.situacao = 'RECURSO NEGADO - AGUARDANDO PAGAMENTO';
+
+    const multaAtualizada = await this.MultaRepository.save(multa);
+
+    await this.logService.logChange({
+      nomeTabela: 'multa',
+      idRegistro: multa.idMulta,
+      operacao: 'UPDATE',
+      dadosAntigos,
+      dadosNovos: multaAtualizada,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    });
+
+    return multaAtualizada;
+  }
+
   async create(
     multa: MultaDto,
     arquivo?: Express.Multer.File,
