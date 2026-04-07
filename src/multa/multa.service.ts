@@ -549,7 +549,7 @@ export class MultaService {
       await this.emailService.sendMail(
         multa.motorista.email,
         'Comprovante aprovado',
-        'comprovanteAprovado.hbs',
+        'comprovanteDePagamentoAprovado.hbs',
         {
           nome: multa.motorista.nome,
           placa: multa.placaVeiculo,
@@ -593,25 +593,25 @@ export class MultaService {
     });
 
     try {
-      if (!multa.motorista) {
-        return multaAtualizada;
-      }
-
-      if (!multa.motorista.email) {
+      if (!multa.motorista || !multa.motorista.email) {
         return multaAtualizada;
       }
 
       await this.emailService.sendMail(
         multa.motorista.email,
-        'Comprovante reprovado',
-        'comprovanteReprovado.hbs',
+        'Comprovante de pagamento reprovado',
+        'comprovanteDePagamentoReprovado.hbs',
         {
           nome: multa.motorista.nome,
           placa: multa.placaVeiculo,
+          dataMulta: new Date(multa.dataInfracao).toLocaleDateString('pt-BR'),
           motivo: motivo,
+          linkSistema: 'https://seusistema.com.br/motorista/multas',
         },
       );
-    } catch (error) {}
+    } catch (error) {
+      console.error('Erro ao enviar email de reprovação:', error);
+    }
 
     return multaAtualizada;
   }
