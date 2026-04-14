@@ -352,6 +352,7 @@ export class MultaService {
       arquivo,
       'boletos',
       idMulta,
+      'boleto'
     );
 
     foundMulta.urlArquivo = urlArquivo;
@@ -603,9 +604,11 @@ export class MultaService {
 
     const dadosAntigos = { ...foundMulta };
 
-    const url = await this.anexoService.salvarArquivos(
+    const url = await this.anexoService.salvarArquivo(
       arquivo,
       'comprovantes',
+      foundMulta.idMulta,
+      'comprovante'
     );
 
     foundMulta.urlComprovantePagamento = url;
@@ -631,14 +634,18 @@ export class MultaService {
       currentUserId,
     );
 
+    const dataFormatada = foundMulta.dataInfracao.toLocaleDateString('pt-BR')
+
     for (const admin of administradores) {
       await this.emailService.sendMail(
         admin.email,
-        'Upload de Comprovante de Pagamento',
+        'Comprovante de pagamento de multa enviado para validação',
         'notificarComprovantePagamento.hbs',
         {
           nome: admin.nome,
           motorista: motorista.nome,
+          placa: foundMulta.placaVeiculo,
+          data: dataFormatada, 
         },
       );
     }

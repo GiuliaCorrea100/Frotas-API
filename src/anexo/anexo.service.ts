@@ -48,6 +48,7 @@ export class AnexoService {
     file: Express.Multer.File,
     subPasta: string = 'multas',
     idMulta?: number,
+    tipo?: string,
   ): Promise<string> {
     if (!file) {
       throw new BadRequestException('Nenhum arquivo foi enviado');
@@ -91,8 +92,13 @@ export class AnexoService {
 
       let fileName;
 
-      if (idMulta) {
-        fileName = `${idMulta}_${nomeOriginal}_${random8}${fileExtension}`;
+      // if (idMulta) {
+      //   fileName = `${idMulta}_${nomeOriginal}_${random8}${fileExtension}`;
+      // } else {
+      //   fileName = `${nomeOriginal}_${random8}${fileExtension}`;
+      // }
+      if (idMulta && tipo) {
+        fileName = `${idMulta}_${tipo}_${random8}${fileExtension}`;
       } else {
         fileName = `${nomeOriginal}_${random8}${fileExtension}`;
       }
