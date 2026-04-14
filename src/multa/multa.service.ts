@@ -84,6 +84,74 @@ export class MultaService {
       usuario: currentUserName,
     });
 
+    try {
+      if (multa.motorista && multa.motorista.email) {
+        await this.emailService.sendMail(
+          multa.motorista.email,
+          'Recurso de Multa Aceito',
+          'recursoAceito.hbs',
+          {
+            nome: multa.motorista.nome,
+            placa: multa.placaVeiculo,
+            autoInfracao: multa.autoInfracao,
+          },
+        );
+      }
+    } catch (error) {
+      console.error('Erro ao enviar email de aceite de recurso:', error);
+    }
+
+    return multaAtualizada;
+  }
+
+  async rejeitarRecurso(
+    idMulta: number,
+    currentUserId?: number,
+    currentUserName?: string,
+  ) {
+    const multa = await this.MultaRepository.findOne({
+      where: { idMulta },
+      relations: ['motorista'],
+    });
+
+    if (!multa) {
+      throw new NotFoundException(`Multa ${idMulta} não encontrada`);
+    }
+
+    const dadosAntigos = { ...multa };
+
+    multa.situacao = 'RECURSO NEGADO - AGUARDANDO PAGAMENTO';
+
+    const multaAtualizada = await this.MultaRepository.save(multa);
+
+    await this.logService.logChange({
+      nomeTabela: 'multa',
+      idRegistro: multa.idMulta,
+      operacao: 'UPDATE',
+      dadosAntigos,
+      dadosNovos: multaAtualizada,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    });
+
+    try {
+      if (multa.motorista && multa.motorista.email) {
+        await this.emailService.sendMail(
+          multa.motorista.email,
+          'Recurso de Multa Rejeitado',
+          'recursoRejeitado.hbs',
+          {
+            nome: multa.motorista.nome,
+            placa: multa.placaVeiculo,
+            autoInfracao: multa.autoInfracao,
+            linkSistema: 'https://seusistema.com.br/motorista/multas',
+          },
+        );
+      }
+    } catch (error) {
+      console.error('Erro ao enviar email de rejeição de recurso:', error);
+    }
+
     return multaAtualizada;
   }
 
@@ -440,9 +508,7 @@ export class MultaService {
     }
 
     const dadosAntigos = { ...foundMulta };
-
-    const urlArquivoParaDeletar =
-      foundMulta.urlComprovantePagamento;
+    const urlArquivoParaDeletar = foundMulta.urlComprovantePagamento;
 
     foundMulta.urlComprovantePagamento = null;
     foundMulta.situacao = 'ATRIBUIDA';
@@ -506,18 +572,14 @@ export class MultaService {
     });
 
     try {
-      if (!multa.motorista) {
-        return multaAtualizada;
-      }
-
-      if (!multa.motorista.email) {
+      if (!multa.motorista || !multa.motorista.email) {
         return multaAtualizada;
       }
 
       await this.emailService.sendMail(
         multa.motorista.email,
         'Comprovante aprovado',
-        'comprovanteAprovado.hbs',
+        'comprovanteDePagamentoAprovado.hbs',
         {
           nome: multa.motorista.nome,
           placa: multa.placaVeiculo,
@@ -561,25 +623,25 @@ export class MultaService {
     });
 
     try {
-      if (!multa.motorista) {
-        return multaAtualizada;
-      }
-
-      if (!multa.motorista.email) {
+      if (!multa.motorista || !multa.motorista.email) {
         return multaAtualizada;
       }
 
       await this.emailService.sendMail(
         multa.motorista.email,
-        'Comprovante reprovado',
-        'comprovanteReprovado.hbs',
+        'Comprovante de pagamento reprovado',
+        'comprovanteDePagamentoReprovado.hbs',
         {
           nome: multa.motorista.nome,
           placa: multa.placaVeiculo,
+          dataMulta: new Date(multa.dataInfracao).toLocaleDateString('pt-BR'),
           motivo: motivo,
+          linkSistema: 'https://seusistema.com.br/motorista/multas',
         },
       );
-    } catch (error) {}
+    } catch (error) {
+      console.error('Erro ao enviar email de reprovação:', error);
+    }
 
     return multaAtualizada;
   }
