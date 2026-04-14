@@ -38,7 +38,7 @@ export class RecursoService {
 
     if (arquivo) {
       try {
-        urlArquivo = await this.anexoService.salvarArquivos(arquivo, "recursos");
+        urlArquivo = await this.anexoService.salvarArquivo(arquivo, "recursos", recurso.idMulta, 'recurso' );
       } catch (error) {
          console.error('Error saving file:', error);
       }
