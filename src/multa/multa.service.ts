@@ -472,7 +472,7 @@ export class MultaService {
       );
     } catch (error) {
       console.error(
-        'Erro ao deletar arquivo físico, mas multa foi atualizada:',
+        'Erro ao deletar arquivo físico:',
         error,
       );
     }
@@ -526,7 +526,7 @@ export class MultaService {
       );
     } catch (error) {
       console.error(
-        'Erro ao deletar arquivo físico, mas multa foi atualizada:',
+        'Erro ao deletar arquivo físico:',
         error,
       );
     }
@@ -575,19 +575,17 @@ export class MultaService {
     });
 
     try {
-      if (!multa.motorista || !multa.motorista.email) {
-        return multaAtualizada;
+      if (multa.motorista && multa.motorista.email) {
+        await this.emailService.sendMail(
+          multa.motorista.email,
+          'Comprovante aprovado',
+          'comprovanteDePagamentoAprovado.hbs',
+          {
+            nome: multa.motorista.nome,
+            placa: multa.placaVeiculo,
+          },
+        );
       }
-
-      await this.emailService.sendMail(
-        multa.motorista.email,
-        'Comprovante aprovado',
-        'comprovanteDePagamentoAprovado.hbs',
-        {
-          nome: multa.motorista.nome,
-          placa: multa.placaVeiculo,
-        },
-      );
     } catch (error) {}
 
     return multaAtualizada;
@@ -609,11 +607,21 @@ export class MultaService {
     }
 
     const dadosAntigos = { ...multa };
+    const urlParaDeletar = multa.urlComprovantePagamento;
 
     multa.situacao = 'PENDENTE DE ACAO';
     multa.motivoReprovacao = motivo;
+    multa.urlComprovantePagamento = null;
 
     const multaAtualizada = await this.MultaRepository.save(multa);
+
+    if (urlParaDeletar) {
+      try {
+        await this.anexoService.deletarArquivosPorUrl(urlParaDeletar, 'comprovantes');
+      } catch (error) {
+        console.error('Erro ao deletar arquivo físico:', error);
+      }
+    }
 
     await this.logService.logChange({
       nomeTabela: 'multa',
@@ -626,22 +634,20 @@ export class MultaService {
     });
 
     try {
-      if (!multa.motorista || !multa.motorista.email) {
-        return multaAtualizada;
+      if (multa.motorista && multa.motorista.email) {
+        await this.emailService.sendMail(
+          multa.motorista.email,
+          'Comprovante de pagamento reprovado',
+          'comprovanteDePagamentoReprovado.hbs',
+          {
+            nome: multa.motorista.nome,
+            placa: multa.placaVeiculo,
+            dataMulta: new Date(multa.dataInfracao).toLocaleDateString('pt-BR'),
+            motivo: motivo,
+            linkSistema: 'https://seusistema.com.br/motorista/multas',
+          },
+        );
       }
-
-      await this.emailService.sendMail(
-        multa.motorista.email,
-        'Comprovante de pagamento reprovado',
-        'comprovanteDePagamentoReprovado.hbs',
-        {
-          nome: multa.motorista.nome,
-          placa: multa.placaVeiculo,
-          dataMulta: new Date(multa.dataInfracao).toLocaleDateString('pt-BR'),
-          motivo: motivo,
-          linkSistema: 'https://seusistema.com.br/motorista/multas',
-        },
-      );
     } catch (error) {
       console.error('Erro ao enviar email de reprovação:', error);
     }
