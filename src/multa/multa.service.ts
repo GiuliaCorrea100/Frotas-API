@@ -517,9 +517,12 @@ export class MultaService {
     );
 
     try {
-      await this.anexoService.deletarArquivosPorUrl(
+      // await this.anexoService.deletarArquivosPorUrl(
+      //   urlArquivoParaDeletar,
+      //   'comprovantes',
+      // );
+      await this.anexoService.deletarArquivoPorUrl(
         urlArquivoParaDeletar,
-        'comprovantes',
       );
     } catch (error) {
       console.error(
