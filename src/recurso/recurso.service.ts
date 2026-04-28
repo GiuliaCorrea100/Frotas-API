@@ -88,6 +88,7 @@ export class RecursoService {
           nome: admin.nome,           
           motorista: motorista.nome,
           multa: idMulta,
+          justificativa: recurso.justificativa,
         },
       );
   }

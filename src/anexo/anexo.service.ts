@@ -195,96 +195,96 @@ export class AnexoService {
     }
   }
 
-  async salvarArquivos(
-    file: Express.Multer.File,
-    tipo: string,
-  ): Promise<string> {
-    if (!file) {
-      throw new BadRequestException('Nenhum arquivo foi enviado');
-    }
+  // async salvarArquivos(
+  //   file: Express.Multer.File,
+  //   tipo: string,
+  // ): Promise<string> {
+  //   if (!file) {
+  //     throw new BadRequestException('Nenhum arquivo foi enviado');
+  //   }
 
-    const allowedExtensions = [
-      '.pdf',
-      '.jpg',
-      '.jpeg',
-      '.png',
-      '.doc',
-      '.docx',
-    ];
-    const fileExtension = file.originalname
-      .toLowerCase()
-      .substring(file.originalname.lastIndexOf('.'));
+  //   const allowedExtensions = [
+  //     '.pdf',
+  //     '.jpg',
+  //     '.jpeg',
+  //     '.png',
+  //     '.doc',
+  //     '.docx',
+  //   ];
+  //   const fileExtension = file.originalname
+  //     .toLowerCase()
+  //     .substring(file.originalname.lastIndexOf('.'));
 
-    if (!allowedExtensions.includes(fileExtension)) {
-      throw new BadRequestException(
-        `Tipo de arquivo não permitido. Extensões permitidas: ${allowedExtensions.join(', ')}`,
-      );
-    }
+  //   if (!allowedExtensions.includes(fileExtension)) {
+  //     throw new BadRequestException(
+  //       `Tipo de arquivo não permitido. Extensões permitidas: ${allowedExtensions.join(', ')}`,
+  //     );
+  //   }
 
-    const maxSize = 5 * 1024 * 1024;
-    if (file.size > maxSize) {
-      throw new BadRequestException(
-        'Arquivo muito grande. Tamanho máximo: 5MB',
-      );
-    }
+  //   const maxSize = 5 * 1024 * 1024;
+  //   if (file.size > maxSize) {
+  //     throw new BadRequestException(
+  //       'Arquivo muito grande. Tamanho máximo: 5MB',
+  //     );
+  //   }
 
-    try {
-      const tipoPath = join(this.baseUploadPath, tipo);
+  //   try {
+  //     const tipoPath = join(this.baseUploadPath, tipo);
 
-      if (!existsSync(tipoPath)) {
-        mkdirSync(tipoPath, { recursive: true });
-      }
+  //     if (!existsSync(tipoPath)) {
+  //       mkdirSync(tipoPath, { recursive: true });
+  //     }
 
-      const timestamp = Date.now();
-      const randomString = Math.random().toString(36).substring(2, 15);
-      const fileName = `${tipo}_${timestamp}_${randomString}${fileExtension}`;
+  //     const timestamp = Date.now();
+  //     const randomString = Math.random().toString(36).substring(2, 15);
+  //     const fileName = `${tipo}_${timestamp}_${randomString}${fileExtension}`;
 
-      const filePath = join(tipoPath, fileName);
+  //     const filePath = join(tipoPath, fileName);
 
-      await fs.promises.writeFile(filePath, file.buffer);
+  //     await fs.promises.writeFile(filePath, file.buffer);
 
-      const finalPath = `uploads/${tipo}/${fileName}`;
+  //     const finalPath = `uploads/${tipo}/${fileName}`;
 
-      return finalPath;
-    } catch (error) {
-      console.error('❌ Erro ao salvar arquivo:', error);
-      throw new BadRequestException(
-        'Erro ao salvar arquivo: ' + getErrorMessage(error),
-      );
-    }
-  }
+  //     return finalPath;
+  //   } catch (error) {
+  //     console.error('❌ Erro ao salvar arquivo:', error);
+  //     throw new BadRequestException(
+  //       'Erro ao salvar arquivo: ' + getErrorMessage(error),
+  //     );
+  //   }
+  // }
 
-  async deletarArquivos(fileName: string, tipo: string): Promise<void> {
-    const tipoPath = join(this.baseUploadPath, tipo);
+  // async deletarArquivos(fileName: string, tipo: string): Promise<void> {
+  //   const tipoPath = join(this.baseUploadPath, tipo);
 
-    if (!existsSync(tipoPath)) {
-      mkdirSync(tipoPath, { recursive: true });
-    }
+  //   if (!existsSync(tipoPath)) {
+  //     mkdirSync(tipoPath, { recursive: true });
+  //   }
 
-    const filePath = join(tipoPath, fileName);
+  //   const filePath = join(tipoPath, fileName);
 
-    try {
-      if (existsSync(filePath)) {
-        await fs.promises.unlink(filePath);
-      }
-    } catch (error) {
-      throw new BadRequestException(
-        'Erro ao deletar arquivo: ' + getErrorMessage(error),
-      );
-    }
-  }
+  //   try {
+  //     if (existsSync(filePath)) {
+  //       await fs.promises.unlink(filePath);
+  //     }
+  //   } catch (error) {
+  //     throw new BadRequestException(
+  //       'Erro ao deletar arquivo: ' + getErrorMessage(error),
+  //     );
+  //   }
+  // }
 
-  async deletarArquivosPorUrl(urlArquivo: string, tipo: string): Promise<void> {
-    if (!urlArquivo) {
-      return;
-    }
+  // async deletarArquivosPorUrl(urlArquivo: string, tipo: string): Promise<void> {
+  //   if (!urlArquivo) {
+  //     return;
+  //   }
 
-    const fileName = urlArquivo.split('/').pop();
+  //   const fileName = urlArquivo.split('/').pop();
 
-    if (!fileName) {
-      throw new BadRequestException('Nome do arquivo inválido');
-    }
+  //   if (!fileName) {
+  //     throw new BadRequestException('Nome do arquivo inválido');
+  //   }
 
-    return this.deletarArquivos(fileName, tipo);
-  }
+  //   return this.deletarArquivos(fileName, tipo);
+  // }
 }
