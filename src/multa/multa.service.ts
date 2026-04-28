@@ -70,7 +70,7 @@ export class MultaService {
 
     const dadosAntigos = { ...multa };
 
-    multa.situacao = 'MULTA ANULADA';
+    multa.situacao = 'RECURSO ACEITO - MULTA ANULADA';
 
     const multaAtualizada = await this.MultaRepository.save(multa);
 
