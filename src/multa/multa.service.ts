@@ -617,7 +617,7 @@ export class MultaService {
 
     if (urlParaDeletar) {
       try {
-        await this.anexoService.deletarArquivosPorUrl(urlParaDeletar, 'comprovantes');
+        await this.anexoService.deletarArquivoPorUrl(urlParaDeletar);
       } catch (error) {
         console.error('Erro ao deletar arquivo físico:', error);
       }
