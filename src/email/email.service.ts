@@ -30,30 +30,15 @@ export class EmailService {
       ? templateName
       : `${templateName}.hbs`;
 
-    const templatePath = path.join(
-      process.cwd(),
-      'src',
-      'email',
-      'template',
-      templateFileName,
-    );
-
-    if (!existsSync(templatePath)) {
-      throw new Error(`Template não encontrado: ${templatePath}`);
-    }
+    const templatesPath = path.join(__dirname, 'template');
+    const templatePath = path.join(templatesPath, templateFileName);
 
     const templateSource = readFileSync(templatePath, 'utf8');
     const template = hbs.compile(templateSource);
-
     return template(context);
   }
 
-  async sendMail(
-    to: string,
-    subject: string,
-    template: string,
-    context: any,
-  ) {
+  async sendMail(to: string, subject: string, template: string, context: any) {
     try {
       const html = this.renderTemplate(template, context);
 
