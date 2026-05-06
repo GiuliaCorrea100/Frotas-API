@@ -101,7 +101,7 @@ export class MultaController {
       valorInfracao: Number(body.valorInfracao),
       placaVeiculo: body.placaVeiculo,
       dataInfracao: dataHoraInfracao,
-      autoInfracao: Number(body.autoInfracao),
+      autoInfracao: body.autoInfracao,
     };
 
     return await this.multaService.create(
