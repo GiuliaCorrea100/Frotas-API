@@ -190,14 +190,6 @@ export class MultaService {
       mensagem = 'Erro ao identificar o motorista responsável.';
     }
 
-    let urlArquivo = null;
-
-    if (arquivo) {
-      try {
-        urlArquivo = await this.anexoService.salvarArquivo(arquivo, 'boletos');
-      } catch (error) {}
-    }
-
     const multaToSave: MultaEntity = {
       codigoInfracao: multa.codigoInfracao,
       classificacao: multa.classificacao,
@@ -206,7 +198,6 @@ export class MultaService {
       dataInfracao: multa.dataInfracao,
       autoInfracao: multa.autoInfracao,
       situacao: situacao,
-      urlArquivo: urlArquivo,
       idMotorista: motoristaResponsavel
         ? motoristaResponsavel.idMotorista
         : null,
@@ -214,6 +205,23 @@ export class MultaService {
     } as MultaEntity;
 
     const savedMulta = await this.MultaRepository.save(multaToSave);
+
+    if (arquivo) {
+      try {
+        const urlArquivo = await this.anexoService.salvarArquivo(
+          arquivo,
+          'boletos',
+          savedMulta.idMulta,
+          'boleto',
+        );
+
+        savedMulta.urlArquivo = urlArquivo;
+
+        await this.MultaRepository.save(savedMulta);
+      } catch (error) {
+        console.error('Erro ao salvar arquivo:', error);
+      }
+    }
 
     const logData: LogDto = {
       nomeTabela: 'multa',
