@@ -35,8 +35,8 @@ export class MultaEntity {
   })
   dataInfracao: Date;
 
-  @Column({ type: 'int', name: 'num_auto_infracao' })
-  autoInfracao: number;
+  @Column({ type: 'varchar', name: 'num_auto_infracao' })
+  autoInfracao: string;
 
   @Column({ type: 'varchar', name: 'situacao', nullable: true })
   situacao?: string;

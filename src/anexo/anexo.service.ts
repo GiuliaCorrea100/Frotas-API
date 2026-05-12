@@ -87,20 +87,18 @@ export class AnexoService {
         mkdirSync(uploadPath, { recursive: true });
       }
 
-      const nomeOriginal = file.originalname.replace(fileExtension, '');
-      const random8 = Math.floor(10000000 + Math.random() * 90000000);
+      const random8 = Math.floor(
+        10000000 + Math.random() * 90000000,
+      );
 
-      let fileName;
+      let fileName = '';
 
-      // if (idMulta) {
-      //   fileName = `${idMulta}_${nomeOriginal}_${random8}${fileExtension}`;
-      // } else {
-      //   fileName = `${nomeOriginal}_${random8}${fileExtension}`;
-      // }
       if (idMulta && tipo) {
         fileName = `${idMulta}_${tipo}_${random8}${fileExtension}`;
+      } else if (tipo) {
+        fileName = `${tipo}_${random8}${fileExtension}`;
       } else {
-        fileName = `${nomeOriginal}_${random8}${fileExtension}`;
+        fileName = `${random8}${fileExtension}`;
       }
 
       const filePath = join(uploadPath, fileName);

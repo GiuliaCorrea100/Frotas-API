@@ -190,14 +190,6 @@ export class MultaService {
       mensagem = 'Erro ao identificar o motorista responsável.';
     }
 
-    let urlArquivo = null;
-
-    if (arquivo) {
-      try {
-        urlArquivo = await this.anexoService.salvarArquivo(arquivo, 'boletos');
-      } catch (error) {}
-    }
-
     const multaToSave: MultaEntity = {
       codigoInfracao: multa.codigoInfracao,
       classificacao: multa.classificacao,
@@ -206,7 +198,6 @@ export class MultaService {
       dataInfracao: multa.dataInfracao,
       autoInfracao: multa.autoInfracao,
       situacao: situacao,
-      urlArquivo: urlArquivo,
       idMotorista: motoristaResponsavel
         ? motoristaResponsavel.idMotorista
         : null,
@@ -214,6 +205,23 @@ export class MultaService {
     } as MultaEntity;
 
     const savedMulta = await this.MultaRepository.save(multaToSave);
+
+    if (arquivo) {
+      try {
+        const urlArquivo = await this.anexoService.salvarArquivo(
+          arquivo,
+          'boletos',
+          savedMulta.idMulta,
+          'boleto',
+        );
+
+        savedMulta.urlArquivo = urlArquivo;
+
+        await this.MultaRepository.save(savedMulta);
+      } catch (error) {
+        console.error('Erro ao salvar arquivo:', error);
+      }
+    }
 
     const logData: LogDto = {
       nomeTabela: 'multa',
@@ -373,13 +381,41 @@ export class MultaService {
     });
 
     if (!foundMulta) {
-      throw new NotFoundException(`Item with id ${idMulta} not found`);
+      throw new NotFoundException(`Multa com ID ${idMulta} não encontrada`);
     }
 
     const dadosAntigos = { ...foundMulta };
 
+    let idMotorista = foundMulta.idMotorista;
+    let situacao = foundMulta.situacao;
+
+    if (
+      multa.placaVeiculo !== foundMulta.placaVeiculo ||
+      new Date(multa.dataInfracao).getTime() !==
+        new Date(foundMulta.dataInfracao).getTime()
+    ) {
+      const motoristaResponsavel =
+        await this.corridaService.encontrarMotoristaPorPlacaEHorarioExato(
+          multa.placaVeiculo,
+          multa.dataInfracao,
+        );
+
+      if (motoristaResponsavel) {
+        idMotorista = motoristaResponsavel.idMotorista;
+        situacao = 'ATRIBUIDA';
+      } else {
+        idMotorista = null;
+        situacao = 'MOTORISTA NAO IDENTIFICADO';
+      }
+    }
+
     const updateData = this.mapDtoToEntity(multa);
-    const mergedEntity = this.MultaRepository.merge(foundMulta, updateData);
+
+    const mergedEntity = this.MultaRepository.merge(foundMulta, {
+      ...updateData,
+      idMotorista,
+      situacao,
+    });
 
     const updatedMulta = await this.MultaRepository.save(mergedEntity);
 
@@ -504,10 +540,6 @@ export class MultaService {
     const updatedMulta = await this.MultaRepository.save(foundMulta);
 
     try {
-      // await this.anexoService.deletarArquivosPorUrl(
-      //   urlArquivoParaDeletar,
-      //   'comprovantes',
-      // );
       await this.anexoService.deletarArquivoPorUrl(urlArquivoParaDeletar);
     } catch (error) {
       console.error('Erro ao deletar arquivo físico:', error);

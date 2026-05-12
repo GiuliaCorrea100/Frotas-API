@@ -1,15 +1,41 @@
-<p>Olá, <b>{{nome}}</b>!</p>
+```html
+<div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+  <p>Olá, <b>{{nome}}</b>!</p>
 
-<p>Informamos que o recurso referente à multa vinculada ao veículo de placa <b>{{placa}}</b>, registrada no auto de infração nº <b>{{autoInfracao}}</b>, foi indeferido.</p>
+  <p>
+    Informamos que o recurso referente à multa vinculada ao veículo de placa
+    <b>{{placa}}</b>, registrada no auto de infração nº
+    <b>{{autoInfracao}}</b>, foi rejeitado.
+  </p>
 
-<p><b>Motivo da decisão:</b><br/>{{motivo}}</p>
+  <p>
+    <b>Motivo da decisão:</b><br/>
+    {{motivo}}
+  </p>
 
-<p>Com isso, a situação da multa foi atualizada para <b>Aguardando Pagamento</b>.</p>
+  <p>
+    Com isso, a situação da multa foi atualizada para
+    <b>Aguardando Pagamento</b>.
+  </p>
 
-<p>Para visualizar os detalhes e realizar a regularização, acesse o sistema no link abaixo:</p>
+  <p>
+    Para visualizar os detalhes e realizar a regularização, acesse o sistema:
+  </p>
 
-<p><a href="{{linkSistema}}" style="color: #1976d2; font-weight: bold;">Acessar Sistema de Frotas</a></p>
+  <p>
+    <a
+      href="https://frotas.unir.br/RegistrosDeInfracao"
+      style="color: #1976d2;"
+    >
+      https://frotas.unir.br/RegistrosDeInfracao
+    </a>
+  </p>
 
-<br/>
-<p>Atenciosamente,<br/>
-<b>Sistema de Frotas</b></p>
+  <br/>
+
+  <p>
+    Atenciosamente,<br/>
+    <b>Sistema de Frotas</b>
+  </p>
+</div>
+```
