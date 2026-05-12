@@ -3,4 +3,5 @@ export class recursoDto{
     urlArquivo?: string;
     justificativa: string;
     idMulta?: number;
+    justificativaRejeicao?: string;
 }

@@ -14,6 +14,9 @@ export class RecursoEntity {
 
     @Column({ type: 'int', name: 'id_multa', nullable: true })
     idMulta?: number;
+
+    @Column({ type: 'varchar', name: 'justificativa_rejeicao'})
+    justificativaRejeicao?: string;
     
     @OneToOne(() => MultaEntity, (multa) => multa.recurso)
     @JoinColumn({ name: 'id_multa' })
