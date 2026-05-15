@@ -209,6 +209,7 @@ export class CorridaService {
     } else {
       foundCorrida.chaveEmprestada = false;
       foundCorrida.dataHoraRecebimentoChave = new Date();
+      foundCorrida.situacao =  "FINALIZADA";
 
       const administrador = await this.usuarioService.findById(currentUserId);
       const motorista = await this.usuarioService.findById(foundCorrida.idMotorista);
@@ -259,7 +260,8 @@ export class CorridaService {
 
     const transicoesPermitidas = {
       AGENDADA: ['ANDAMENTO', 'CANCELADA'],
-      ANDAMENTO: ['FINALIZADA'],
+      ANDAMENTO: ['FINALIZADA', 'CONCLUIDA'],
+      CONCLUIDA: ['FINALIZADA'],
       FINALIZADA: [],
       CANCELADA: [],
     };
