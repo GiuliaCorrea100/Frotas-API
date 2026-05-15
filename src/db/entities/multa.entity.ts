@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { UsuarioEntity } from './usuario.entity';
 import { RecursoEntity } from './recurso.entity';
+import { CarroEntity } from './carro.entity';
 
 @Entity({ name: 'multa' })
 export class MultaEntity {
@@ -63,4 +64,9 @@ export class MultaEntity {
 
   @OneToOne(() => RecursoEntity, (recurso) => recurso.multa)
   recurso?: RecursoEntity;
+
+  @ManyToOne(() =>CarroEntity, { nullable: true })
+  @JoinColumn({ name: 'placa_veiculo', referencedColumnName: 'idCarro' })
+  veiculo?:CarroEntity;
+
 }
