@@ -66,7 +66,7 @@ export class MultaEntity {
   recurso?: RecursoEntity;
 
   @ManyToOne(() =>CarroEntity, { nullable: true })
-  @JoinColumn({ name: 'placa_veiculo', referencedColumnName: 'idCarro' })
-  veiculo?:CarroEntity;
+  @JoinColumn({ name: 'placa_veiculo', referencedColumnName: 'placa' })
+  carro?:CarroEntity;
 
 }
