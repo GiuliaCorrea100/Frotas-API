@@ -23,6 +23,9 @@ import {
 } from 'typeorm';
 import { LogService } from '../log/log.service';
 import { LogDto } from '../log/log.dto';
+import { EmailService } from 'src/email/email.service';
+import { UsuarioService } from 'src/usuario/usuario.service';
+import { carroService } from 'src/carro/carro.service';
 
 @Injectable()
 export class CorridaService {
@@ -30,6 +33,9 @@ export class CorridaService {
     @InjectRepository(CorridaEntity)
     private readonly corridaRepository: Repository<CorridaEntity>,
     private readonly logService: LogService,
+    private readonly emailService: EmailService,
+    private readonly usuarioService: UsuarioService,
+    private readonly carroService: carroService,
   ) {}
 
   async verificarConflitoDeCorrida(
@@ -203,6 +209,27 @@ export class CorridaService {
     } else {
       foundCorrida.chaveEmprestada = false;
       foundCorrida.dataHoraRecebimentoChave = new Date();
+      foundCorrida.situacao =  "FINALIZADA";
+
+      const administrador = await this.usuarioService.findById(currentUserId);
+      const motorista = await this.usuarioService.findById(foundCorrida.idMotorista);
+      const veiculo = await this.carroService.findById(foundCorrida.idCarro);
+      //const dataFormatada = foundCorrida.dataHoraRecebimentoChave.toLocaleString('pt-BR', {hour12: false,});
+      const dataFormatada = foundCorrida.dataHoraRecebimentoChave.toLocaleDateString('pt-BR');
+      const horaFormatada = foundCorrida.dataHoraRecebimentoChave.toLocaleTimeString('pt-BR', {hour: '2-digit',minute: '2-digit'});
+
+      await this.emailService.sendMail(
+        motorista.email, 
+        'Confirmação de entrega de chave',
+        'confirmacaoEntregaChave.hbs',
+        {
+          motorista: motorista.nome,
+          administrador: administrador.nome,
+          placa: veiculo.placa,
+          data: dataFormatada,
+          hora: horaFormatada,
+        },
+      );
     }
 
     await this.corridaRepository.save(foundCorrida);
@@ -236,7 +263,8 @@ export class CorridaService {
 
     const transicoesPermitidas = {
       AGENDADA: ['ANDAMENTO', 'CANCELADA'],
-      ANDAMENTO: ['FINALIZADA'],
+      ANDAMENTO: ['FINALIZADA', 'CONCLUIDA'],
+      CONCLUIDA: ['FINALIZADA'],
       FINALIZADA: [],
       CANCELADA: [],
     };

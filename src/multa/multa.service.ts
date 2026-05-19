@@ -269,7 +269,7 @@ export class MultaService {
   async findById(idMulta: number): Promise<MultaDto> {
     const foundMulta = await this.MultaRepository.findOne({
       where: { idMulta },
-      relations: ['motorista', 'recurso'],
+      relations: ['motorista', 'recurso', 'carro'],
     });
 
     if (!foundMulta) {
@@ -304,7 +304,7 @@ export class MultaService {
 
     const multaFound = await this.MultaRepository.find({
       where: searchParams,
-      relations: ['motorista', 'recurso'],
+      relations: ['motorista', 'recurso', 'carro'],
     });
 
     return multaFound.map((MultaEntity) => this.mapEntityToDto(MultaEntity));
@@ -737,6 +737,7 @@ export class MultaService {
       classificacao: MultaEntity.classificacao,
       valorInfracao: MultaEntity.valorInfracao,
       placaVeiculo: MultaEntity.placaVeiculo,
+      modeloVeiculo: MultaEntity.carro?.modelo,
       dataInfracao: MultaEntity.dataInfracao,
       autoInfracao: MultaEntity.autoInfracao,
       situacao: MultaEntity.situacao,
