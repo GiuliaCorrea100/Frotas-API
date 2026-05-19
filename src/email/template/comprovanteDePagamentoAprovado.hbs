@@ -1,24 +1,20 @@
-```html
 <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
   <p>Olá, <b>{{nome}}</b>!</p>
 
   <p>
-    O comprovante de pagamento da multa do veículo de placa
-    <b>{{placa}}</b>, registrada em <b>{{dataMulta}}</b>,
-    foi aprovado.
+    Informamos que o comprovante de pagamento referente à multa do veículo de placa <b>{{placa}}</b>, registrada na data de <b>{{dataMulta}}</b>, foi aprovado com sucesso.
   </p>
 
   <p>
-    Não é necessário realizar nenhuma ação adicional no sistema.
+    Não é necessário realizar nenhuma ação adicional no sistema. Caso queira consultar o histórico da ocorrência, você pode acessar o Sistema de Frotas pelo link abaixo:
   </p>
 
-  <br/>
-
-  <br/>
+  <p>
+    <a href="{{linkSistema}}" style="color: #1976d2; font-weight: bold; text-decoration: none;">{{linkSistema}}</a>
+  </p>
 
   <p>
     Atenciosamente,<br/>
     <b>Sistema de Frotas</b>
   </p>
 </div>
-```
