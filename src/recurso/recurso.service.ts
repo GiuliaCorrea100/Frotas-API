@@ -120,16 +120,35 @@ export class RecursoService {
     }
 
     recurso.justificativaRejeicao = justificativaRejeicao;
-
     const recursoAtualizado = await this.recursoRepository.save(recurso);
 
     const multa = await this.multaRepository.findOne({
       where: { idMulta },
+      relations: ['motorista'],
     });
 
     if (multa) {
-      multa.situacao = 'RECURSO REJEITADO';
+      multa.situacao = 'RECURSO NEGADO - AGUARDANDO PAGAMENTO';
       await this.multaRepository.save(multa);
+
+      try {
+        if (multa.motorista && multa.motorista.email) {
+          await this.emailService.sendMail(
+            multa.motorista.email,
+            'Recurso de Multa Rejeitado',
+            'recursoRejeitado.hbs',
+            {
+              nome: multa.motorista.nome,
+              placa: multa.placaVeiculo,
+              autoInfracao: multa.autoInfracao,
+              motivo: justificativaRejeicao,
+              linkSistema: 'https://seusistema.com.br/motorista/multas',
+            },
+          );
+        }
+      } catch (error) {
+        console.error('Erro ao enviar email de rejeição de recurso:', error);
+      }
     }
 
     const logData: LogDto = {
