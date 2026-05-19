@@ -10,7 +10,6 @@ import { MultaEntity } from 'src/db/entities/multa.entity';
 import { EmailService } from 'src/email/email.service';
 import { UsuarioService } from 'src/usuario/usuario.service';
 
-
 @Injectable()
 export class RecursoService {
   constructor(
@@ -24,7 +23,6 @@ export class RecursoService {
 
     private readonly logServices: LogService,
     private readonly anexoService: AnexoService,
-
   ){}
 
   async create(
@@ -76,10 +74,10 @@ export class RecursoService {
       usuario: currentUserName,
     };
 
-    const administradores = await this.usuarioService.findAll({ administrador: true });
+    const administrators = await this.usuarioService.findAll({ administrador: true });
     const motorista = await this.usuarioService.findById(currentUserId);
 
-    for (const admin of administradores) {
+    for (const admin of administrators) {
       await this.emailService.sendMail(
         admin.email, 
         'Solicitação de Recurso de Multa',
@@ -91,7 +89,7 @@ export class RecursoService {
           justificativa: recurso.justificativa,
         },
       );
-  }
+    }
 
     await this.logServices.logChange(logDataRecurso);
 
@@ -104,19 +102,67 @@ export class RecursoService {
     });
   }
 
-  // findAll() {
-  //   return `This action returns all recurso`;
-  // }
+  async rejeitarRecurso(
+    idMulta: number,
+    justificativaRejeicao: string,
+    currentUserId?: number,
+    currentUserName?: string,
+  ): Promise<RecursoEntity> {
 
-  // findOne(id: number) {
-  //   return `This action returns a #${id} recurso`;
-  // }
+    const recurso = await this.recursoRepository.findOne({
+      where: { idMulta },
+    });
 
-  // update(id: number, recursoDto: recursoDto) {
-  //   return `This action updates a #${id} recurso`;
-  // }
+    if (!recurso) {
+      throw new NotFoundException(
+        `Recurso da multa ${idMulta} não encontrado`,
+      );
+    }
 
-  // remove(id: number) {
-  //   return `This action removes a #${id} recurso`;
-  // }
+    recurso.justificativaRejeicao = justificativaRejeicao;
+    const recursoAtualizado = await this.recursoRepository.save(recurso);
+
+    const multa = await this.multaRepository.findOne({
+      where: { idMulta },
+      relations: ['motorista'],
+    });
+
+    if (multa) {
+      multa.situacao = 'RECURSO NEGADO - AGUARDANDO PAGAMENTO';
+      await this.multaRepository.save(multa);
+
+      try {
+        if (multa.motorista && multa.motorista.email) {
+          await this.emailService.sendMail(
+            multa.motorista.email,
+            'Recurso de Multa Rejeitado',
+            'recursoRejeitado.hbs',
+            {
+              nome: multa.motorista.nome,
+              placa: multa.placaVeiculo,
+              autoInfracao: multa.autoInfracao,
+              motivo: justificativaRejeicao,
+              linkSistema: 'https://seusistema.com.br/motorista/multas',
+            },
+          );
+        }
+      } catch (error) {
+        console.error('Erro ao enviar email de rejeição de recurso:', error);
+      }
+    }
+
+    const logData: LogDto = {
+      nomeTabela: 'recurso',
+      idRegistro: recurso.idRecurso,
+      operacao: 'UPDATE',
+      dadosAntigos: null,
+      dadosNovos: recursoAtualizado,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    await this.logServices.logChange(logData);
+
+    return recursoAtualizado;
+  }
 }

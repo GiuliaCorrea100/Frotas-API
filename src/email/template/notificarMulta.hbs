@@ -1,32 +1,20 @@
-```html
 <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
   <p>Olá, <b>{{nome}}</b>!</p>
 
   <p>
-    Foi registrada uma multa vinculada ao veículo de placa <b>{{placa}}</b>,
-    com ocorrência em <b>{{data}}</b>, a qual está associada ao seu usuário
-    conforme registro no sistema.
+    Foi registrada uma multa referente ao veículo de placa <b>{{placa}}</b>, associada ao seu usuário no sistema na data de <b>{{data}}</b>.
   </p>
 
   <p>
-    Para prosseguir, acesse o sistema para visualizar os detalhes da multa,
-    realizar o download do boleto para pagamento ou, se necessário,
-    registrar uma contestação.
+    Para prosseguir, acesse o Sistema Frotas por meio do link abaixo, onde será possível consultar os detalhes da ocorrência, realizar o download do boleto para pagamento ou, se necessário, efetuar a contestação da multa:
   </p>
-
-  <br/>
 
   <p>
-    <a href="{{linkSistema}}" style="color: #1976d2; font-weight: bold;">
-      Acessar Sistema de Frotas
-    </a>
+    <a href="{{linkSistema}}" style="color: #1976d2; font-weight: bold; text-decoration: none;">{{linkSistema}}</a>
   </p>
-
-  <br/>
 
   <p>
     Atenciosamente,<br/>
     <b>Sistema de Frotas</b>
   </p>
 </div>
-```
