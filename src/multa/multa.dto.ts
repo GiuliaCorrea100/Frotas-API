@@ -5,11 +5,14 @@ export class MultaDto {
   valorInfracao: number;
   placaVeiculo: string;
   dataInfracao: Date;
-  autoInfracao: number;
+  autoInfracao: string;
+  modeloVeiculo?: string;
   situacao?: string;
+  motivoReprovacao?: string;
   ativa?: boolean;
   idMotorista?: number;
   nomeMotorista?: string;
+  possuiRecurso?: boolean;
   urlArquivo?: string;
   urlComprovantePagamento?: string;
   motorista?: {

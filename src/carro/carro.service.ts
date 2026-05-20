@@ -13,6 +13,7 @@ import { LogDto } from '../log/log.dto';
 
 @Injectable()
 export class carroService {
+  static findByPlaca: any;
   constructor(
     @InjectRepository(CarroEntity)
     private readonly carroRepository: Repository<CarroEntity>,

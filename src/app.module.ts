@@ -21,6 +21,7 @@ import { EmailModule } from './email/email.module';
 import { AnexoModule } from './anexo/anexo.module';
 import { GoogleRecaptchaModule } from '@nestlab/google-recaptcha';
 import { RelatorioModule } from './relatorio/relatorio.module';
+import { RecursoModule } from './recurso/recurso.module';
 
 
 @Module({
@@ -50,6 +51,7 @@ import { RelatorioModule } from './relatorio/relatorio.module';
         score: 0.8,
     }),
     RelatorioModule,
+    RecursoModule,
 
   ],
   controllers: [AppController],

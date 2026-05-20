@@ -14,11 +14,7 @@ import {
   Delete,
   BadRequestException,
 } from '@nestjs/common';
-import {
-  MultaDto,
-  FindAllParameters,
-  MultaRouteParameters,
-} from './multa.dto';
+import { MultaDto, FindAllParameters, MultaRouteParameters } from './multa.dto';
 import { MultaService } from './multa.service';
 import { AuthGuard } from '../auth/auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -101,7 +97,7 @@ export class MultaController {
       valorInfracao: Number(body.valorInfracao),
       placaVeiculo: body.placaVeiculo,
       dataInfracao: dataHoraInfracao,
-      autoInfracao: Number(body.autoInfracao),
+      autoInfracao: body.autoInfracao,
     };
 
     return await this.multaService.create(
@@ -167,16 +163,63 @@ export class MultaController {
     );
   }
 
-  @Delete('/:idMulta/arquivo')
+  @Patch('/:idMulta/aprovar-comprovante')
   @UseGuards(AuthGuard)
-  async removerArquivo(
+  async aprovarComprovante(
     @Param('idMulta') idMulta: number,
     @Request() req: any,
   ) {
     const currentUserId = req.user?.sub;
     const currentUserName = req.user?.login;
 
+    return this.multaService.aprovarPagamento(
+      idMulta,
+      currentUserId,
+      currentUserName,
+    );
+  }
+
+  @Patch('/:idMulta/reprovar-comprovante')
+  @UseGuards(AuthGuard)
+  async reprovarComprovante(
+    @Param('idMulta') idMulta: number,
+    @Body() body: { motivo: string },
+    @Request() req: any,
+  ) {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+
+    return this.multaService.reprovarPagamento(
+      idMulta,
+      body.motivo,
+      currentUserId,
+      currentUserName,
+    );
+  }
+
+  @Delete('/:idMulta/arquivo')
+  @UseGuards(AuthGuard)
+  async removerArquivo(@Param('idMulta') idMulta: number, @Request() req: any) {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+
     await this.multaService.removerArquivo(
+      idMulta,
+      currentUserId,
+      currentUserName,
+    );
+  }
+
+  @Delete('/:idMulta/comprovante')
+  @UseGuards(AuthGuard)
+  async removerArquivoComprovante(
+    @Param('idMulta') idMulta: number,
+    @Request() req: any,
+  ) {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+
+    await this.multaService.removerArquivoComprovante(
       idMulta,
       currentUserId,
       currentUserName,

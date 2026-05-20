@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import * as hbs from 'handlebars';
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 import * as path from 'path';
 
 @Injectable()
@@ -25,25 +25,32 @@ export class EmailService {
     });
   }
 
-  private async renderTemplate(templateName: string, context: any) {
-    const templatePath = path.join(process.cwd(), 'src', 'email', 'template', templateName);
+  private renderTemplate(templateName: string, context: any): string {
+    const templateFileName = templateName.endsWith('.hbs')
+      ? templateName
+      : `${templateName}.hbs`;
 
+    const templatesPath = path.join(__dirname, 'template');
+    const templatePath = path.join(templatesPath, templateFileName);
 
-    const templateFile = readFileSync(templatePath, 'utf-8');
-
-    const compiledTemplate = hbs.compile(templateFile);
-
-    return compiledTemplate(context);
+    const templateSource = readFileSync(templatePath, 'utf8');
+    const template = hbs.compile(templateSource);
+    return template(context);
   }
 
   async sendMail(to: string, subject: string, template: string, context: any) {
-    const html = await this.renderTemplate(template, context);
+    try {
+      const html = this.renderTemplate(template, context);
 
-    await this.transporter.sendMail({
-      from: process.env.MAIL_ADDRESS,
-      to,
-      subject,
-      html,
-    });
+      await this.transporter.sendMail({
+        from: process.env.MAIL_ADDRESS,
+        to,
+        subject,
+        html,
+      });
+    } catch (error) {
+      console.error('Erro ao enviar email:', error);
+      throw error;
+    }
   }
 }

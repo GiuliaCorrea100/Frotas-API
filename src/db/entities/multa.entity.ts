@@ -4,8 +4,11 @@ import {
   PrimaryGeneratedColumn,
   ManyToOne,
   JoinColumn,
+  OneToOne,
 } from 'typeorm';
 import { UsuarioEntity } from './usuario.entity';
+import { RecursoEntity } from './recurso.entity';
+import { CarroEntity } from './carro.entity';
 
 @Entity({ name: 'multa' })
 export class MultaEntity {
@@ -33,11 +36,14 @@ export class MultaEntity {
   })
   dataInfracao: Date;
 
-  @Column({ type: 'int', name: 'num_auto_infracao' })
-  autoInfracao: number;
+  @Column({ type: 'varchar', name: 'num_auto_infracao' })
+  autoInfracao: string;
 
   @Column({ type: 'varchar', name: 'situacao', nullable: true })
   situacao?: string;
+
+  @Column({ type: 'varchar', name: 'motivo_reprovacao', nullable: true })
+  motivoReprovacao?: string;
 
   @Column({ type: 'varchar', name: 'url_arquivo', nullable: true })
   urlArquivo?: string;
@@ -55,4 +61,12 @@ export class MultaEntity {
   @ManyToOne(() => UsuarioEntity, { nullable: true })
   @JoinColumn({ name: 'id_motorista', referencedColumnName: 'idUsuario' })
   motorista?: UsuarioEntity;
+
+  @OneToOne(() => RecursoEntity, (recurso) => recurso.multa)
+  recurso?: RecursoEntity;
+
+  @ManyToOne(() =>CarroEntity, { nullable: true })
+  @JoinColumn({ name: 'placa_veiculo', referencedColumnName: 'placa' })
+  carro?:CarroEntity;
+
 }
