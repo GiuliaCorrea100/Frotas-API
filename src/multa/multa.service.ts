@@ -54,107 +54,6 @@ export class MultaService {
     }
   }
 
-  async aceitarRecurso(
-    idMulta: number,
-    currentUserId?: number,
-    currentUserName?: string,
-  ) {
-    const multa = await this.MultaRepository.findOne({
-      where: { idMulta },
-      relations: ['motorista'],
-    });
-
-    if (!multa) {
-      throw new NotFoundException(`Multa ${idMulta} não encontrada`);
-    }
-
-    const dadosAntigos = { ...multa };
-
-    multa.situacao = 'RECURSO ACEITO - MULTA ANULADA';
-
-    const multaAtualizada = await this.MultaRepository.save(multa);
-
-    await this.logService.logChange({
-      nomeTabela: 'multa',
-      idRegistro: multa.idMulta,
-      operacao: 'UPDATE',
-      dadosAntigos,
-      dadosNovos: multaAtualizada,
-      idUsuario: currentUserId,
-      usuario: currentUserName,
-    });
-
-    try {
-      if (multa.motorista && multa.motorista.email) {
-        await this.emailService.sendMail(
-          multa.motorista.email,
-          'Recurso de Multa Aceito',
-          'recursoAceito.hbs',
-          {
-            nome: multa.motorista.nome,
-            placa: multa.placaVeiculo,
-            autoInfracao: multa.autoInfracao,
-          },
-        );
-      }
-    } catch (error) {
-      console.error('Erro ao enviar email de aceite de recurso:', error);
-    }
-
-    return multaAtualizada;
-  }
-
-  async rejeitarRecurso(
-    idMulta: number,
-    currentUserId?: number,
-    currentUserName?: string,
-  ) {
-    const multa = await this.MultaRepository.findOne({
-      where: { idMulta },
-      relations: ['motorista'],
-    });
-
-    if (!multa) {
-      throw new NotFoundException(`Multa ${idMulta} não encontrada`);
-    }
-
-    const dadosAntigos = { ...multa };
-
-    multa.situacao = 'RECURSO NEGADO - AGUARDANDO PAGAMENTO';
-
-    const multaAtualizada = await this.MultaRepository.save(multa);
-
-    await this.logService.logChange({
-      nomeTabela: 'multa',
-      idRegistro: multa.idMulta,
-      operacao: 'UPDATE',
-      dadosAntigos,
-      dadosNovos: multaAtualizada,
-      idUsuario: currentUserId,
-      usuario: currentUserName,
-    });
-
-    try {
-      if (multa.motorista && multa.motorista.email) {
-        await this.emailService.sendMail(
-          multa.motorista.email,
-          'Recurso de Multa Rejeitado',
-          'recursoRejeitado.hbs',
-          {
-            nome: multa.motorista.nome,
-            placa: multa.placaVeiculo,
-            autoInfracao: multa.autoInfracao,
-            linkSistema: 'https://seusistema.com.br/motorista/multas',
-          },
-        );
-      }
-    } catch (error) {
-      console.error('Erro ao enviar email de rejeição de recurso:', error);
-    }
-
-    return multaAtualizada;
-  }
-
   async create(
     multa: MultaDto,
     arquivo?: Express.Multer.File,
@@ -250,6 +149,7 @@ export class MultaService {
               nome: motorista.nome,
               placa: multa.placaVeiculo,
               data: new Date(multa.dataInfracao).toLocaleDateString('pt-BR'),
+              linkSistema: 'https://frotas.unir.br',
               descricao: multa.classificacao,
             },
           );
@@ -418,7 +318,6 @@ export class MultaService {
     });
 
     const updatedMulta = await this.MultaRepository.save(mergedEntity);
-
     const logData: LogDto = {
       nomeTabela: 'multa',
       idRegistro: idMulta,
@@ -592,11 +491,12 @@ export class MultaService {
       if (multa.motorista && multa.motorista.email) {
         await this.emailService.sendMail(
           multa.motorista.email,
-          'Comprovante aprovado',
+          'Comprovante de pagamento aprovado',
           'comprovanteDePagamentoAprovado.hbs',
           {
             nome: multa.motorista.nome,
             placa: multa.placaVeiculo,
+            dataMulta: new Date(multa.dataInfracao).toLocaleDateString('pt-BR'),
           },
         );
       }
@@ -658,7 +558,7 @@ export class MultaService {
             placa: multa.placaVeiculo,
             dataMulta: new Date(multa.dataInfracao).toLocaleDateString('pt-BR'),
             motivo: motivo,
-            linkSistema: 'https://seusistema.com.br/motorista/multas',
+            linkSistema: 'https://frotas.unir.br',
           },
         );
       }

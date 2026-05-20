@@ -209,17 +209,24 @@ export class CorridaService {
     } else {
       foundCorrida.chaveEmprestada = false;
       foundCorrida.dataHoraRecebimentoChave = new Date();
-      foundCorrida.situacao =  "FINALIZADA";
+      foundCorrida.situacao = 'FINALIZADA';
 
       const administrador = await this.usuarioService.findById(currentUserId);
-      const motorista = await this.usuarioService.findById(foundCorrida.idMotorista);
+      const motorista = await this.usuarioService.findById(
+        foundCorrida.idMotorista,
+      );
       const veiculo = await this.carroService.findById(foundCorrida.idCarro);
       //const dataFormatada = foundCorrida.dataHoraRecebimentoChave.toLocaleString('pt-BR', {hour12: false,});
-      const dataFormatada = foundCorrida.dataHoraRecebimentoChave.toLocaleDateString('pt-BR');
-      const horaFormatada = foundCorrida.dataHoraRecebimentoChave.toLocaleTimeString('pt-BR', {hour: '2-digit',minute: '2-digit'});
+      const dataFormatada =
+        foundCorrida.dataHoraRecebimentoChave.toLocaleDateString('pt-BR');
+      const horaFormatada =
+        foundCorrida.dataHoraRecebimentoChave.toLocaleTimeString('pt-BR', {
+          hour: '2-digit',
+          minute: '2-digit',
+        });
 
       await this.emailService.sendMail(
-        motorista.email, 
+        motorista.email,
         'Confirmação de entrega de chave',
         'confirmacaoEntregaChave.hbs',
         {

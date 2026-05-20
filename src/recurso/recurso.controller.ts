@@ -9,6 +9,7 @@ import {
   UseInterceptors,
   UploadedFile,
   Put,
+  Patch,
 } from '@nestjs/common';
 import { RecursoService } from './recurso.service';
 import { AuthGuard } from '../auth/auth.guard';
@@ -38,7 +39,12 @@ export class RecursoController {
       idMulta: body.idMulta,
     };
 
-    return this.recursoService.create(recursoDto, arquivo, currentUserId, currentUserName);
+    return this.recursoService.create(
+      recursoDto,
+      arquivo,
+      currentUserId,
+      currentUserName,
+    );
   }
 
   @Get('/multa/:idMulta')
@@ -47,10 +53,23 @@ export class RecursoController {
     return this.recursoService.findByMulta(Number(idMulta));
   }
 
+  @Patch('/aceitar/:idMulta')
+  @UseGuards(AuthGuard)
+  async aceitarRecurso(@Param('idMulta') idMulta: number, @Request() req: any) {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+
+    return this.recursoService.aceitarRecurso(
+      idMulta,
+      currentUserId,
+      currentUserName,
+    );
+  }
+
   @Put('/rejeitar/:idMulta')
   @UseGuards(AuthGuard)
   async rejeitarRecurso(
-    @Param('idMulta') idMulta: string,
+    @Param('idMulta') idMulta: number,
     @Body() body: { justificativaRejeicao: string },
     @Request() req: any,
   ) {
@@ -58,7 +77,7 @@ export class RecursoController {
     const currentUserName = req.user?.login;
 
     return this.recursoService.rejeitarRecurso(
-      Number(idMulta),
+      idMulta,
       body.justificativaRejeicao,
       currentUserId,
       currentUserName,

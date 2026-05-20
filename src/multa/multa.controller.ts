@@ -14,11 +14,7 @@ import {
   Delete,
   BadRequestException,
 } from '@nestjs/common';
-import {
-  MultaDto,
-  FindAllParameters,
-  MultaRouteParameters,
-} from './multa.dto';
+import { MultaDto, FindAllParameters, MultaRouteParameters } from './multa.dto';
 import { MultaService } from './multa.service';
 import { AuthGuard } from '../auth/auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -201,28 +197,9 @@ export class MultaController {
     );
   }
 
-  @Patch('/:idMulta/aceitar-recurso')
-  @UseGuards(AuthGuard)
-  async aceitarRecurso(
-    @Param('idMulta') idMulta: number,
-    @Request() req: any,
-  ) {
-    const currentUserId = req.user?.sub;
-    const currentUserName = req.user?.login;
-
-    return this.multaService.aceitarRecurso(
-      idMulta,
-      currentUserId,
-      currentUserName,
-    );
-  }
-
   @Delete('/:idMulta/arquivo')
   @UseGuards(AuthGuard)
-  async removerArquivo(
-    @Param('idMulta') idMulta: number,
-    @Request() req: any,
-  ) {
+  async removerArquivo(@Param('idMulta') idMulta: number, @Request() req: any) {
     const currentUserId = req.user?.sub;
     const currentUserName = req.user?.login;
 

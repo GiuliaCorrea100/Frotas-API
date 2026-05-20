@@ -23,7 +23,7 @@ export class RecursoService {
 
     private readonly logServices: LogService,
     private readonly anexoService: AnexoService,
-  ){}
+  ) {}
 
   async create(
     recurso: recursoDto,
@@ -31,14 +31,18 @@ export class RecursoService {
     currentUserId?: number,
     currentUserName?: string,
   ): Promise<RecursoEntity> {
-
     let urlArquivo = null;
 
     if (arquivo) {
       try {
-        urlArquivo = await this.anexoService.salvarArquivo(arquivo, "recursos", recurso.idMulta, 'recurso' );
+        urlArquivo = await this.anexoService.salvarArquivo(
+          arquivo,
+          'recursos',
+          recurso.idMulta,
+          'recurso',
+        );
       } catch (error) {
-         console.error('Error saving file:', error);
+        console.error('Error saving file:', error);
       }
     }
 
@@ -52,15 +56,15 @@ export class RecursoService {
     const idMulta = recurso.idMulta;
 
     const foundMulta = await this.multaRepository.findOne({
-        where: { idMulta },
-        relations: ['motorista'],
+      where: { idMulta },
+      relations: ['motorista'],
     });
-    
+
     if (!foundMulta) {
       throw new NotFoundException(`Item with id ${idMulta} not found`);
     }
 
-    foundMulta.situacao = "RECURSO SOLICITADO";
+    foundMulta.situacao = 'RECURSO SOLICITADO';
 
     await this.multaRepository.save(foundMulta);
 
@@ -74,16 +78,18 @@ export class RecursoService {
       usuario: currentUserName,
     };
 
-    const administrators = await this.usuarioService.findAll({ administrador: true });
+    const administrators = await this.usuarioService.findAll({
+      administrador: true,
+    });
     const motorista = await this.usuarioService.findById(currentUserId);
 
     for (const admin of administrators) {
       await this.emailService.sendMail(
-        admin.email, 
+        admin.email,
         'Solicitação de Recurso de Multa',
         'notificarSolicitarRecurso.hbs',
         {
-          nome: admin.nome,           
+          nome: admin.nome,
           motorista: motorista.nome,
           multa: idMulta,
           justificativa: recurso.justificativa,
@@ -102,21 +108,68 @@ export class RecursoService {
     });
   }
 
+  async aceitarRecurso(
+    idMulta: number,
+    currentUserId?: number,
+    currentUserName?: string,
+  ) {
+    const multa = await this.multaRepository.findOne({
+      where: { idMulta },
+      relations: ['motorista'],
+    });
+
+    if (!multa) {
+      throw new NotFoundException(`Multa ${idMulta} não encontrada`);
+    }
+
+    const dadosAntigos = { ...multa };
+
+    multa.situacao = 'RECURSO ACEITO - MULTA ANULADA';
+
+    const multaAtualizada = await this.multaRepository.save(multa);
+
+    await this.logServices.logChange({
+      nomeTabela: 'multa',
+      idRegistro: multa.idMulta,
+      operacao: 'UPDATE',
+      dadosAntigos,
+      dadosNovos: multaAtualizada,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    });
+
+    try {
+      if (multa.motorista && multa.motorista.email) {
+        await this.emailService.sendMail(
+          multa.motorista.email,
+          'Recurso de Multa Aceito',
+          'recursoAceito.hbs',
+          {
+            nome: multa.motorista.nome,
+            placa: multa.placaVeiculo,
+            dataMulta: new Date(multa.dataInfracao).toLocaleDateString('pt-BR'),
+          },
+        );
+      }
+    } catch (error) {
+      console.error('Erro ao enviar email de aceite de recurso:', error);
+    }
+
+    return multaAtualizada;
+  }
+
   async rejeitarRecurso(
     idMulta: number,
     justificativaRejeicao: string,
     currentUserId?: number,
     currentUserName?: string,
   ): Promise<RecursoEntity> {
-
     const recurso = await this.recursoRepository.findOne({
       where: { idMulta },
     });
 
     if (!recurso) {
-      throw new NotFoundException(
-        `Recurso da multa ${idMulta} não encontrado`,
-      );
+      throw new NotFoundException(`Recurso da multa ${idMulta} não encontrado`);
     }
 
     recurso.justificativaRejeicao = justificativaRejeicao;
@@ -140,9 +193,11 @@ export class RecursoService {
             {
               nome: multa.motorista.nome,
               placa: multa.placaVeiculo,
-              autoInfracao: multa.autoInfracao,
+              dataMulta: new Date(multa.dataInfracao).toLocaleDateString(
+                'pt-BR',
+              ),
               motivo: justificativaRejeicao,
-              linkSistema: 'https://seusistema.com.br/motorista/multas',
+              linkSistema: 'https://frotas.unir.br',
             },
           );
         }
