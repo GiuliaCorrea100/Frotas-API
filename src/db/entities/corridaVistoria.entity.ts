@@ -26,7 +26,7 @@ export class CorridaVistoriaEntity {
   @Column({ type: 'text', name: 'observacoes', nullable: true })
   observacoes: string;
 
-  @CreateDateColumn({ type: 'timestamp', name: 'data_registro' })
+  @CreateDateColumn({ type: 'timestamptz', name: 'data_registro' })
   dataRegistro: Date;
 
   @Column({ type: 'int', name: 'registrado_por', nullable: false })
