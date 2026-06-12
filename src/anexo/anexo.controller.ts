@@ -9,6 +9,8 @@ import {
   BadRequestException,
   Res,
   Body,
+  UploadedFiles,
+  Req,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AnexoService } from './anexo.service';
@@ -45,6 +47,24 @@ export class AnexoController {
       throw new BadRequestException(getErrorMessage(error));
     }
   }
+
+   async uploadFiles(
+      @UploadedFiles() files: Array<Express.Multer.File>,
+      @Param('idCorridaVistoria') idCorridaVistoria: number,
+      @Req() req,
+    ) {
+      if (!files || files.length === 0) {
+        throw new BadRequestException('Nenhum arquivo enviado.');
+      }
+  
+      const anexos = files.map((file) => ({
+        idCorridaVistoria: Number(idCorridaVistoria),
+        urlArquivo: file.path,
+      }));
+  
+      return await this.anexoService.createMultiple(anexos);
+    }
+
 
   @Get('download/:fileName')
   async downloadFile(
