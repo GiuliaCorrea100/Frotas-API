@@ -2,7 +2,10 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import * as fs from 'fs';
-import { AnexoVistoriaDto, UploadFileDto } from './anexo.dto';
+import {  AnexoVistoriaDto, UploadFileDto } from './anexo.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { CorridaVistoriaFotoEntity } from 'src/db/entities/corridaVistoriaFoto.entity';
+import { Repository } from 'typeorm';
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
@@ -12,6 +15,10 @@ function getErrorMessage(error: unknown): string {
 @Injectable()
 export class AnexoService {
   private readonly baseUploadPath = join(process.cwd(), 'uploads');
+
+  @InjectRepository(CorridaVistoriaFotoEntity)
+  private readonly corridaVistoriaFotoRepository: Repository<CorridaVistoriaFotoEntity>;
+
   anexoRepository: any;
 
   constructor() {
@@ -39,9 +46,9 @@ export class AnexoService {
       mkdirSync(recursosPath, { recursive: true });
     }
 
-    const vistoriaPath = join(this.baseUploadPath, 'vistoria')
-    if (!existsSync(vistoriaPath)) {
-      mkdirSync(vistoriaPath, { recursive: true });
+    const vistoriaDevolucaoPath = join(this.baseUploadPath, 'vistoria_devolucao')
+    if (!existsSync(vistoriaDevolucaoPath)) {
+      mkdirSync(vistoriaDevolucaoPath, { recursive: true });
     }
 
     console.log('Pastas de upload verificadas/criadas:');
@@ -122,17 +129,47 @@ export class AnexoService {
     }
   }
 
-  async createMultiple(anexos: AnexoVistoriaDto[]): Promise<AnexoVistoriaDto[]> {
-    const anexosToSave = anexos.map((anexo) => ({
-      idCorridaVistoria: anexo.idCorridaVistoria,
-      url_arquivo:anexo.urlArquivo,
-      data_upload: new Date(),
-    }));
+  async createMultiple(
+    anexos: AnexoVistoriaDto[],
+    files: Express.Multer.File[], 
+  ): Promise<AnexoVistoriaDto[]> {
+  
+    if (!files || files.length !== anexos.length) {
+      throw new BadRequestException(
+        `Número de arquivos incompatível. Esperado: ${anexos.length}, Recebido: ${files?.length || 0}`
+      );
+    }
+    
+    const anexosToSave = await Promise.all(
+      anexos.map(async (anexo, index) => {
+        const file = files[index];
+        
+        if (!file) {
+          throw new BadRequestException(`Arquivo não enviado para o anexo ${index + 1}`);
+        }
+        
+        if (!file.buffer || file.buffer.length === 0) {
+          throw new BadRequestException(`Arquivo vazio para o anexo ${index + 1}`);
+        }
 
-    const savedAnexos = await this.anexoRepository.save(anexosToSave);
-    return savedAnexos;
-    // return savedAnexos.map((anexoEntity) => this.mapEntityToDto(anexoEntity));
-  }
+        const urlArquivo = await this.salvarArquivo(
+          file,
+          "vistoria",
+          anexo.idCorridaVistoria,
+          "vistoria_devolucao"
+        );
+         
+        return {
+          idCorridaVistoria: anexo.idCorridaVistoria,
+          urlArquivo: urlArquivo, 
+          dataUpload: new Date(),
+        };
+      })
+    );
+
+  const savedAnexos = await this.corridaVistoriaFotoRepository.save(anexosToSave);
+  return savedAnexos;
+}
 
 
   async getArquivo(fileName: string, subPasta?: string): Promise<string> {

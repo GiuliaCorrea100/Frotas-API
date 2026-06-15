@@ -23,6 +23,9 @@ export class CorridaVistoriaController {
     );
   }
 
+  // @Post('/com-fotos')
+  // @UseGuards
+
   @Get('corrida/:idCorrida')
   async buscarPorCorrida(@Param('idCorrida') idCorrida: number) {
     return await this.corridaVistoriaService.buscarPorCorrida(idCorrida);

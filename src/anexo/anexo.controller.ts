@@ -12,7 +12,7 @@ import {
   UploadedFiles,
   Req,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { AnexoService } from './anexo.service';
 import { Response } from 'express';
 import * as path from 'path';
@@ -48,26 +48,28 @@ export class AnexoController {
     }
   }
 
-   async uploadFiles(
-      @UploadedFiles() files: Array<Express.Multer.File>,
-      @Param('idCorridaVistoria') idCorridaVistoria: number,
-      @Req() req,
-    ) {
-      if (!files || files.length === 0) {
-        throw new BadRequestException('Nenhum arquivo enviado.');
-      }
-  
-      const anexos = files.map((file) => ({
-        idCorridaVistoria: Number(idCorridaVistoria),
-        urlArquivo: file.path,
-      }));
-  
-      return await this.anexoService.createMultiple(anexos);
+  @Post('upload/:idCorridaVistoria')
+  @UseInterceptors(FilesInterceptor('files'))
+  async uploadFiles(
+    @UploadedFiles() files: Array<Express.Multer.File>,
+    @Param('idCorridaVistoria') idCorridaVistoria: number,
+  ) {
+
+    if (!files || files.length === 0) {
+      throw new BadRequestException('Nenhum arquivo enviado.');
     }
+    const anexos = files.map(() => ({
+      idCorridaVistoria: Number(idCorridaVistoria),
+    }));
+    return await this.anexoService.createMultiple(anexos, files);
+  }
+
+ 
+
 
 
   @Get('download/:fileName')
-  async downloadFile(
+    async downloadFile(
     @Param('fileName') fileName: string,
     @Res() res: Response,
   ) {

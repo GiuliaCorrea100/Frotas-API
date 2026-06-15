@@ -6,7 +6,6 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { CorridaEntity } from '../entities/corrida.entity'; 
 import { CorridaVistoriaEntity } from './corridaVistoria.entity';
 
 @Entity({ name: 'corrida_vistoria_foto' })
@@ -17,12 +16,16 @@ export class CorridaVistoriaFotoEntity {
   @Column({ type: 'int', name: 'id_corrida_vistoria', nullable: false })
   idCorridaVistoria: number;
 
-  @CreateDateColumn({ type: 'timestamp', name: 'data_upload' })
+  @CreateDateColumn({ type: 'timestamptz', name: 'data_upload' })
   dataUpload: Date;
 
+  @CreateDateColumn({ type: 'varchar', name: 'url_arquivo' })
+  urlArquivo: string;
+
   @ManyToOne(() => CorridaVistoriaEntity)
-  @JoinColumn({ name: 'id_corrida', referencedColumnName: 'idCorridaVistoria' })
+  @JoinColumn({ 
+    name: 'id_corrida_vistoria',  
+    referencedColumnName: 'idCorridaVistoria'
+  })
   corridaVistoria?: CorridaVistoriaEntity;
-
-
 }
