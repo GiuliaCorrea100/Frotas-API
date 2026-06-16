@@ -2,6 +2,10 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import * as fs from 'fs';
+import {  AnexoVistoriaDto, UploadFileDto } from './anexo.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { CorridaVistoriaFotoEntity } from 'src/db/entities/corridaVistoriaFoto.entity';
+import { Repository } from 'typeorm';
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
@@ -11,6 +15,11 @@ function getErrorMessage(error: unknown): string {
 @Injectable()
 export class AnexoService {
   private readonly baseUploadPath = join(process.cwd(), 'uploads');
+
+  @InjectRepository(CorridaVistoriaFotoEntity)
+  private readonly corridaVistoriaFotoRepository: Repository<CorridaVistoriaFotoEntity>;
+
+  anexoRepository: any;
 
   constructor() {
     if (!existsSync(this.baseUploadPath)) {
@@ -35,6 +44,11 @@ export class AnexoService {
     const recursosPath = join(this.baseUploadPath, 'recursos');
     if (!existsSync(recursosPath)) {
       mkdirSync(recursosPath, { recursive: true });
+    }
+
+    const vistoriaDevolucaoPath = join(this.baseUploadPath, 'vistoria_devolucao')
+    if (!existsSync(vistoriaDevolucaoPath)) {
+      mkdirSync(vistoriaDevolucaoPath, { recursive: true });
     }
 
     console.log('Pastas de upload verificadas/criadas:');
@@ -115,6 +129,49 @@ export class AnexoService {
     }
   }
 
+  async createMultiple(
+    anexos: AnexoVistoriaDto[],
+    files: Express.Multer.File[], 
+  ): Promise<AnexoVistoriaDto[]> {
+  
+    if (!files || files.length !== anexos.length) {
+      throw new BadRequestException(
+        `Número de arquivos incompatível. Esperado: ${anexos.length}, Recebido: ${files?.length || 0}`
+      );
+    }
+    
+    const anexosToSave = await Promise.all(
+      anexos.map(async (anexo, index) => {
+        const file = files[index];
+        
+        if (!file) {
+          throw new BadRequestException(`Arquivo não enviado para o anexo ${index + 1}`);
+        }
+        
+        if (!file.buffer || file.buffer.length === 0) {
+          throw new BadRequestException(`Arquivo vazio para o anexo ${index + 1}`);
+        }
+
+        const urlArquivo = await this.salvarArquivo(
+          file,
+          "vistoria",
+          anexo.idCorridaVistoria,
+          "vistoria_devolucao"
+        );
+         
+        return {
+          idCorridaVistoria: anexo.idCorridaVistoria,
+          urlArquivo: urlArquivo, 
+          dataUpload: new Date(),
+        };
+      })
+    );
+
+  const savedAnexos = await this.corridaVistoriaFotoRepository.save(anexosToSave);
+  return savedAnexos;
+}
+
+
   async getArquivo(fileName: string, subPasta?: string): Promise<string> {
     if (!subPasta) {
       const possiveisPastas = ['multas', 'boletos', 'comprovantes', 'recursos'];
@@ -193,96 +250,5 @@ export class AnexoService {
     }
   }
 
-  // async salvarArquivos(
-  //   file: Express.Multer.File,
-  //   tipo: string,
-  // ): Promise<string> {
-  //   if (!file) {
-  //     throw new BadRequestException('Nenhum arquivo foi enviado');
-  //   }
-
-  //   const allowedExtensions = [
-  //     '.pdf',
-  //     '.jpg',
-  //     '.jpeg',
-  //     '.png',
-  //     '.doc',
-  //     '.docx',
-  //   ];
-  //   const fileExtension = file.originalname
-  //     .toLowerCase()
-  //     .substring(file.originalname.lastIndexOf('.'));
-
-  //   if (!allowedExtensions.includes(fileExtension)) {
-  //     throw new BadRequestException(
-  //       `Tipo de arquivo não permitido. Extensões permitidas: ${allowedExtensions.join(', ')}`,
-  //     );
-  //   }
-
-  //   const maxSize = 5 * 1024 * 1024;
-  //   if (file.size > maxSize) {
-  //     throw new BadRequestException(
-  //       'Arquivo muito grande. Tamanho máximo: 5MB',
-  //     );
-  //   }
-
-  //   try {
-  //     const tipoPath = join(this.baseUploadPath, tipo);
-
-  //     if (!existsSync(tipoPath)) {
-  //       mkdirSync(tipoPath, { recursive: true });
-  //     }
-
-  //     const timestamp = Date.now();
-  //     const randomString = Math.random().toString(36).substring(2, 15);
-  //     const fileName = `${tipo}_${timestamp}_${randomString}${fileExtension}`;
-
-  //     const filePath = join(tipoPath, fileName);
-
-  //     await fs.promises.writeFile(filePath, file.buffer);
-
-  //     const finalPath = `uploads/${tipo}/${fileName}`;
-
-  //     return finalPath;
-  //   } catch (error) {
-  //     console.error('❌ Erro ao salvar arquivo:', error);
-  //     throw new BadRequestException(
-  //       'Erro ao salvar arquivo: ' + getErrorMessage(error),
-  //     );
-  //   }
-  // }
-
-  // async deletarArquivos(fileName: string, tipo: string): Promise<void> {
-  //   const tipoPath = join(this.baseUploadPath, tipo);
-
-  //   if (!existsSync(tipoPath)) {
-  //     mkdirSync(tipoPath, { recursive: true });
-  //   }
-
-  //   const filePath = join(tipoPath, fileName);
-
-  //   try {
-  //     if (existsSync(filePath)) {
-  //       await fs.promises.unlink(filePath);
-  //     }
-  //   } catch (error) {
-  //     throw new BadRequestException(
-  //       'Erro ao deletar arquivo: ' + getErrorMessage(error),
-  //     );
-  //   }
-  // }
-
-  // async deletarArquivosPorUrl(urlArquivo: string, tipo: string): Promise<void> {
-  //   if (!urlArquivo) {
-  //     return;
-  //   }
-
-  //   const fileName = urlArquivo.split('/').pop();
-
-  //   if (!fileName) {
-  //     throw new BadRequestException('Nome do arquivo inválido');
-  //   }
-
-  //   return this.deletarArquivos(fileName, tipo);
-  // }
+  
 }

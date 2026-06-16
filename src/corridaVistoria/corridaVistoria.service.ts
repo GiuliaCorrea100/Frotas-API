@@ -1,9 +1,9 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CorridaVistoriaEntity } from '../db/entities/corridaVistoria.entity';
-import { CreateCorridaVistoriaDto } from './corridaVistoria.dto';
+import { CorridaVistoriaDto } from './corridaVistoria.dto';
 import { CorridaEntity } from '../db/entities/corrida.entity';
+import { CorridaVistoriaEntity } from 'src/db/entities/corridaVistoria.entity';
 
 @Injectable()
 export class CorridaVistoriaService {
@@ -15,22 +15,26 @@ export class CorridaVistoriaService {
     private readonly corridaRepository: Repository<CorridaEntity>,
   ) {}
 
-  async registrarVistoria(dto: CreateCorridaVistoriaDto, idUsuarioLogado: number): Promise<CorridaVistoriaEntity> {
-    const corrida = await this.corridaRepository.findOne({ where: { idCorrida: dto.idCorrida } });
+  async registrarVistoria(
+    vistoria: CorridaVistoriaDto, 
+    currentUserId?: number,
+    currentUserName?: string,
+  ): Promise<CorridaVistoriaEntity> {
+    const corrida = await this.corridaRepository.findOne({ where: { idCorrida: vistoria.idCorrida } });
     if (!corrida) {
-      throw new NotFoundException(`Corrida com ID ${dto.idCorrida} não encontrada.`);
+      throw new NotFoundException(`Corrida com ID ${vistoria.idCorrida} não encontrada.`);
     }
 
     const vistoriaExistente = await this.vistoriaRepository.findOne({
-      where: { idCorrida: dto.idCorrida, tipo: dto.tipo }
+      where: { idCorrida: vistoria.idCorrida, tipo: vistoria.tipo }
     });
     if (vistoriaExistente) {
-      throw new BadRequestException(`Já existe uma vistoria de ${dto.tipo} registrada para esta corrida.`);
+      throw new BadRequestException(`Já existe uma vistoria de ${vistoria.tipo} registrada para esta corrida.`);
     }
 
     const novaVistoria = this.vistoriaRepository.create({
-      ...dto,
-      registradoPor: idUsuarioLogado,
+      ...vistoria,
+      registradoPor: currentUserId,
     });
 
     return await this.vistoriaRepository.save(novaVistoria);

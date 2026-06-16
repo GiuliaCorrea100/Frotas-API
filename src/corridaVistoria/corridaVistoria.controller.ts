@@ -1,6 +1,6 @@
 import { Controller, Post, Get, Body, Param, UseGuards, Request } from '@nestjs/common';
 import { CorridaVistoriaService } from './corridaVistoria.service';
-import { CreateCorridaVistoriaDto } from './corridaVistoria.dto';
+import { CorridaVistoriaDto } from './corridaVistoria.dto';
 import { AuthGuard } from '../auth/auth.guard'; 
 
 @Controller('corrida-vistoria')
@@ -9,10 +9,22 @@ export class CorridaVistoriaController {
   constructor(private readonly corridaVistoriaService: CorridaVistoriaService) {}
 
   @Post()
-  async criarVistoria(@Body() dto: CreateCorridaVistoriaDto, @Request() req: any) {
-    const idUsuarioLogado = req.user.idUsuario || req.user.sub;
-    return await this.corridaVistoriaService.registrarVistoria(dto, idUsuarioLogado);
+  @UseGuards(AuthGuard)
+  async criarVistoria(
+    @Body() vistoria: CorridaVistoriaDto, 
+    @Request() req: any,
+  ):Promise<CorridaVistoriaDto> {
+    const currentUserId = req.user?.sub;
+    const currentUserName = req.user?.login;
+    return await this.corridaVistoriaService.registrarVistoria(
+      vistoria, 
+      currentUserId,
+      currentUserName,
+    );
   }
+
+  // @Post('/com-fotos')
+  // @UseGuards
 
   @Get('corrida/:idCorrida')
   async buscarPorCorrida(@Param('idCorrida') idCorrida: number) {

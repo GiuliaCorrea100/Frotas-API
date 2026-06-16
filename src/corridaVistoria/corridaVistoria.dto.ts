@@ -1,6 +1,7 @@
 import { IsBoolean, IsInt, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 
-export class CreateCorridaVistoriaDto {
+export class CorridaVistoriaDto {
+  idCorridaVistoria?: number;
   @IsInt()
   @IsNotEmpty()
   idCorrida: number;
