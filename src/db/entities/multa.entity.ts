@@ -45,14 +45,10 @@ export class MultaEntity {
   @Column({ type: 'varchar', name: 'motivo_reprovacao', nullable: true })
   motivoReprovacao?: string;
 
-  @Column({ type: 'varchar', name: 'url_arquivo', nullable: true })
+  @Column({ type: 'varchar', length: 100, name: 'url_arquivo', nullable: true })
   urlArquivo?: string;
 
-  @Column({
-    type: 'varchar',
-    name: 'url_comprovante_pagamento',
-    nullable: true,
-  })
+  @Column({ type: 'varchar', length: 100, name: 'url_comprovante_pagamento', nullable: true,})
   urlComprovantePagamento?: string;
 
   @Column({ type: 'int', name: 'id_motorista', nullable: true })
