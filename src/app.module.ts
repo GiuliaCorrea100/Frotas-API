@@ -22,6 +22,7 @@ import { AnexoModule } from './anexo/anexo.module';
 import { GoogleRecaptchaModule } from '@nestlab/google-recaptcha';
 import { RelatorioModule } from './relatorio/relatorio.module';
 import { RecursoModule } from './recurso/recurso.module';
+import { CorridaVistoriaModule } from './corridaVistoria/corridaVistoria.module';
 
 
 @Module({
@@ -52,7 +53,7 @@ import { RecursoModule } from './recurso/recurso.module';
     }),
     RelatorioModule,
     RecursoModule,
-
+    CorridaVistoriaModule,
   ],
   controllers: [AppController],
   providers: [AppService],
