@@ -64,8 +64,6 @@ export class AnexoController {
     return await this.anexoService.createMultiple(anexos, files);
   }
 
- 
-
 
 
   @Get('download/:fileName')
