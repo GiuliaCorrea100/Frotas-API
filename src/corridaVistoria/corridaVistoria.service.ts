@@ -44,6 +44,7 @@ export class CorridaVistoriaService {
     return await this.vistoriaRepository.find({
       where: { idCorrida },
       order: { dataRegistro: 'ASC' },
+      relations: ['usuarioRegistrou']
     });
   }
 
