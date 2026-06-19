@@ -38,7 +38,7 @@ export class MultaService {
         .getRepository('CorridaEntity')
         .createQueryBuilder('corrida')
         .innerJoinAndSelect('corrida.carro', 'carro')
-        .innerJoinAndSelect('corrida.motorista', 'motorista')
+        .innerJoinAndSelect('corrida.motoristaPrincipal', 'motorista')
         .where('carro.placa = :placa', { placa: placaVeiculo })
         .andWhere('corrida.situacao = :situacao', { situacao: 'FINALIZADA' })
         .andWhere(

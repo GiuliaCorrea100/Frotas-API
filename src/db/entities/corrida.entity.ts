@@ -4,11 +4,12 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   ManyToOne,
+  OneToMany,
   JoinColumn,
 } from 'typeorm';
 import { UsuarioEntity } from './usuario.entity';
 import { CarroEntity } from './carro.entity';
-//import { OcorrenciasEntity } from './ocorrencias.entity';
+import { CorridaMotoristaEntity } from './corrida-motorista.entity';
 
 @Entity({ name: 'corrida' })
 export class CorridaEntity {
@@ -31,7 +32,7 @@ export class CorridaEntity {
   idCarro: number;
 
   @Column({ type: 'int', name: 'id_motorista', nullable: false })
-  idMotorista: number;
+  idMotoristaPrincipal: number;
 
   @Column({ type: 'varchar', name: 'situacao', nullable: false })
   situacao: string;
@@ -41,11 +42,14 @@ export class CorridaEntity {
 
   @ManyToOne(() => UsuarioEntity)
   @JoinColumn({ name: 'id_motorista', referencedColumnName: 'idUsuario' })
-  motorista?: UsuarioEntity;
+  motoristaPrincipal?: UsuarioEntity;
 
   @ManyToOne(() => CarroEntity)
   @JoinColumn({ name: 'id_carro', referencedColumnName: 'idCarro' })
   carro?: CarroEntity;
+
+  @OneToMany(() => CorridaMotoristaEntity, (cm) => cm.corrida)
+  motoristas?: CorridaMotoristaEntity[];
 
   @CreateDateColumn({ type: 'timestamptz', name: 'data_hora_liberacao_chave' })
   dataHoraLiberacaoChave: Date;

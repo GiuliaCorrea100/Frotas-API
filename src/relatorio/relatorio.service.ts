@@ -104,8 +104,8 @@ export class RelatorioService {
     >();
 
     for (const c of corridas) {
-      const id = c.motorista?.idUsuario ?? null;
-      const nome = c.motorista?.nome ?? 'N/A';
+      const id = c.motoristaPrincipal?.idUsuario ?? null;
+      const nome = c.motoristaPrincipal?.nome ?? 'N/A';
 
       const atual = mapaMotoristas.get(id) ?? {
         idMotorista: id,
@@ -123,7 +123,7 @@ export class RelatorioService {
     // Tabela detalhada
     const tabela = corridas.map((c) => ({
       id: c.idCorrida,
-      motorista: c.motorista?.nome ?? c.motorista.nome ?? 'N/A',
+      motorista: c.motoristaPrincipal?.nome ?? 'N/A',
       veiculo: c.carro?.placa ?? c.carro.placa ?? 'N/A',
       situacao: c.situacao ?? 'N/A',
       dataInicio: c.dataInicio?.toISOString(),

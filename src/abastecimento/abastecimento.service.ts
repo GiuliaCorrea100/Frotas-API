@@ -136,7 +136,7 @@ export class AbastecimentoService {
         'tipoCombustivel',
         'corrida',
         'corrida.carro',
-        'corrida.motorista',
+        'corrida.motoristaPrincipal',
       ],
     });
   }

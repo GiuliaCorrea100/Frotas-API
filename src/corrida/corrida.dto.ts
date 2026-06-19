@@ -4,7 +4,7 @@ export class CorridaDto {
   dataTermino: Date;
   distanciaKm?: string;
   localDeSaida: string;
-  idMotorista: number;
+  idMotoristaPrincipal: number;
 
   chaveEmprestada: boolean;
   dataHoraRecebimentoChave: Date;
@@ -12,9 +12,12 @@ export class CorridaDto {
 
   idCarro: number;
 
-  nomeMotorista?: string;
+  nomeMotoristaPrincipal?: string;
   placaVeiculo?: string;
   situacao?: string;
+
+  motoristasIds?: number[];
+  motoristas?: { idMotorista: number; nome: string }[];
 }
 
 export interface MotoristaDashboardDto {
