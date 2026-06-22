@@ -65,7 +65,6 @@ export class AnexoController {
   }
 
 
-
   @Get('download/:fileName')
     async downloadFile(
     @Param('fileName') fileName: string,
