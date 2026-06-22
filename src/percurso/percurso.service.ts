@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PercursoEntity } from '../db/entities/percurso.entity';
 import { Repository, IsNull, Not } from 'typeorm';
@@ -25,8 +29,7 @@ export class PercursoService {
     entity.localDestino = percurso.localDestino.toUpperCase();
     entity.saidaHora = new Date();
     entity.saidaOdometro = percurso.saidaOdometro;
-    //entity.chegadaHora = new Date();
-    //entity.chegadaOdometro = percurso.chegadaOdometro;
+    entity.idMotorista = currentUserId;
 
     const savedPercurso = await this.percursoRepository.save(entity);
 
@@ -59,6 +62,7 @@ export class PercursoService {
     entity.chegadaHora = percurso.chegadaHora;
     entity.saidaOdometro = percurso.saidaOdometro;
     entity.chegadaOdometro = percurso.chegadaOdometro;
+    entity.idMotorista = percurso.idMotorista;
 
     const savedPercurso = await this.percursoRepository.save(entity);
 
@@ -93,6 +97,15 @@ export class PercursoService {
 
     if (foundPercurso.chegadaHora) {
       throw new Error('Este percurso já foi finalizado');
+    }
+
+    if (
+      foundPercurso.idMotorista &&
+      foundPercurso.idMotorista !== currentUserId
+    ) {
+      throw new ForbiddenException(
+        'Apenas o motorista que iniciou o percurso pode finalizá-lo',
+      );
     }
 
     if (chegadaOdometro <= foundPercurso.saidaOdometro) {
@@ -186,7 +199,7 @@ export class PercursoService {
     });
   }
 
-   async softRemove(
+  async softRemove(
     idPercurso: number,
     currentUserId?: number,
     currentUserName?: string,
@@ -194,7 +207,6 @@ export class PercursoService {
     const foundPercurso = await this.percursoRepository.findOne({
       where: { idPercurso },
     });
-
 
     if (!foundPercurso) {
       throw new NotFoundException(`Item with id ${idPercurso} not found`);
@@ -242,6 +254,10 @@ export class PercursoService {
     foundPercurso.saidaHora = percurso.saidaHora;
     foundPercurso.saidaOdometro = percurso.saidaOdometro;
 
+    if (percurso.idMotorista !== undefined) {
+      foundPercurso.idMotorista = percurso.idMotorista;
+    }
+
     const updatedPercurso = await this.percursoRepository.save(foundPercurso);
 
     const logData: LogDto = {
@@ -257,8 +273,6 @@ export class PercursoService {
     await this.logService.logChange(logData);
   }
 
-  
-
   private mapEntityToDto(entity: PercursoEntity): PercursoDto {
     return {
       idPercurso: entity.idPercurso,
@@ -270,6 +284,7 @@ export class PercursoService {
       chegadaOdometro: entity.chegadaOdometro,
       localOrigem: entity.localOrigem,
       ativo: entity.ativo,
+      idMotorista: entity.idMotorista,
     };
   }
 }

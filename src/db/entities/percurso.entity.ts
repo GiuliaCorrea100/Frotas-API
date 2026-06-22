@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { UsuarioEntity } from './usuario.entity';
 
 @Entity({ name: 'percurso' })
 export class PercursoEntity {
@@ -34,4 +35,11 @@ export class PercursoEntity {
 
   @Column({ name: 'local_origem', nullable: true })
   localOrigem?: string;
+
+  @Column({ type: 'int', name: 'id_motorista', nullable: true })
+  idMotorista?: number;
+
+  @ManyToOne(() => UsuarioEntity)
+  @JoinColumn({ name: 'id_motorista', referencedColumnName: 'idUsuario' })
+  motorista?: UsuarioEntity;
 }
