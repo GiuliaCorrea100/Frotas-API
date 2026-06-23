@@ -8,6 +8,7 @@ export class PercursoDto {
   chegadaOdometro?: number;
   localOrigem?: string;
   ativo?: boolean;
+  idMotorista?: number;
 }
 
 export class CreatePercursoDto {
@@ -15,4 +16,5 @@ export class CreatePercursoDto {
   saidaOdometro: number;
   localDestino: string;
   localOrigem?: string;
+  idMotorista?: number;
 }

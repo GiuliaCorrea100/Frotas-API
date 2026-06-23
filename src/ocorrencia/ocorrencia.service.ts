@@ -87,7 +87,7 @@ export class ocorrenciaService {
       .createQueryBuilder('o')
       .innerJoinAndSelect('o.corrida', 'corrida')
       .innerJoinAndSelect('corrida.carro', 'carro')
-      .innerJoinAndSelect('corrida.motorista', 'motorista')
+      .innerJoinAndSelect('corrida.motoristaPrincipal', 'motorista')
       .where('EXTRACT(YEAR FROM o.dataOcorrencia) = :ano', { ano })
       .orderBy('o.dataOcorrencia', 'DESC')
       .getMany();

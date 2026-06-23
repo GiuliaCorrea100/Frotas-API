@@ -11,6 +11,7 @@ import {
 } from './corrida.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CorridaEntity } from 'src/db/entities/corrida.entity';
+import { CorridaMotoristaEntity } from 'src/db/entities/corrida-motorista.entity';
 import {
   FindOptionsWhere,
   Repository,
@@ -32,6 +33,8 @@ export class CorridaService {
   constructor(
     @InjectRepository(CorridaEntity)
     private readonly corridaRepository: Repository<CorridaEntity>,
+    @InjectRepository(CorridaMotoristaEntity)
+    private readonly corridaMotoristaRepository: Repository<CorridaMotoristaEntity>,
     private readonly logService: LogService,
     private readonly emailService: EmailService,
     private readonly usuarioService: UsuarioService,
@@ -45,7 +48,7 @@ export class CorridaService {
   ): Promise<boolean> {
     const conflitos = await this.corridaRepository.find({
       where: {
-        idMotorista,
+        idMotoristaPrincipal: idMotorista,
         situacao: 'AGENDADA',
         dataInicio: LessThanOrEqual(dataTermino),
         dataTermino: MoreThanOrEqual(dataInicio),
@@ -93,17 +96,23 @@ export class CorridaService {
       corrida.dataTermino = dataTerminoUTC;
     }
     corrida.localDeSaida = corrida.localDeSaida.toUpperCase();
-    const conflitoMotorista = await this.verificarConflitoDeCorrida(
-      corrida.idMotorista,
-      new Date(corrida.dataInicio),
-      new Date(corrida.dataTermino),
-    );
 
-    if (conflitoMotorista) {
-      throw new HttpException(
-        'Já existe uma corrida agendada para esse usuário nesse período!',
-        HttpStatus.CONFLICT,
+    const motoristasIds = corrida.motoristasIds?.length
+      ? corrida.motoristasIds
+      : [corrida.idMotoristaPrincipal];
+
+    for (const idMotorista of motoristasIds) {
+      const conflitoMotorista = await this.verificarConflitoDeCorrida(
+        idMotorista,
+        new Date(corrida.dataInicio),
+        new Date(corrida.dataTermino),
       );
+      if (conflitoMotorista) {
+        throw new HttpException(
+          'Já existe uma corrida agendada para esse usuário nesse período!',
+          HttpStatus.CONFLICT,
+        );
+      }
     }
 
     const conflitoCarro = await this.verificarConflitoDeCarro(
@@ -119,6 +128,7 @@ export class CorridaService {
       );
     }
 
+    corrida.idMotoristaPrincipal = motoristasIds[0];
     const corridaToSave = this.mapDtoToEntity(corrida);
     corridaToSave.situacao = 'AGENDADA';
 
@@ -131,6 +141,13 @@ export class CorridaService {
     }
 
     await this.corridaRepository.save(corridaToSave);
+
+    for (const idMotorista of motoristasIds) {
+      await this.corridaMotoristaRepository.insert({
+        idCorrida: newId,
+        idMotorista,
+      });
+    }
 
     const savedCorrida = await this.findById(newId);
 
@@ -152,7 +169,12 @@ export class CorridaService {
   async findById(idCorrida: number): Promise<CorridaDto> {
     const foundCorrida = await this.corridaRepository.findOne({
       where: { idCorrida },
-      relations: ['motorista', 'carro'],
+      relations: [
+        'motoristaPrincipal',
+        'carro',
+        'motoristas',
+        'motoristas.motorista',
+      ],
     });
 
     if (!foundCorrida) {
@@ -170,7 +192,12 @@ export class CorridaService {
 
     const corridaFound = await this.corridaRepository.find({
       where: searchParams,
-      relations: ['motorista', 'carro'],
+      relations: [
+        'motoristaPrincipal',
+        'carro',
+        'motoristas',
+        'motoristas.motorista',
+      ],
       order: {
         dataInicio: 'DESC',
       },
@@ -184,7 +211,12 @@ export class CorridaService {
     const fim = new Date(ano, 11, 31, 23, 59, 59);
     return this.corridaRepository.find({
       where: { dataInicio: Between(inicio, fim) },
-      relations: ['motorista', 'carro'],
+      relations: [
+        'motoristaPrincipal',
+        'carro',
+        'motoristas',
+        'motoristas.motorista',
+      ],
     });
   }
 
@@ -195,6 +227,7 @@ export class CorridaService {
   ): Promise<void> {
     const foundCorrida = await this.corridaRepository.findOne({
       where: { idCorrida },
+      relations: ['motoristaPrincipal'],
     });
 
     if (!foundCorrida) {
@@ -213,10 +246,9 @@ export class CorridaService {
 
       const administrador = await this.usuarioService.findById(currentUserId);
       const motorista = await this.usuarioService.findById(
-        foundCorrida.idMotorista,
+        foundCorrida.idMotoristaPrincipal,
       );
       const veiculo = await this.carroService.findById(foundCorrida.idCarro);
-      //const dataFormatada = foundCorrida.dataHoraRecebimentoChave.toLocaleString('pt-BR', {hour12: false,});
       const dataFormatada =
         foundCorrida.dataHoraRecebimentoChave.toLocaleDateString('pt-BR');
       const horaFormatada =
@@ -308,8 +340,9 @@ export class CorridaService {
     dados: {
       dataInicio?: Date;
       dataTermino?: Date;
-      idMotorista?: number;
+      idMotoristaPrincipal?: number;
       idCarro?: number;
+      motoristasIds?: number[];
     },
     currentUserId?: number,
     currentUserName?: string,
@@ -343,9 +376,20 @@ export class CorridaService {
     await this.corridaRepository.update(idCorrida, {
       dataInicio: dados.dataInicio ?? corrida.dataInicio,
       dataTermino: dataTerminoAjustada,
-      idMotorista: dados.idMotorista ?? corrida.idMotorista,
+      idMotoristaPrincipal:
+        dados.idMotoristaPrincipal ?? corrida.idMotoristaPrincipal,
       idCarro: dados.idCarro ?? corrida.idCarro,
     });
+
+    if (dados.motoristasIds) {
+      await this.corridaMotoristaRepository.delete({ idCorrida });
+      for (const idMotorista of dados.motoristasIds) {
+        await this.corridaMotoristaRepository.insert({
+          idCorrida,
+          idMotorista,
+        });
+      }
+    }
 
     const updatedCorrida = await this.corridaRepository.findOne({
       where: { idCorrida },
@@ -389,6 +433,16 @@ export class CorridaService {
       this.mapDtoToEntity(corrida),
     );
 
+    if (corrida.motoristasIds) {
+      await this.corridaMotoristaRepository.delete({ idCorrida });
+      for (const idMotorista of corrida.motoristasIds) {
+        await this.corridaMotoristaRepository.insert({
+          idCorrida,
+          idMotorista,
+        });
+      }
+    }
+
     const updatedCorrida = await this.corridaRepository.findOne({
       where: { idCorrida },
     });
@@ -421,6 +475,8 @@ export class CorridaService {
 
     const dadosAntigos = { ...corridaToDelete };
 
+    await this.corridaMotoristaRepository.delete({ idCorrida });
+
     const result = await this.corridaRepository.delete(idCorrida);
 
     if (!result.affected || result.affected === 0) {
@@ -449,50 +505,57 @@ export class CorridaService {
     amanha.setDate(amanha.getDate() + 1);
     amanha.setUTCHours(23, 59, 59, 999);
 
-    const corridasAgendadasHoje = await this.corridaRepository.find({
-      where: {
+    const corridasAgendadasHoje = await this.corridaRepository
+      .createQueryBuilder('corrida')
+      .leftJoinAndSelect('corrida.carro', 'carro')
+      .innerJoin('corrida.motoristas', 'cm', 'cm.id_motorista = :idMotorista', {
         idMotorista,
-        situacao: 'AGENDADA',
-        dataInicio: LessThanOrEqual(amanha),
-        dataTermino: MoreThanOrEqual(hoje),
-      },
-      order: {
-        dataInicio: 'ASC',
-      },
-      relations: ['carro'],
-    });
+      })
+      .where('corrida.situacao = :situacao', { situacao: 'AGENDADA' })
+      .andWhere(
+        'corrida.data_inicio <= :amanha AND corrida.data_termino >= :hoje',
+        { amanha, hoje },
+      )
+      .orderBy('corrida.data_inicio', 'ASC')
+      .distinct(true)
+      .getMany();
 
-    const corridasEmAndamento = await this.corridaRepository.find({
-      where: {
+    const corridasEmAndamento = await this.corridaRepository
+      .createQueryBuilder('corrida')
+      .leftJoinAndSelect('corrida.carro', 'carro')
+      .innerJoin('corrida.motoristas', 'cm', 'cm.id_motorista = :idMotorista', {
         idMotorista,
-        situacao: 'ANDAMENTO',
-      },
-      relations: ['carro'],
-    });
+      })
+      .where('corrida.situacao = :situacao', { situacao: 'ANDAMENTO' })
+      .distinct(true)
+      .getMany();
 
-    const corridasFinalizadasHoje = await this.corridaRepository.find({
-      where: {
+    const corridasFinalizadasHoje = await this.corridaRepository
+      .createQueryBuilder('corrida')
+      .leftJoinAndSelect('corrida.carro', 'carro')
+      .innerJoin('corrida.motoristas', 'cm', 'cm.id_motorista = :idMotorista', {
         idMotorista,
-        situacao: 'FINALIZADA',
-        dataInicio: Between(hoje, amanha),
-      },
-      order: {
-        dataInicio: 'DESC',
-      },
-      relations: ['carro'],
-    });
+      })
+      .where('corrida.situacao = :situacao', { situacao: 'FINALIZADA' })
+      .andWhere('corrida.data_inicio BETWEEN :hoje AND :amanha', {
+        hoje,
+        amanha,
+      })
+      .orderBy('corrida.data_inicio', 'DESC')
+      .distinct(true)
+      .getMany();
 
-    const proximasCorridas = await this.corridaRepository.find({
-      where: {
+    const proximasCorridas = await this.corridaRepository
+      .createQueryBuilder('corrida')
+      .leftJoinAndSelect('corrida.carro', 'carro')
+      .innerJoin('corrida.motoristas', 'cm', 'cm.id_motorista = :idMotorista', {
         idMotorista,
-        situacao: 'AGENDADA',
-        dataInicio: MoreThan(amanha),
-      },
-      order: {
-        dataInicio: 'ASC',
-      },
-      relations: ['carro'],
-    });
+      })
+      .where('corrida.situacao = :situacao', { situacao: 'AGENDADA' })
+      .andWhere('corrida.data_inicio > :amanha', { amanha })
+      .orderBy('corrida.data_inicio', 'ASC')
+      .distinct(true)
+      .getMany();
 
     const corridaAtiva =
       corridasEmAndamento.length > 0
@@ -522,7 +585,7 @@ export class CorridaService {
       const corrida = await this.corridaRepository
         .createQueryBuilder('corrida')
         .innerJoinAndSelect('corrida.carro', 'carro')
-        .innerJoinAndSelect('corrida.motorista', 'motorista')
+        .innerJoinAndSelect('corrida.motoristaPrincipal', 'motoristaPrincipal')
         .where('carro.placa = :placa', { placa: placaVeiculo })
         .andWhere('corrida.situacao = :situacao', { situacao: 'FINALIZADA' })
         .andWhere(
@@ -542,7 +605,7 @@ export class CorridaService {
     placaVeiculo: string,
     data: Date,
   ): Promise<{
-    idMotorista: number;
+    idMotoristaPrincipal: number;
     nomeMotorista: string;
   } | null> {
     const corrida = await this.corridaRepository.findOne({
@@ -553,14 +616,14 @@ export class CorridaService {
         dataInicio: LessThanOrEqual(data),
         dataTermino: MoreThanOrEqual(data),
       },
-      relations: ['motorista', 'carro'],
+      relations: ['motoristaPrincipal', 'carro'],
     });
 
     if (!corrida) return null;
 
     return {
-      idMotorista: corrida.idMotorista,
-      nomeMotorista: corrida.motorista?.nome || null,
+      idMotoristaPrincipal: corrida.idMotoristaPrincipal,
+      nomeMotorista: corrida.motoristaPrincipal?.nome || null,
     };
   }
 
@@ -575,14 +638,15 @@ export class CorridaService {
         dataHoraRecebimentoChave: MoreThanOrEqual(dataHoraInfracao),
         situacao: 'FINALIZADA',
       },
-      relations: ['motorista', 'carro'],
+      relations: ['motoristaPrincipal', 'carro'],
     });
 
     if (!corrida) return null;
 
     return {
-      idMotorista: corrida.idMotorista,
-      nomeMotorista: corrida.motorista?.nome || 'Motorista não identificado',
+      idMotorista: corrida.idMotoristaPrincipal,
+      nomeMotorista:
+        corrida.motoristaPrincipal?.nome || 'Motorista não identificado',
     };
   }
 
@@ -593,14 +657,18 @@ export class CorridaService {
       dataTermino: corridaEntity.dataTermino,
       distanciaKm: corridaEntity.distanciaKm,
       localDeSaida: corridaEntity.localDeSaida,
-      idMotorista: corridaEntity.idMotorista,
+      idMotoristaPrincipal: corridaEntity.idMotoristaPrincipal,
       chaveEmprestada: corridaEntity.chaveEmprestada,
       situacao: corridaEntity.situacao,
-      nomeMotorista: corridaEntity.motorista?.nome,
+      nomeMotoristaPrincipal: corridaEntity.motoristaPrincipal?.nome,
       idCarro: corridaEntity.idCarro,
       placaVeiculo: corridaEntity.carro?.placa,
       dataHoraLiberacaoChave: corridaEntity.dataHoraLiberacaoChave,
       dataHoraRecebimentoChave: corridaEntity.dataHoraRecebimentoChave,
+      motoristas: corridaEntity.motoristas?.map((cm) => ({
+        idMotorista: cm.idMotorista,
+        nome: cm.motorista?.nome || '',
+      })),
     };
   }
 
@@ -610,7 +678,7 @@ export class CorridaService {
       dataTermino: corridaDto.dataTermino,
       distanciaKm: corridaDto.distanciaKm,
       localDeSaida: corridaDto.localDeSaida,
-      idMotorista: corridaDto.idMotorista,
+      idMotoristaPrincipal: corridaDto.idMotoristaPrincipal,
       idCarro: corridaDto.idCarro,
       chaveEmprestada: corridaDto.chaveEmprestada || false,
     };

@@ -79,8 +79,9 @@ export class CorridaController {
     dados: {
       dataInicio?: Date;
       dataTermino?: Date;
-      idMotorista?: number;
+      idMotoristaPrincipal?: number;
       idCarro?: number;
+      motoristasIds?: number[];
     },
     @Request() req: any,
   ) {
