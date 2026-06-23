@@ -31,7 +31,7 @@ export class CorridaEntity {
   @Column({ type: 'int', name: 'id_carro', nullable: false })
   idCarro: number;
 
-  @Column({ type: 'int', name: 'id_motorista', nullable: false })
+  @Column({ type: 'int', name: 'id_motorista_principal', nullable: false })
   idMotoristaPrincipal: number;
 
   @Column({ type: 'varchar', name: 'situacao', nullable: false })
@@ -41,7 +41,10 @@ export class CorridaEntity {
   chaveEmprestada: boolean;
 
   @ManyToOne(() => UsuarioEntity)
-  @JoinColumn({ name: 'id_motorista', referencedColumnName: 'idUsuario' })
+  @JoinColumn({
+    name: 'id_motorista_principal',
+    referencedColumnName: 'idUsuario',
+  })
   motoristaPrincipal?: UsuarioEntity;
 
   @ManyToOne(() => CarroEntity)
