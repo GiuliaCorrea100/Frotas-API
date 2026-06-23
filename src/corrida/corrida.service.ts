@@ -508,10 +508,9 @@ export class CorridaService {
     const corridasAgendadasHoje = await this.corridaRepository
       .createQueryBuilder('corrida')
       .leftJoinAndSelect('corrida.carro', 'carro')
-      .innerJoin('corrida.motoristas', 'cm', 'cm.id_motorista = :idMotorista', {
-        idMotorista,
-      })
+      .innerJoin('corrida.motoristas', 'cm')
       .where('corrida.situacao = :situacao', { situacao: 'AGENDADA' })
+      .andWhere('cm.idMotorista = :idMotorista', { idMotorista })
       .andWhere(
         'corrida.data_inicio <= :amanha AND corrida.data_termino >= :hoje',
         { amanha, hoje },
@@ -523,20 +522,18 @@ export class CorridaService {
     const corridasEmAndamento = await this.corridaRepository
       .createQueryBuilder('corrida')
       .leftJoinAndSelect('corrida.carro', 'carro')
-      .innerJoin('corrida.motoristas', 'cm', 'cm.id_motorista = :idMotorista', {
-        idMotorista,
-      })
+      .innerJoin('corrida.motoristas', 'cm')
       .where('corrida.situacao = :situacao', { situacao: 'ANDAMENTO' })
+      .andWhere('cm.idMotorista = :idMotorista', { idMotorista })
       .distinct(true)
       .getMany();
 
     const corridasFinalizadasHoje = await this.corridaRepository
       .createQueryBuilder('corrida')
       .leftJoinAndSelect('corrida.carro', 'carro')
-      .innerJoin('corrida.motoristas', 'cm', 'cm.id_motorista = :idMotorista', {
-        idMotorista,
-      })
+      .innerJoin('corrida.motoristas', 'cm')
       .where('corrida.situacao = :situacao', { situacao: 'FINALIZADA' })
+      .andWhere('cm.idMotorista = :idMotorista', { idMotorista })
       .andWhere('corrida.data_inicio BETWEEN :hoje AND :amanha', {
         hoje,
         amanha,
@@ -548,10 +545,9 @@ export class CorridaService {
     const proximasCorridas = await this.corridaRepository
       .createQueryBuilder('corrida')
       .leftJoinAndSelect('corrida.carro', 'carro')
-      .innerJoin('corrida.motoristas', 'cm', 'cm.id_motorista = :idMotorista', {
-        idMotorista,
-      })
+      .innerJoin('corrida.motoristas', 'cm')
       .where('corrida.situacao = :situacao', { situacao: 'AGENDADA' })
+      .andWhere('cm.idMotorista = :idMotorista', { idMotorista })
       .andWhere('corrida.data_inicio > :amanha', { amanha })
       .orderBy('corrida.data_inicio', 'ASC')
       .distinct(true)
