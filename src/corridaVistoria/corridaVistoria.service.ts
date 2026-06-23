@@ -78,7 +78,7 @@ export class CorridaVistoriaService {
     const vistoria = await this.vistoriaRepository.findOne({
       where: {
         idCorrida: Number(idCorrida),
-        tipo: 'ENTRADA',
+        tipo: 'DEVOLUCAO',
       },
     });
 
