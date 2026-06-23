@@ -10,7 +10,7 @@ import {
   Res,
   Body,
   UploadedFiles,
-  Req,
+  Query,
 } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { AnexoService } from './anexo.service';
@@ -53,6 +53,7 @@ export class AnexoController {
   async uploadFiles(
     @UploadedFiles() files: Array<Express.Multer.File>,
     @Param('idCorridaVistoria') idCorridaVistoria: number,
+    @Query('tipo') tipo: string,
   ) {
 
     if (!files || files.length === 0) {
@@ -60,6 +61,7 @@ export class AnexoController {
     }
     const anexos = files.map(() => ({
       idCorridaVistoria: Number(idCorridaVistoria),
+      tipo,
     }));
     return await this.anexoService.createMultiple(anexos, files);
   }

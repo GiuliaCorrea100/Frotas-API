@@ -8,4 +8,5 @@ export class AnexoVistoriaDto {
   idCorridaVistoria: number;
   urlArquivo?: string;
   dataUpload?: Date;
+  tipo?: string;
 }

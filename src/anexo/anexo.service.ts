@@ -2,7 +2,7 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import * as fs from 'fs';
-import {  AnexoVistoriaDto, UploadFileDto } from './anexo.dto';
+import { AnexoVistoriaDto, UploadFileDto } from './anexo.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CorridaVistoriaFotoEntity } from 'src/db/entities/corridaVistoriaFoto.entity';
 import { Repository } from 'typeorm';
@@ -46,7 +46,10 @@ export class AnexoService {
       mkdirSync(recursosPath, { recursive: true });
     }
 
-    const vistoriaDevolucaoPath = join(this.baseUploadPath, 'vistoria_devolucao')
+    const vistoriaDevolucaoPath = join(
+      this.baseUploadPath,
+      'vistoria_devolucao',
+    );
     if (!existsSync(vistoriaDevolucaoPath)) {
       mkdirSync(vistoriaDevolucaoPath, { recursive: true });
     }
@@ -101,9 +104,7 @@ export class AnexoService {
         mkdirSync(uploadPath, { recursive: true });
       }
 
-      const random8 = Math.floor(
-        10000000 + Math.random() * 90000000,
-      );
+      const random8 = Math.floor(10000000 + Math.random() * 90000000);
 
       let fileName = '';
 
@@ -131,46 +132,54 @@ export class AnexoService {
 
   async createMultiple(
     anexos: AnexoVistoriaDto[],
-    files: Express.Multer.File[], 
+    files: Express.Multer.File[],
   ): Promise<AnexoVistoriaDto[]> {
-  
     if (!files || files.length !== anexos.length) {
       throw new BadRequestException(
-        `Número de arquivos incompatível. Esperado: ${anexos.length}, Recebido: ${files?.length || 0}`
+        `Número de arquivos incompatível. Esperado: ${anexos.length}, Recebido: ${files?.length || 0}`,
       );
     }
-    
+
     const anexosToSave = await Promise.all(
       anexos.map(async (anexo, index) => {
         const file = files[index];
-        
+
         if (!file) {
-          throw new BadRequestException(`Arquivo não enviado para o anexo ${index + 1}`);
+          throw new BadRequestException(
+            `Arquivo não enviado para o anexo ${index + 1}`,
+          );
         }
-        
+
         if (!file.buffer || file.buffer.length === 0) {
-          throw new BadRequestException(`Arquivo vazio para o anexo ${index + 1}`);
+          throw new BadRequestException(
+            `Arquivo vazio para o anexo ${index + 1}`,
+          );
         }
+
+        const tipoRotulo =
+          anexo.tipo === 'RETIRADA'
+            ? 'vistoria_retirada'
+            : 'vistoria_devolucao';
 
         const urlArquivo = await this.salvarArquivo(
           file,
-          "vistoria",
+          'vistoria',
           anexo.idCorridaVistoria,
-          "vistoria_devolucao"
+          tipoRotulo,
         );
-         
+
         return {
           idCorridaVistoria: anexo.idCorridaVistoria,
-          urlArquivo: urlArquivo, 
+          urlArquivo: urlArquivo,
           dataUpload: new Date(),
         };
-      })
+      }),
     );
 
-  const savedAnexos = await this.corridaVistoriaFotoRepository.save(anexosToSave);
-  return savedAnexos;
-}
-
+    const savedAnexos =
+      await this.corridaVistoriaFotoRepository.save(anexosToSave);
+    return savedAnexos;
+  }
 
   async getArquivo(fileName: string, subPasta?: string): Promise<string> {
     if (!subPasta) {
@@ -183,13 +192,17 @@ export class AnexoService {
         }
       }
 
-      throw new BadRequestException('Arquivo não encontrado nas pastas de upload');
+      throw new BadRequestException(
+        'Arquivo não encontrado nas pastas de upload',
+      );
     }
 
     const filePath = join(this.baseUploadPath, subPasta, fileName);
 
     if (!existsSync(filePath)) {
-      throw new BadRequestException('Arquivo não encontrado na pasta especificada');
+      throw new BadRequestException(
+        'Arquivo não encontrado na pasta especificada',
+      );
     }
 
     return filePath;
@@ -249,6 +262,4 @@ export class AnexoService {
       await this.deletarArquivo(fileName);
     }
   }
-
-  
 }
