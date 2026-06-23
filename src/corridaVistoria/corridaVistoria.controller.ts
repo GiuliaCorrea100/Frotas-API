@@ -30,11 +30,13 @@ export class CorridaVistoriaController {
   @UseInterceptors(
     FilesInterceptor('files', 10, {
       storage: diskStorage({
-        destination: './uploads/vistorias',
+        destination: './uploads/vistoria',
         filename: (req, file, callback) => {
           const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
           const ext = extname(file.originalname);
-          callback(null, `vistoria-${uniqueSuffix}${ext}`);
+          const tipoUrl = req.params.tipo;
+          const prefixo = tipoUrl === 'retirada' ? 'retirada' : 'vistoria';
+          callback(null, `${prefixo}-${uniqueSuffix}${ext}`);
         },
       }),
       fileFilter: (req, file, callback) => {
