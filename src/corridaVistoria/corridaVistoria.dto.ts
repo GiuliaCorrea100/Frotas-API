@@ -19,3 +19,10 @@ export class CorridaVistoriaDto {
   @IsOptional()
   observacoes?: string;
 }
+
+export class CorridaVistoriaFotoDto {
+  idCorridaVistoriaFoto?: number;
+  idCorridaVistoria: number;
+  urlArquivo?: string;
+  dataUpload?: Date;
+}

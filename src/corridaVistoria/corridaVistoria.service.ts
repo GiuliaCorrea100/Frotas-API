@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CorridaVistoriaDto } from './corridaVistoria.dto';
+import { CorridaVistoriaDto, CorridaVistoriaFotoDto } from './corridaVistoria.dto';
 import { CorridaEntity } from '../db/entities/corrida.entity';
 import { CorridaVistoriaEntity } from 'src/db/entities/corridaVistoria.entity';
 import { CorridaVistoriaFotoEntity } from 'src/db/entities/corridaVistoriaFoto.entity';
@@ -69,6 +69,7 @@ export class CorridaVistoriaService {
     return await this.vistoriaRepository.find({
       where: { idCorrida },
       order: { dataRegistro: 'ASC' },
+      relations: ['usuarioRegistrou']
     });
   }
 
@@ -85,5 +86,26 @@ export class CorridaVistoriaService {
     return {
       pendente: !Boolean(vistoria),
     };
+  }
+
+  async buscarFotosVistoria(idCorridaVistoria: number): Promise<CorridaVistoriaFotoDto[]> {
+    const fotos = await this.vistoriaFotoRepository.find({
+      where: { idCorridaVistoria },
+      order: { dataUpload: 'ASC' },
+    });
+
+    return fotos.map((entity) => this.mapFotoToDto(entity));
+  }
+
+
+  private mapFotoToDto(entity: CorridaVistoriaFotoEntity): CorridaVistoriaFotoDto {
+      const nomeArquivo = entity.urlArquivo.split('/').pop() || entity.urlArquivo;
+      
+      return {
+        idCorridaVistoriaFoto: entity.idCorridaVistoriaFoto,
+        idCorridaVistoria: entity.idCorridaVistoria,
+        urlArquivo: `/uploads/vistoria/${nomeArquivo}`, 
+        dataUpload: entity.dataUpload,
+      };
   }
 }
