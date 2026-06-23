@@ -23,7 +23,8 @@ import { GoogleRecaptchaModule } from '@nestlab/google-recaptcha';
 import { RelatorioModule } from './relatorio/relatorio.module';
 import { RecursoModule } from './recurso/recurso.module';
 import { CorridaVistoriaModule } from './corridaVistoria/corridaVistoria.module';
-
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
@@ -54,6 +55,10 @@ import { CorridaVistoriaModule } from './corridaVistoria/corridaVistoria.module'
     RelatorioModule,
     RecursoModule,
     CorridaVistoriaModule,
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/uploads',
+    }),
   ],
   controllers: [AppController],
   providers: [AppService],

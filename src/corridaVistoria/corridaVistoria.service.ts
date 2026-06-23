@@ -67,7 +67,7 @@ export class CorridaVistoriaService {
     };
   }
 
-   async buscarFotosVistoria(idCorridaVistoria: number): Promise<CorridaVistoriaFotoDto[]> {
+  async buscarFotosVistoria(idCorridaVistoria: number): Promise<CorridaVistoriaFotoDto[]> {
     const fotos = await this.vistoriaFotoRepository.find({
       where: { idCorridaVistoria },
       order: { dataUpload: 'ASC' },
@@ -76,12 +76,15 @@ export class CorridaVistoriaService {
     return fotos.map((entity) => this.mapFotoToDto(entity));
   }
 
+
   private mapFotoToDto(entity: CorridaVistoriaFotoEntity): CorridaVistoriaFotoDto {
-    return {
-      idCorridaVistoriaFoto: entity.idCorridaVistoriaFoto,
-      idCorridaVistoria: entity.idCorridaVistoria,
-      urlArquivo: entity.urlArquivo,
-      dataUpload: entity.dataUpload,
-    };
+      const nomeArquivo = entity.urlArquivo.split('/').pop() || entity.urlArquivo;
+      
+      return {
+        idCorridaVistoriaFoto: entity.idCorridaVistoriaFoto,
+        idCorridaVistoria: entity.idCorridaVistoria,
+        urlArquivo: `/uploads/vistoria/${nomeArquivo}`, 
+        dataUpload: entity.dataUpload,
+      };
   }
 }
