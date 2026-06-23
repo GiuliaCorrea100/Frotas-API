@@ -26,7 +26,7 @@ export class CorridaVistoriaController {
     );
   }
 
-  @Post(':id/fotos')
+  @Post(':id/fotos/:tipo')
   @UseInterceptors(
     FilesInterceptor('files', 10, {
       storage: diskStorage({
