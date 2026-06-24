@@ -55,7 +55,7 @@ generate_envs:
       dotenv: environment.env
 
 build:
-  image: node:20.19.3-alpine3.22
+  image: node:22.22.2-alpine
   stage: build
   script:
     - npm ci
