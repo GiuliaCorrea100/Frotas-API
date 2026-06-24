@@ -1,5 +1,5 @@
 # Use the official Node.js image as the base image
-FROM node:20.19.3-alpine3.22
+FROM node:22.22.2-alpine
 
 WORKDIR /usr/src/app
 

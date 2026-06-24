@@ -111,7 +111,7 @@ rm -rf node_modules/ && rm -rf dist
 docker run --rm \
 -w /usr/src/app \
 -v $(pwd):/usr/src/app \
-node:20.19.3-alpine3.22 \
+node:22.22.2-alpine \
 sh -c "npm ci && npm run build"
 ```
 
