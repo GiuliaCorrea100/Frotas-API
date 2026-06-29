@@ -10,11 +10,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like, FindOptionsWhere } from 'typeorm';
 import { LogService } from '../log/log.service';
 import { LogDto } from '../log/log.dto';
-import { CorridaService } from '../corrida/corrida.service';
 import { EmailService } from '../email/email.service';
 import { UsuarioService } from '../usuario/usuario.service';
 import { AnexoService } from '../anexo/anexo.service';
 import { CorridaDto } from '../corrida/corrida.dto';
+import { PercursoService } from '../percurso/percurso.service';
 
 @Injectable()
 export class MultaService {
@@ -22,8 +22,8 @@ export class MultaService {
     @InjectRepository(MultaEntity)
     private readonly MultaRepository: Repository<MultaEntity>,
     private readonly logService: LogService,
-    @Inject(forwardRef(() => CorridaService))
-    private readonly corridaService: CorridaService,
+    @Inject(forwardRef(() => PercursoService))
+    private readonly percursoService: PercursoService,
     private readonly emailService: EmailService,
     private readonly usuarioService: UsuarioService,
     private readonly anexoService: AnexoService,
@@ -73,7 +73,7 @@ export class MultaService {
 
     try {
       motoristaResponsavel =
-        await this.corridaService.encontrarMotoristaPorPlacaEHorarioExato(
+        await this.percursoService.encontrarMotoristaPorPlacaEHorarioDoPercurso(
           multa.placaVeiculo,
           multa.dataInfracao,
         );
@@ -295,7 +295,7 @@ export class MultaService {
         new Date(foundMulta.dataInfracao).getTime()
     ) {
       const motoristaResponsavel =
-        await this.corridaService.encontrarMotoristaPorPlacaEHorarioExato(
+        await this.percursoService.encontrarMotoristaPorPlacaEHorarioDoPercurso(
           multa.placaVeiculo,
           multa.dataInfracao,
         );
