@@ -140,6 +140,7 @@ export class PercursoService {
     const percursos = await this.percursoRepository.find({
       where: { idCorrida },
       order: { saidaHora: 'DESC' },
+      relations: ['motorista']
     });
 
     if (!percursos || percursos.length === 0) {
@@ -285,6 +286,7 @@ export class PercursoService {
       localOrigem: entity.localOrigem,
       ativo: entity.ativo,
       idMotorista: entity.idMotorista,
+      nomeMotorista: entity.motorista?.nome || 'Motorista não encontrado',
     };
   }
 }
