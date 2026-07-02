@@ -34,17 +34,22 @@ export class MultaService {
     dataInfracao: Date,
   ): Promise<CorridaDto | null> {
     try {
+      const dataFiltro = new Date(dataInfracao);
+
       const corrida = await this.MultaRepository.manager
         .getRepository('CorridaEntity')
         .createQueryBuilder('corrida')
         .innerJoinAndSelect('corrida.carro', 'carro')
         .innerJoinAndSelect('corrida.motoristaPrincipal', 'motorista')
-        .where('carro.placa = :placa', { placa: placaVeiculo })
-        .andWhere('corrida.situacao = :situacao', { situacao: 'FINALIZADA' })
+        .where('UPPER(carro.placa) = UPPER(:placa)', { placa: placaVeiculo.trim() })
+        .andWhere('corrida.situacao IN (:...situacoes)', { 
+          situacoes: ['AGENDADA', 'ANDAMENTO', 'FINALIZADA', 'CONCLUIDA'] 
+        })
         .andWhere(
-          ':dataInfracao BETWEEN corrida.dataHoraLiberacaoChave AND corrida.dataHoraRecebimentoChave',
+          `(:dataInfracao BETWEEN corrida.data_inicio AND corrida.data_termino) OR 
+           (:dataInfracao BETWEEN corrida.data_hora_liberacao_chave AND corrida.data_hora_recebimento_chave)`,
         )
-        .setParameter('dataInfracao', dataInfracao)
+        .setParameter('dataInfracao', dataFiltro)
         .getOne();
 
       return corrida ? (corrida as any) : null;
@@ -67,7 +72,7 @@ export class MultaService {
       nomeMotorista: string;
     } | null;
   }> {
-    let motoristaResponsavel = null;
+    let motoristaResponsavel: { idMotorista: number; nomeMotorista: string } | null = null;
     let situacao = 'MOTORISTA NAO IDENTIFICADO';
     let mensagem: string | undefined;
 
@@ -78,11 +83,25 @@ export class MultaService {
           multa.dataInfracao,
         );
 
+      if (!motoristaResponsavel) {
+        const corridaDoPeriodo = await this.encontrarCorridaPorPlacaEData(
+          multa.placaVeiculo,
+          multa.dataInfracao,
+        );
+
+        if (corridaDoPeriodo && (corridaDoPeriodo as any).idMotoristaPrincipal) {
+          motoristaResponsavel = {
+            idMotorista: (corridaDoPeriodo as any).idMotoristaPrincipal,
+            nomeMotorista: (corridaDoPeriodo as any).motoristaPrincipal?.nome || 'Motorista Principal',
+          };
+        }
+      }
+
       if (motoristaResponsavel) {
         situacao = 'ATRIBUIDA';
       } else {
         mensagem =
-          'Não foi possível identificar o motorista responsável pela multa no horário especificado.';
+          'Não foi possível identificar o motorista responsável pela multa no horário especificado (Nenhum percurso ou chave liberada para este período).';
       }
     } catch (error) {
       console.error('Erro ao buscar motorista:', error);
@@ -97,9 +116,7 @@ export class MultaService {
       dataInfracao: multa.dataInfracao,
       autoInfracao: multa.autoInfracao,
       situacao: situacao,
-      idMotorista: motoristaResponsavel
-        ? motoristaResponsavel.idMotorista
-        : null,
+      idMotorista: motoristaResponsavel ? motoristaResponsavel.idMotorista : null,
       ativa: true,
     } as MultaEntity;
 
@@ -294,11 +311,25 @@ export class MultaService {
       new Date(multa.dataInfracao).getTime() !==
         new Date(foundMulta.dataInfracao).getTime()
     ) {
-      const motoristaResponsavel =
+      let motoristaResponsavel =
         await this.percursoService.encontrarMotoristaPorPlacaEHorarioDoPercurso(
           multa.placaVeiculo,
           multa.dataInfracao,
         );
+
+      if (!motoristaResponsavel) {
+        const corridaDoPeriodo = await this.encontrarCorridaPorPlacaEData(
+          multa.placaVeiculo,
+          multa.dataInfracao,
+        );
+
+        if (corridaDoPeriodo && (corridaDoPeriodo as any).idMotoristaPrincipal) {
+          motoristaResponsavel = {
+            idMotorista: (corridaDoPeriodo as any).idMotoristaPrincipal,
+            nomeMotorista: (corridaDoPeriodo as any).motoristaPrincipal?.nome || 'Motorista Principal',
+          };
+        }
+      }
 
       if (motoristaResponsavel) {
         idMotorista = motoristaResponsavel.idMotorista;

@@ -297,7 +297,6 @@ export class PercursoService {
         .getOne();
 
       if (!percurso || !percurso.idMotorista) {
-        console.warn(`[Multas] Nenhum condutor encontrado no percurso para a placa ${placaFormatada} em ${dataFiltro}`);
         return null;
       }
 
