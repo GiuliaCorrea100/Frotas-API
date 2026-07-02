@@ -222,6 +222,8 @@ export class CorridaService {
 
   async emprestarChave(
     idCorrida: number,
+    idMotoristaRetirada?: number,
+    idMotoristaDevolucao?: number,
     currentUserId?: number,
     currentUserName?: string,
   ): Promise<void> {
@@ -239,15 +241,18 @@ export class CorridaService {
     if (foundCorrida.chaveEmprestada == false) {
       foundCorrida.chaveEmprestada = true;
       foundCorrida.dataHoraLiberacaoChave = new Date();
+      foundCorrida.idMotoristaRetirada = idMotoristaRetirada;
     } else {
       foundCorrida.chaveEmprestada = false;
       foundCorrida.dataHoraRecebimentoChave = new Date();
       foundCorrida.situacao = 'FINALIZADA';
+      foundCorrida.idMotoristaDevolucao = idMotoristaDevolucao;
 
       const administrador = await this.usuarioService.findById(currentUserId);
-      const motorista = await this.usuarioService.findById(
-        foundCorrida.idMotoristaPrincipal,
-      );
+      const idMotoristaParaEmail =
+        foundCorrida.idMotoristaDevolucao || foundCorrida.idMotoristaPrincipal;
+      const motorista =
+        await this.usuarioService.findById(idMotoristaParaEmail);
       const veiculo = await this.carroService.findById(foundCorrida.idCarro);
       const dataFormatada =
         foundCorrida.dataHoraRecebimentoChave.toLocaleDateString('pt-BR');
@@ -661,6 +666,8 @@ export class CorridaService {
       placaVeiculo: corridaEntity.carro?.placa,
       dataHoraLiberacaoChave: corridaEntity.dataHoraLiberacaoChave,
       dataHoraRecebimentoChave: corridaEntity.dataHoraRecebimentoChave,
+      idMotoristaRetirada: corridaEntity.idMotoristaRetirada,
+      idMotoristaDevolucao: corridaEntity.idMotoristaDevolucao,
       motoristas: corridaEntity.motoristas?.map((cm) => ({
         idMotorista: cm.idMotorista,
         nome: cm.motorista?.nome || '',

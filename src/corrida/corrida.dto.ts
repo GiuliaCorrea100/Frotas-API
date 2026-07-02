@@ -10,6 +10,11 @@ export class CorridaDto {
   dataHoraRecebimentoChave: Date;
   dataHoraLiberacaoChave: Date;
 
+  idMotoristaRetirada?: number;
+  nomeMotoristaRetirada?: string;
+  idMotoristaDevolucao?: number;
+  nomeMotoristaDevolucao?: string;
+
   idCarro: number;
 
   nomeMotoristaPrincipal?: string;
