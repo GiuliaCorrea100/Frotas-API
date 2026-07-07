@@ -16,7 +16,8 @@ import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { AnexoService } from './anexo.service';
 import { Response } from 'express';
 import * as path from 'path';
-import sharp from 'sharp';
+import * as _sharp from 'sharp';
+const sharp = (_sharp as any).default || _sharp; //Fallback de importação do sharp
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
