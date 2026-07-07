@@ -16,8 +16,7 @@ import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { AnexoService } from './anexo.service';
 import { Response } from 'express';
 import * as path from 'path';
-import * as _sharp from 'sharp';
-const sharp = (_sharp as any).default || _sharp; //Fallback de importação do sharp
+import { Jimp } from 'jimp';
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
@@ -77,7 +76,8 @@ export class AnexoController {
       }
       const relativePath = imagePath.replace(/^\//, '');
       const fullPath = path.resolve(process.cwd(), relativePath);
-      const pngBuffer = await sharp(fullPath).png().toBuffer();
+      const image = await Jimp.read(fullPath);
+      const pngBuffer = await image.getBuffer('image/png');
       const base64 = pngBuffer.toString('base64');
       return { url: `data:image/png;base64,${base64}` };
     } catch (error) {
