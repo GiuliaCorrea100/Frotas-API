@@ -651,6 +651,33 @@ export class CorridaService {
     };
   }
 
+  async encontrarMotoristaPorPlacaEPeriodoChave(
+    placaVeiculo: string,
+    dataHoraInfracao: Date,
+  ): Promise<{ idMotorista: number; nomeMotorista: string } | null> {
+    const placaFormatada = placaVeiculo.toUpperCase().trim();
+    const dataFiltro = new Date(dataHoraInfracao);
+
+    const corrida = await this.corridaRepository
+      .createQueryBuilder('corrida')
+      .innerJoinAndSelect('corrida.carro', 'carro')
+      .innerJoinAndSelect('corrida.motoristaPrincipal', 'motoristaPrincipal')
+      .where('UPPER(carro.placa) = :placa', { placa: placaFormatada })
+      .andWhere('corrida.situacao = :situacao', { situacao: 'FINALIZADA' })
+      .andWhere('corrida.data_hora_liberacao_chave <= :dataHora', { dataHora: dataFiltro })
+      .andWhere('corrida.data_hora_recebimento_chave >= :dataHora', { dataHora: dataFiltro })
+      .getOne();
+
+    if (!corrida) {
+      return null;
+    }
+
+    return {
+      idMotorista: corrida.idMotoristaPrincipal,
+      nomeMotorista: corrida.motoristaPrincipal?.nome || 'Motorista Principal',
+    };
+  }
+
   private mapEntityToDto(corridaEntity: CorridaEntity): CorridaDto {
     return {
       idCorrida: corridaEntity.idCorrida,

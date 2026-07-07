@@ -9,5 +9,6 @@ import { LogModule } from '../log/log.module';
   imports: [TypeOrmModule.forFeature([PercursoEntity]), LogModule],
   controllers: [PercursoController],
   providers: [PercursoService],
+  exports: [PercursoService],
 })
 export class PercursoModule {}

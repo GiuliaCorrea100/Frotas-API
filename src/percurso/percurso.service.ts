@@ -274,6 +274,43 @@ export class PercursoService {
     await this.logService.logChange(logData);
   }
 
+  async encontrarMotoristaPorPlacaEHorarioDoPercurso(
+    placaVeiculo: string,
+    dataHoraInfracao: Date,
+  ): Promise<{ idMotorista: number; nomeMotorista: string } | null> {
+    try {
+      const placaFormatada = placaVeiculo.toUpperCase().trim();
+      
+      const dataFiltro = new Date(dataHoraInfracao);
+
+      const percurso = await this.percursoRepository
+        .createQueryBuilder('percurso')
+        .innerJoin('corrida', 'c', 'c.id_corrida = percurso.id_corrida')
+        .innerJoin('carro', 'ca', 'ca.id_carro = c.id_carro')
+        .leftJoinAndSelect('percurso.motorista', 'motorista')
+        .where('UPPER(ca.placa) = :placa', { placa: placaFormatada })
+        .andWhere('percurso.ativo = :ativo', { ativo: true })
+        .andWhere('percurso.saida_hora::timestamp with time zone <= :dataHora::timestamp with time zone', { dataHora: dataFiltro })
+        .andWhere(
+          '(percurso.chegada_hora IS NULL OR percurso.chegada_hora::timestamp with time zone >= :dataHora::timestamp with time zone)',
+          { dataHora: dataFiltro }
+        )
+        .getOne();
+
+      if (!percurso || !percurso.idMotorista) {
+        return null;
+      }
+
+      return {
+        idMotorista: percurso.idMotorista,
+        nomeMotorista: percurso.motorista?.nome || 'Motorista não identificado',
+      };
+    } catch (error) {
+      console.error('Erro crítico ao associar motorista pelo percurso:', error);
+      return null;
+    }
+  }
+
   private mapEntityToDto(entity: PercursoEntity): PercursoDto {
     return {
       idPercurso: entity.idPercurso,

@@ -10,11 +10,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like, FindOptionsWhere } from 'typeorm';
 import { LogService } from '../log/log.service';
 import { LogDto } from '../log/log.dto';
-import { CorridaService } from '../corrida/corrida.service';
 import { EmailService } from '../email/email.service';
 import { UsuarioService } from '../usuario/usuario.service';
 import { AnexoService } from '../anexo/anexo.service';
 import { CorridaDto } from '../corrida/corrida.dto';
+import { PercursoService } from '../percurso/percurso.service';
 
 @Injectable()
 export class MultaService {
@@ -22,8 +22,8 @@ export class MultaService {
     @InjectRepository(MultaEntity)
     private readonly MultaRepository: Repository<MultaEntity>,
     private readonly logService: LogService,
-    @Inject(forwardRef(() => CorridaService))
-    private readonly corridaService: CorridaService,
+    @Inject(forwardRef(() => PercursoService))
+    private readonly percursoService: PercursoService,
     private readonly emailService: EmailService,
     private readonly usuarioService: UsuarioService,
     private readonly anexoService: AnexoService,
@@ -34,17 +34,22 @@ export class MultaService {
     dataInfracao: Date,
   ): Promise<CorridaDto | null> {
     try {
+      const dataFiltro = new Date(dataInfracao);
+
       const corrida = await this.MultaRepository.manager
         .getRepository('CorridaEntity')
         .createQueryBuilder('corrida')
         .innerJoinAndSelect('corrida.carro', 'carro')
         .innerJoinAndSelect('corrida.motoristaPrincipal', 'motorista')
-        .where('carro.placa = :placa', { placa: placaVeiculo })
-        .andWhere('corrida.situacao = :situacao', { situacao: 'FINALIZADA' })
+        .where('UPPER(carro.placa) = UPPER(:placa)', { placa: placaVeiculo.trim() })
+        .andWhere('corrida.situacao IN (:...situacoes)', { 
+          situacoes: ['AGENDADA', 'ANDAMENTO', 'FINALIZADA', 'CONCLUIDA'] 
+        })
         .andWhere(
-          ':dataInfracao BETWEEN corrida.dataHoraLiberacaoChave AND corrida.dataHoraRecebimentoChave',
+          `(:dataInfracao BETWEEN corrida.data_inicio AND corrida.data_termino) OR 
+           (:dataInfracao BETWEEN corrida.data_hora_liberacao_chave AND corrida.data_hora_recebimento_chave)`,
         )
-        .setParameter('dataInfracao', dataInfracao)
+        .setParameter('dataInfracao', dataFiltro)
         .getOne();
 
       return corrida ? (corrida as any) : null;
@@ -67,22 +72,36 @@ export class MultaService {
       nomeMotorista: string;
     } | null;
   }> {
-    let motoristaResponsavel = null;
+    let motoristaResponsavel: { idMotorista: number; nomeMotorista: string } | null = null;
     let situacao = 'MOTORISTA NAO IDENTIFICADO';
     let mensagem: string | undefined;
 
     try {
       motoristaResponsavel =
-        await this.corridaService.encontrarMotoristaPorPlacaEHorarioExato(
+        await this.percursoService.encontrarMotoristaPorPlacaEHorarioDoPercurso(
           multa.placaVeiculo,
           multa.dataInfracao,
         );
+
+      if (!motoristaResponsavel) {
+        const corridaDoPeriodo = await this.encontrarCorridaPorPlacaEData(
+          multa.placaVeiculo,
+          multa.dataInfracao,
+        );
+
+        if (corridaDoPeriodo && (corridaDoPeriodo as any).idMotoristaPrincipal) {
+          motoristaResponsavel = {
+            idMotorista: (corridaDoPeriodo as any).idMotoristaPrincipal,
+            nomeMotorista: (corridaDoPeriodo as any).motoristaPrincipal?.nome || 'Motorista Principal',
+          };
+        }
+      }
 
       if (motoristaResponsavel) {
         situacao = 'ATRIBUIDA';
       } else {
         mensagem =
-          'Não foi possível identificar o motorista responsável pela multa no horário especificado.';
+          'Não foi possível identificar o motorista responsável pela multa no horário especificado (Nenhum percurso ou chave liberada para este período).';
       }
     } catch (error) {
       console.error('Erro ao buscar motorista:', error);
@@ -97,9 +116,7 @@ export class MultaService {
       dataInfracao: multa.dataInfracao,
       autoInfracao: multa.autoInfracao,
       situacao: situacao,
-      idMotorista: motoristaResponsavel
-        ? motoristaResponsavel.idMotorista
-        : null,
+      idMotorista: motoristaResponsavel ? motoristaResponsavel.idMotorista : null,
       ativa: true,
     } as MultaEntity;
 
@@ -294,11 +311,25 @@ export class MultaService {
       new Date(multa.dataInfracao).getTime() !==
         new Date(foundMulta.dataInfracao).getTime()
     ) {
-      const motoristaResponsavel =
-        await this.corridaService.encontrarMotoristaPorPlacaEHorarioExato(
+      let motoristaResponsavel =
+        await this.percursoService.encontrarMotoristaPorPlacaEHorarioDoPercurso(
           multa.placaVeiculo,
           multa.dataInfracao,
         );
+
+      if (!motoristaResponsavel) {
+        const corridaDoPeriodo = await this.encontrarCorridaPorPlacaEData(
+          multa.placaVeiculo,
+          multa.dataInfracao,
+        );
+
+        if (corridaDoPeriodo && (corridaDoPeriodo as any).idMotoristaPrincipal) {
+          motoristaResponsavel = {
+            idMotorista: (corridaDoPeriodo as any).idMotoristaPrincipal,
+            nomeMotorista: (corridaDoPeriodo as any).motoristaPrincipal?.nome || 'Motorista Principal',
+          };
+        }
+      }
 
       if (motoristaResponsavel) {
         idMotorista = motoristaResponsavel.idMotorista;
