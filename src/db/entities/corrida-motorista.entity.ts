@@ -20,6 +20,8 @@ export class CorridaMotoristaEntity {
   @Column({ type: 'int', name: 'id_motorista' })
   idMotorista: number;
 
+  //teste de commit
+
   @CreateDateColumn({ type: 'timestamptz', name: 'data_vinculo' })
   dataVinculo: Date;
 
