@@ -60,12 +60,15 @@ export class CorridaController {
   @UseGuards(AuthGuard)
   async emprestarChave(
     @Param('idCorrida') idCorrida: number,
+    @Body() body: { idMotoristaRetirada?: number; idMotoristaDevolucao?: number },
     @Request() req: any,
   ): Promise<void> {
     const currentUserId = req.user?.sub;
     const currentUserName = req.user?.login;
     await this.corridaService.emprestarChave(
       idCorrida,
+      body.idMotoristaRetirada,
+      body.idMotoristaDevolucao,
       currentUserId,
       currentUserName,
     );

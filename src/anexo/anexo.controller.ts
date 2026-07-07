@@ -16,6 +16,8 @@ import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { AnexoService } from './anexo.service';
 import { Response } from 'express';
 import * as path from 'path';
+import * as _sharp from 'sharp';
+const sharp = (_sharp as any).default || _sharp; //Fallback de importação do sharp
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
@@ -55,7 +57,6 @@ export class AnexoController {
     @Param('idCorridaVistoria') idCorridaVistoria: number,
     @Query('tipo') tipo: string,
   ) {
-
     if (!files || files.length === 0) {
       throw new BadRequestException('Nenhum arquivo enviado.');
     }
@@ -66,9 +67,26 @@ export class AnexoController {
     return await this.anexoService.createMultiple(anexos, files);
   }
 
+  @Get('converter-png')
+  async converterParaPng(
+    @Query('path') imagePath: string,
+  ): Promise<{ url: string }> {
+    try {
+      if (!imagePath) {
+        throw new BadRequestException('Parâmetro path é obrigatório');
+      }
+      const relativePath = imagePath.replace(/^\//, '');
+      const fullPath = path.resolve(process.cwd(), relativePath);
+      const pngBuffer = await sharp(fullPath).png().toBuffer();
+      const base64 = pngBuffer.toString('base64');
+      return { url: `data:image/png;base64,${base64}` };
+    } catch (error) {
+      throw new BadRequestException(getErrorMessage(error));
+    }
+  }
 
   @Get('download/:fileName')
-    async downloadFile(
+  async downloadFile(
     @Param('fileName') fileName: string,
     @Res() res: Response,
   ) {

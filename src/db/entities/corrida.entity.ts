@@ -40,6 +40,12 @@ export class CorridaEntity {
   @Column({ type: 'boolean', name: 'chave_emprestada', nullable: false })
   chaveEmprestada: boolean;
 
+  @Column({ type: 'int', name: 'id_motorista_retirada', nullable: true })
+  idMotoristaRetirada: number | null;
+
+  @Column({ type: 'int', name: 'id_motorista_devolucao', nullable: true })
+  idMotoristaDevolucao: number | null;
+
   @ManyToOne(() => UsuarioEntity)
   @JoinColumn({
     name: 'id_motorista_principal',

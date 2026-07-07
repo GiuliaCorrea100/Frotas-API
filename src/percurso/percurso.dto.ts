@@ -9,6 +9,7 @@ export class PercursoDto {
   localOrigem?: string;
   ativo?: boolean;
   idMotorista?: number;
+  nomeMotorista?: string;
 }
 
 export class CreatePercursoDto {
