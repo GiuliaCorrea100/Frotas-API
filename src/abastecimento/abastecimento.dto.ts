@@ -13,6 +13,9 @@ export class AbastecimentoDto {
   ativo?: boolean;
 
   nomeTipoCombustivel?: string;
+
+  idMotorista?: number;
+  nomeMotorista?: string;
 }
 
 export interface FindAllParameters {
