@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, FindOptionsWhere, Like } from 'typeorm';
+import { Repository, FindOptionsWhere, Like, Entity } from 'typeorm';
 import { OcorrenciaEntity } from 'src/db/entities/ocorrencia.entity';
 import { FindAllParameters, ocorrenciaDto } from './ocorrencia.dto';
 import { LogService } from '../log/log.service';
@@ -23,6 +23,7 @@ export class ocorrenciaService {
     entity.descricao = ocorrencia.descricao;
     entity.idCorrida = ocorrencia.idCorrida;
     entity.dataOcorrencia = ocorrencia.dataOcorrencia;
+    entity.idMotorista = ocorrencia.idMotorista;
 
     const savedOcorrencia = await this.ocorrenciaRepository.save(entity);
 
@@ -53,15 +54,18 @@ export class ocorrenciaService {
   }
 
   async findByIdCorrida(idCorrida: number): Promise<ocorrenciaDto[]> {
-    const foundocorrencia = await this.ocorrenciaRepository.find({
+    const foundOcorrencia = await this.ocorrenciaRepository.find({
       where: { idCorrida },
+      relations: {
+        motorista: true,
+      },
     });
 
-    if (!foundocorrencia || foundocorrencia.length === 0) {
+    if (!foundOcorrencia || foundOcorrencia.length === 0) {
       return [];
     }
 
-    return foundocorrencia.map((ocorrencia) => this.mapEntityToDto(ocorrencia));
+    return foundOcorrencia.map((ocorrencia) => this.mapEntityToDto(ocorrencia));
   }
 
   async findAll(params: FindAllParameters): Promise<ocorrenciaDto[]> {
@@ -149,15 +153,9 @@ export class ocorrenciaService {
 
     foundOcorrencia.descricao = ocorrencia.descricao;
     foundOcorrencia.dataOcorrencia = ocorrencia.dataOcorrencia;
+    foundOcorrencia.idMotorista = ocorrencia.idMotorista;
 
-    const updatedOcorrencia =
-      await this.ocorrenciaRepository.save(foundOcorrencia);
-
-    // await this.ocorrenciaRepository.update(idOcorrencia, { descricao });
-
-    // const updatedOcorrencia = await this.ocorrenciaRepository.findOne({
-    //   where: { idOcorrencia },
-    // });
+    const updatedOcorrencia = await this.ocorrenciaRepository.save(foundOcorrencia);
 
     const logData: LogDto = {
       nomeTabela: 'ocorrencia',
@@ -246,6 +244,8 @@ export class ocorrenciaService {
       idCorrida: OcorrenciaEntity.idCorrida,
       dataOcorrencia: OcorrenciaEntity.dataOcorrencia,
       ativa: OcorrenciaEntity.ativa,
+      idMotorista: OcorrenciaEntity.idMotorista,
+      nomeMotorista: OcorrenciaEntity.motorista?.nome,
     };
   }
 
@@ -257,6 +257,7 @@ export class ocorrenciaService {
       idCorrida: ocorrenciaDto.idCorrida,
       dataOcorrencia: ocorrenciaDto.dataOcorrencia,
       ativa: ocorrenciaDto.ativa,
+      idMotorista: ocorrenciaDto.idMotorista,
     };
   }
 }

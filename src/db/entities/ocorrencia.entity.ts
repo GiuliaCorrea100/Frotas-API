@@ -6,6 +6,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { CorridaEntity } from './corrida.entity';
+import { UsuarioEntity } from './usuario.entity';
 
 @Entity({ name: 'ocorrencia' })
 export class OcorrenciaEntity {
@@ -27,7 +28,16 @@ export class OcorrenciaEntity {
   @Column({ type: 'boolean', name: 'ativa' })
   ativa?: boolean;
 
+  @Column({ type: 'int', name: 'id_motorista', nullable: true })
+  idMotorista?: number;
+
   @ManyToOne(() => CorridaEntity, { nullable: false })
   @JoinColumn({ name: 'id_corrida', referencedColumnName: 'idCorrida' })
   corrida?: CorridaEntity;
+
+  @ManyToOne(() => UsuarioEntity)
+    @JoinColumn({ name: 'id_motorista', referencedColumnName: 'idUsuario' })
+    motorista?: UsuarioEntity;
+
+
 }

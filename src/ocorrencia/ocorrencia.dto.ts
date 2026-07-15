@@ -5,6 +5,8 @@ export class ocorrenciaDto {
   //dataRegistro: Date;
   dataOcorrencia: Date;
   ativa?: boolean;
+  idMotorista?: number;
+  nomeMotorista?: string;
 }
 
 export interface FindAllParameters {
