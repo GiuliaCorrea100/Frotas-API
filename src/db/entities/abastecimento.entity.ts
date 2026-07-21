@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { TipoCombustivelEntity } from './tipoCombustivel.entity';
 import { CorridaEntity } from './corrida.entity';
+import { UsuarioEntity } from './usuario.entity';
 
 @Entity({ name: 'abastecimento' })
 export class AbastecimentoEntity {
@@ -40,6 +41,10 @@ export class AbastecimentoEntity {
 
   @Column({ type: 'int', name: 'id_corrida' })
   idCorrida: number;
+  
+  
+  @Column({ type: 'int', name: 'id_motorista', nullable: true })
+  idMotorista?: number;
 
   //CHAVE ESTRANGEIRA
   @ManyToOne(() => TipoCombustivelEntity)
@@ -48,5 +53,9 @@ export class AbastecimentoEntity {
 
   @ManyToOne(() => CorridaEntity)
   @JoinColumn({ name: 'id_corrida' })
-  corrida: CorridaEntity;
+  corrida: CorridaEntity;  
+  
+  @ManyToOne(() => UsuarioEntity)
+  @JoinColumn({ name: 'id_motorista', referencedColumnName: 'idUsuario' })
+  motorista?: UsuarioEntity;
 }

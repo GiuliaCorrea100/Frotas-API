@@ -25,6 +25,8 @@ export class AbastecimentoService {
     @InjectRepository(CorridaEntity)
     private readonly corridaRepository: Repository<CorridaEntity>,
 
+
+
     private readonly logService: LogService,
   ) {}
 
@@ -62,6 +64,7 @@ export class AbastecimentoService {
       quantidade: abastecimento.quantidade,
       valorUnitario: abastecimento.valorUnitario,
       valorTotal: abastecimento.valorTotal,
+      idMotorista: abastecimento.idMotorista,
     };
 
     const savedEntity =
@@ -100,6 +103,7 @@ export class AbastecimentoService {
       .createQueryBuilder('abastecimento')
       .leftJoinAndSelect('abastecimento.tipoCombustivel', 'combustivel')
       .leftJoinAndSelect('abastecimento.corrida', 'corrida')
+      .leftJoinAndSelect('abastecimento.motorista', 'motorista')
       .where('corrida.idCorrida = :idCorrida', { idCorrida })
       .getMany();
 
@@ -226,6 +230,7 @@ export class AbastecimentoService {
     foundAbastecimento.valorUnitario = abastecimento.valorUnitario;
     foundAbastecimento.dataAbastecimento = abastecimento.dataAbastecimento;
     foundAbastecimento.idTipoCombustivel = abastecimento.idTipoCombustivel;
+    foundAbastecimento.idMotorista = abastecimento.idMotorista;
 
     const savedAbastecimento =
       await this.abastecimentoRepository.save(foundAbastecimento);
@@ -349,6 +354,8 @@ export class AbastecimentoService {
       nomeTipoCombustivel: entity.tipoCombustivel?.nome ?? null,
       idCorrida: entity.idCorrida,
       ativo: entity.ativo,
+      idMotorista: entity.idMotorista,
+      nomeMotorista: entity.motorista?.nome,
     };
   }
 
@@ -360,6 +367,8 @@ export class AbastecimentoService {
       dataAbastecimento: dto.dataAbastecimento,
       valorUnitario: dto.valorUnitario,
       ativo: dto.ativo,
+      idMotorista: dto.idMotorista,
+
     };
   }
 }
