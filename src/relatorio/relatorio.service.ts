@@ -81,6 +81,7 @@ export class RelatorioService {
 
     // Buscar corridas do ano
     const corridas = await this.corridaService.findByAno(ano);
+    //const corridasMotorista = await this.ocorrenciaService.findAll();
 
     const totalCorridas = corridas.length;
 
@@ -97,23 +98,42 @@ export class RelatorioService {
       }),
     );
 
-    // Desempenho dos motoristas - ranking
+    // Desempenho dos motoristas
     const mapaMotoristas = new Map<
       number | null,
       { idMotorista: number | null; nome: string; corridas: number }
     >();
 
     for (const c of corridas) {
-      const id = c.motoristaPrincipal?.idUsuario ?? null;
-      const nome = c.motoristaPrincipal?.nome ?? 'N/A';
+      const idPrincipal = c.motoristaPrincipal?.idUsuario ?? null;
+      const nomePrincipal = c.motoristaPrincipal?.nome ?? 'N/A';
+      
+      if (idPrincipal !== null) {
+        const atual = mapaMotoristas.get(idPrincipal) ?? {
+          idMotorista: idPrincipal,
+          nome: nomePrincipal,
+          corridas: 0,
+        };
+        atual.corridas++;
+        mapaMotoristas.set(idPrincipal, atual);
+      }
 
-      const atual = mapaMotoristas.get(id) ?? {
-        idMotorista: id,
-        nome,
-        corridas: 0,
-      };
-      atual.corridas++;
-      mapaMotoristas.set(id, atual);
+      if (c.motoristas && Array.isArray(c.motoristas)) {
+        for (const cm of c.motoristas) {
+          const idSec = cm.idMotorista ?? null;
+          const nomeSec = cm.motorista?.nome ?? 'N/A';
+          
+          if (idSec !== null) {
+            const atual = mapaMotoristas.get(idSec) ?? {
+              idMotorista: idSec,
+              nome: nomeSec,
+              corridas: 0,
+            };
+            atual.corridas++;
+            mapaMotoristas.set(idSec, atual);
+          }
+        }
+      }
     }
 
     const desempenhoMotoristas = Array.from(mapaMotoristas.values())
