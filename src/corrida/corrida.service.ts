@@ -21,6 +21,7 @@ import {
   MoreThanOrEqual,
   In,
   Like,
+  Not,
 } from 'typeorm';
 import { LogService } from '../log/log.service';
 import { LogDto } from '../log/log.dto';
@@ -45,17 +46,52 @@ export class CorridaService {
     idMotorista: number,
     dataInicio: Date,
     dataTermino: Date,
+    idCorrida?: number,
+    dataHoraLiberacaoChave?: Date,
+    dataHoraRecebimentoChave?: Date,
   ): Promise<boolean> {
-    const conflitos = await this.corridaRepository.find({
-      where: {
-        idMotoristaPrincipal: idMotorista,
-        situacao: 'AGENDADA',
-        dataInicio: LessThanOrEqual(dataTermino),
-        dataTermino: MoreThanOrEqual(dataInicio),
-      },
+    const wherePrincipal: any = {
+      idMotoristaPrincipal: idMotorista,
+      situacao: 'AGENDADA',
+      dataInicio: LessThanOrEqual(dataTermino),
+      dataTermino: MoreThanOrEqual(dataInicio),
+    };
+
+    if (idCorrida) {
+      wherePrincipal.idCorrida = Not(idCorrida);
+    }
+
+    const conflitosPrincipal = await this.corridaRepository.find({
+      where: wherePrincipal,
     });
 
-    return conflitos.length > 0;
+    if (conflitosPrincipal.length > 0) {
+      return true;
+    }
+
+    if(dataHoraLiberacaoChave){
+
+    }else{
+      
+    }
+
+    const query = this.corridaRepository
+      .createQueryBuilder('corrida')
+      .innerJoin('corrida.motoristas', 'motoristaSecundario')
+      .where('corrida.situacao = :situacao', { situacao: 'AGENDADA' })
+      .andWhere('corrida.dataInicio <= :dataTermino', { dataTermino })
+      .andWhere('corrida.dataTermino >= :dataInicio', { dataInicio })
+      .andWhere('motoristaSecundario.idMotorista = :idMotorista', {
+        idMotorista,
+      });
+
+    if (idCorrida) {
+      query.andWhere('corrida.idCorrida != :idCorrida', { idCorrida });
+    }
+
+    const conflitosSecundarios = await query.getCount();
+
+    return conflitosSecundarios > 0;
   }
 
   async verificarConflitoDeCarro(
@@ -378,11 +414,30 @@ export class CorridaService {
       );
     }
 
+    const motoristasIds = dados.motoristasIds?.length
+      ? dados.motoristasIds
+      : [dados.idMotoristaPrincipal ?? corrida.idMotoristaPrincipal];
+
+    for (const idMotorista of motoristasIds) {
+      const conflitoMotorista = await this.verificarConflitoDeCorrida(
+        idMotorista,
+        new Date(dados.dataInicio ?? corrida.dataInicio),
+        new Date(dataTerminoAjustada),
+        idCorrida,
+      );
+
+      if (conflitoMotorista) {
+        throw new HttpException(
+          'Já existe uma corrida agendada para esse usuário nesse período!',
+          HttpStatus.CONFLICT,
+        );
+      }
+    }
+
     await this.corridaRepository.update(idCorrida, {
       dataInicio: dados.dataInicio ?? corrida.dataInicio,
       dataTermino: dataTerminoAjustada,
-      idMotoristaPrincipal:
-        dados.idMotoristaPrincipal ?? corrida.idMotoristaPrincipal,
+      idMotoristaPrincipal: motoristasIds[0],
       idCarro: dados.idCarro ?? corrida.idCarro,
     });
 
