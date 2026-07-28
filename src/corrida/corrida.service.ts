@@ -69,12 +69,6 @@ export class CorridaService {
       return true;
     }
 
-    if(dataHoraLiberacaoChave){
-
-    }else{
-      
-    }
-
     const query = this.corridaRepository
       .createQueryBuilder('corrida')
       .innerJoin('corrida.motoristas', 'motoristaSecundario')
