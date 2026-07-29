@@ -69,11 +69,21 @@ export class CorridaService {
       return true;
     }
 
+    // const query = this.corridaRepository
+    //   .createQueryBuilder('corrida')
+    //   .innerJoin('corrida.motoristas', 'motoristaSecundario')
+    //   .where('corrida.situacao = :situacao', { situacao: 'AGENDADA' })
+    //   .andWhere('corrida.dataInicio <= :dataTermino', { dataTermino })
+    //   .andWhere('corrida.dataTermino >= :dataInicio', { dataInicio })
+    //   .andWhere('motoristaSecundario.idMotorista = :idMotorista', {
+    //     idMotorista,
+    //   });
+
     const query = this.corridaRepository
       .createQueryBuilder('corrida')
       .innerJoin('corrida.motoristas', 'motoristaSecundario')
       .where('corrida.situacao = :situacao', { situacao: 'AGENDADA' })
-      .andWhere('corrida.dataInicio <= :dataTermino', { dataTermino })
+      .andWhere(('corrida.dataHoraLiberacaoChave <= :dataTermino OR corrida.dataInicio <= :dataTermino' ), { dataTermino })
       .andWhere('corrida.dataTermino >= :dataInicio', { dataInicio })
       .andWhere('motoristaSecundario.idMotorista = :idMotorista', {
         idMotorista,
@@ -87,6 +97,7 @@ export class CorridaService {
 
     return conflitosSecundarios > 0;
   }
+
 
   async verificarConflitoDeCarro(
     idCarro: number,
@@ -559,74 +570,54 @@ export class CorridaService {
     amanha.setDate(amanha.getDate() + 1);
     amanha.setUTCHours(23, 59, 59, 999);
 
-    const corridasAgendadasHoje = await this.corridaRepository
+    const corridas = await this.corridaRepository
       .createQueryBuilder('corrida')
       .leftJoinAndSelect('corrida.carro', 'carro')
       .innerJoin('corrida.motoristas', 'cm')
-      .where('corrida.situacao = :situacao', { situacao: 'AGENDADA' })
-      .andWhere('cm.idMotorista = :idMotorista', { idMotorista })
+      .where('cm.idMotorista = :idMotorista', { idMotorista })
       .andWhere(
-        'corrida.data_inicio <= :amanha AND corrida.data_termino >= :hoje',
-        { amanha, hoje },
+        `(
+          corrida.situacao = 'ANDAMENTO' 
+          OR
+          (corrida.situacao = 'AGENDADA' AND (
+            (corrida.data_hora_liberacao_chave <= :amanha AND corrida.data_termino >= :hoje) OR
+            (corrida.data_inicio <= :amanha AND corrida.data_termino >= :hoje)
+            )
+          )
+          OR
+          (corrida.situacao = 'FINALIZADA' AND 
+            corrida.data_inicio BETWEEN :hoje AND :amanha)
+        )`,
+        { hoje, amanha }
       )
-      .orderBy('corrida.data_inicio', 'ASC')
+      .addSelect(
+        `CASE 
+          WHEN corrida.situacao = 'ANDAMENTO' THEN 1
+          WHEN corrida.situacao = 'AGENDADA' AND 
+            (corrida.data_hora_liberacao_chave <= :amanha AND corrida.data_termino >= :hoje) THEN 2
+          WHEN corrida.situacao = 'AGENDADA' AND 
+            (corrida.data_inicio <= :amanha AND corrida.data_termino >= :hoje) THEN 3
+          WHEN corrida.situacao = 'FINALIZADA' AND 
+            (corrida.data_inicio BETWEEN :hoje AND :amanha) THEN 4
+          ELSE 5
+        END`,
+        'prioridade'
+      )
+      .orderBy('prioridade', 'ASC')
+      .addOrderBy('corrida.data_hora_liberacao_chave', 'ASC')
+      .addOrderBy('corrida.data_inicio', 'ASC')
       .distinct(true)
       .getMany();
 
-    const corridasEmAndamento = await this.corridaRepository
-      .createQueryBuilder('corrida')
-      .leftJoinAndSelect('corrida.carro', 'carro')
-      .innerJoin('corrida.motoristas', 'cm')
-      .where('corrida.situacao = :situacao', { situacao: 'ANDAMENTO' })
-      .andWhere('cm.idMotorista = :idMotorista', { idMotorista })
-      .distinct(true)
-      .getMany();
-
-    const corridasFinalizadasHoje = await this.corridaRepository
-      .createQueryBuilder('corrida')
-      .leftJoinAndSelect('corrida.carro', 'carro')
-      .innerJoin('corrida.motoristas', 'cm')
-      .where('corrida.situacao = :situacao', { situacao: 'FINALIZADA' })
-      .andWhere('cm.idMotorista = :idMotorista', { idMotorista })
-      .andWhere('corrida.data_inicio BETWEEN :hoje AND :amanha', {
-        hoje,
-        amanha,
-      })
-      .orderBy('corrida.data_inicio', 'DESC')
-      .distinct(true)
-      .getMany();
-
-    const proximasCorridas = await this.corridaRepository
-      .createQueryBuilder('corrida')
-      .leftJoinAndSelect('corrida.carro', 'carro')
-      .innerJoin('corrida.motoristas', 'cm')
-      .where('corrida.situacao = :situacao', { situacao: 'AGENDADA' })
-      .andWhere('cm.idMotorista = :idMotorista', { idMotorista })
-      .andWhere('corrida.data_inicio > :amanha', { amanha })
-      .orderBy('corrida.data_inicio', 'ASC')
-      .distinct(true)
-      .getMany();
-
-    const corridaAtiva =
-      corridasEmAndamento.length > 0
-        ? corridasEmAndamento[0]
-        : corridasAgendadasHoje.length > 0
-          ? corridasAgendadasHoje[0]
-          : corridasFinalizadasHoje.length > 0
-            ? corridasFinalizadasHoje[0]
-            : null;
+    const corridaAtiva = corridas.length > 0 ? corridas[0] : null;
+    const proximasCorridas = corridas.slice(1);
 
     return {
       corridaDeHoje: corridaAtiva ? this.mapEntityToDto(corridaAtiva) : null,
-      proximasCorridas: [
-        ...corridasAgendadasHoje
-          .slice(1)
-          .map((entity) => this.mapEntityToDto(entity)),
-        ...proximasCorridas.map((entity) => this.mapEntityToDto(entity)),
-      ],
+      proximasCorridas: proximasCorridas.map(entity => this.mapEntityToDto(entity)),
     };
   }
-
+  
   async encontrarCorridaPorPlacaEData(
     placaVeiculo: string,
     dataInfracao: Date,
@@ -769,3 +760,4 @@ export class CorridaService {
     return entity;
   }
 }
+
