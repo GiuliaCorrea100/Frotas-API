@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
@@ -54,11 +55,17 @@ export class AnexoService {
       mkdirSync(vistoriaDevolucaoPath, { recursive: true });
     }
 
+    const ocorrenciasPath = join(this.baseUploadPath, 'ocorrencias');
+    if (!existsSync(ocorrenciasPath)) {
+      mkdirSync(ocorrenciasPath, { recursive: true });
+    }
+
     console.log('Pastas de upload verificadas/criadas:');
     console.log(`   - ${multasPath}`);
     console.log(`   - ${boletosPath}`);
     console.log(`   - ${comprovantesPath}`);
     console.log(`   - ${recursosPath}`);
+    console.log(`   - ${ocorrenciasPath}`);
   }
 
   async salvarArquivo(
@@ -183,7 +190,13 @@ export class AnexoService {
 
   async getArquivo(fileName: string, subPasta?: string): Promise<string> {
     if (!subPasta) {
-      const possiveisPastas = ['multas', 'boletos', 'comprovantes', 'recursos'];
+      const possiveisPastas = [
+        'multas',
+        'boletos',
+        'comprovantes',
+        'recursos',
+        'ocorrencias',
+      ];
 
       for (const pasta of possiveisPastas) {
         const filePath = join(this.baseUploadPath, pasta, fileName);

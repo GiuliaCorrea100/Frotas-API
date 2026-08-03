@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { recursoDto } from './recurso.dto';
 import { LogService } from '../log/log.service';

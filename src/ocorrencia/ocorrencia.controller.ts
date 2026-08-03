@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import {
   Controller,
   Post,
@@ -10,10 +11,13 @@ import {
   Patch,
   Request,
   UseGuards,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ocorrenciaService } from './ocorrencia.service';
 import { FindAllParameters, ocorrenciaDto } from './ocorrencia.dto';
 import { AuthGuard } from '../auth/auth.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('ocorrencia')
 export class ocorrenciaController {
@@ -40,20 +44,25 @@ export class ocorrenciaController {
 
   @Post()
   @UseGuards(AuthGuard)
+  @UseInterceptors(FileInterceptor('arquivo'))
   async create(
-    @Body() ocorrencia: ocorrenciaDto,
+    @Body() ocorrenciaDto: ocorrenciaDto,
+    @UploadedFile() arquivo: Express.Multer.File,
     @Request() req: any,
-  ): Promise<ocorrenciaDto> {
-    const currentUserId = req.user?.sub;
-    const currentUserName = req.user?.login;
-    return await this.ocorrenciaService.create(
-      ocorrencia,
-
-      currentUserId,
-      currentUserName,
+  ) {
+    return this.ocorrenciaService.create(
+      {
+        ...ocorrenciaDto,
+        idCorrida: Number(ocorrenciaDto.idCorrida),
+        idMotorista: ocorrenciaDto.idMotorista
+          ? Number(ocorrenciaDto.idMotorista)
+          : undefined,
+        dataOcorrencia: new Date(ocorrenciaDto.dataOcorrencia),
+      },
+      arquivo,
+      req.user.sub,
+      req.user.login,
     );
-
-    
   }
 
   @Put('/:idOcorrencia')
@@ -101,7 +110,6 @@ export class ocorrenciaController {
     console.log(idOcorrencia);
 
     return this.ocorrenciaService.softRemove(
-      
       idOcorrencia,
       currentUserId,
       currentUserName,
