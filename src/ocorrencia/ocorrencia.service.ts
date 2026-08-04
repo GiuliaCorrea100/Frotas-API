@@ -75,24 +75,29 @@ export class ocorrenciaService {
 
     await this.logService.logChange(logData);
 
-    const administrators = await this.usuarioService.findAll({
-      administrador: true,
-    });
-    const motorista = await this.usuarioService.findById(currentUserId);
 
-    for (const admin of administrators) {
-      await this.emailService.sendMail(
-        admin.email,
-        'Registro de Ocorrência',
-        'cadastroDeOcorrencia.hbs',
-        {
-          administrador: admin.nome,
-          motorista: motorista.nome,
-          corrida: ocorrenciaEntity.idCorrida,
-          descricao: ocorrenciaEntity.descricao,
-        },
-      );
+    if(ocorrencia.enviadoMotorista){
+        const administrators = await this.usuarioService.findAll({
+          administrador: true,
+        });
+        const motorista = await this.usuarioService.findById(currentUserId);
+
+        for (const admin of administrators) {
+          await this.emailService.sendMail(
+            admin.email,
+            'Registro de Ocorrência',
+            'cadastroDeOcorrencia.hbs',
+            {
+              administrador: admin.nome,
+              motorista: motorista.nome,
+              corrida: ocorrenciaEntity.idCorrida,
+              descricao: ocorrenciaEntity.descricao,
+            },
+          );
+        }
     }
+
+    
 
     return savedOcorrencia;
   }

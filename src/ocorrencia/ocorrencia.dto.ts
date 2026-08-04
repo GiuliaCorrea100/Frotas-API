@@ -8,7 +8,7 @@ export class ocorrenciaDto {
   ativa?: boolean;
   idMotorista?: number;
   nomeMotorista?: string;
-  //enviadoMotorista: boolean;
+  enviadoMotorista?: boolean | string;
 }
 
 export class OcorrenciaArquivoDto {

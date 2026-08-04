@@ -18,6 +18,7 @@ import { ocorrenciaService } from './ocorrencia.service';
 import { FindAllParameters, ocorrenciaDto } from './ocorrencia.dto';
 import { AuthGuard } from '../auth/auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { bool } from 'sharp';
 
 @Controller('ocorrencia')
 export class ocorrenciaController {
@@ -50,6 +51,14 @@ export class ocorrenciaController {
     @UploadedFile() arquivo: Express.Multer.File,
     @Request() req: any,
   ) {
+
+    let enviadoMotorista: boolean;
+  
+    if (typeof ocorrenciaDto.enviadoMotorista === 'string') {
+      enviadoMotorista = ocorrenciaDto.enviadoMotorista.toLowerCase() === 'true';
+    } else {
+      enviadoMotorista = Boolean(ocorrenciaDto.enviadoMotorista);
+    }
     return this.ocorrenciaService.create(
       {
         ...ocorrenciaDto,
@@ -58,6 +67,7 @@ export class ocorrenciaController {
           ? Number(ocorrenciaDto.idMotorista)
           : undefined,
         dataOcorrencia: new Date(ocorrenciaDto.dataOcorrencia),
+        enviadoMotorista,
       },
       arquivo,
       req.user.sub,
