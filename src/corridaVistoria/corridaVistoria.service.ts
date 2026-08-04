@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import {
   Injectable,
   NotFoundException,
@@ -56,34 +57,6 @@ export class CorridaVistoriaService {
 
     return await this.vistoriaRepository.save(novaVistoria);
   }
-
-  // async salvarFotos(
-  //   idCorridaVistoria: number,
-  //   files: Express.Multer.File[],
-  // ): Promise<CorridaVistoriaFotoEntity[]> {
-  //   const vistoria = await this.vistoriaRepository.findOne({
-  //     where: { idCorridaVistoria },
-  //   });
-  //   if (!vistoria) {
-  //     throw new NotFoundException(
-  //       `Vistoria com ID ${idCorridaVistoria} não encontrada.`,
-  //     );
-  //   }
-
-  //   const fotosSalvas: CorridaVistoriaFotoEntity[] = [];
-
-  //   for (const file of files) {
-  //     const novaFoto = this.fotoRepository.create({
-  //       idCorridaVistoria,
-  //       urlArquivo: file.path,
-  //       dataUpload: new Date(),
-  //     });
-  //     const fotoSalva = await this.fotoRepository.save(novaFoto);
-  //     fotosSalvas.push(fotoSalva);
-  //   }
-
-  //   return fotosSalvas;
-  // }
 
   async buscarPorCorrida(idCorrida: number): Promise<CorridaVistoriaEntity[]> {
     return await this.vistoriaRepository.find({

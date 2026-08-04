@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, FindOptionsWhere, Like, Entity } from 'typeorm';
@@ -5,27 +6,62 @@ import { OcorrenciaEntity } from 'src/db/entities/ocorrencia.entity';
 import { FindAllParameters, ocorrenciaDto } from './ocorrencia.dto';
 import { LogService } from '../log/log.service';
 import { LogDto } from '../log/log.dto';
+import { OcorrenciaArquivoEntity } from 'src/db/entities/ocorrenciaArquivo.entity';
+import { AnexoService } from 'src/anexo/anexo.service';
+import { EmailService } from 'src/email/email.service';
+import { UsuarioService } from 'src/usuario/usuario.service';
 
 @Injectable()
 export class ocorrenciaService {
   constructor(
     @InjectRepository(OcorrenciaEntity)
     private readonly ocorrenciaRepository: Repository<OcorrenciaEntity>,
+
+    @InjectRepository(OcorrenciaArquivoEntity)
+    private readonly ocorrenciaArquivoRepository: Repository<OcorrenciaArquivoEntity>,
+
     private readonly logService: LogService,
+    private readonly anexoService: AnexoService,
+    private readonly emailService: EmailService,
+    private readonly usuarioService: UsuarioService,
   ) {}
 
   async create(
     ocorrencia: ocorrenciaDto,
+    arquivo?: Express.Multer.File,
     currentUserId?: number,
     currentUserName?: string,
   ): Promise<OcorrenciaEntity> {
-    const entity = new OcorrenciaEntity();
-    entity.descricao = ocorrencia.descricao;
-    entity.idCorrida = ocorrencia.idCorrida;
-    entity.dataOcorrencia = ocorrencia.dataOcorrencia;
-    entity.idMotorista = ocorrencia.idMotorista;
+    const ocorrenciaEntity = new OcorrenciaEntity();
+    ocorrenciaEntity.descricao = ocorrencia.descricao;
+    ocorrenciaEntity.idCorrida = ocorrencia.idCorrida;
+    ocorrenciaEntity.dataOcorrencia = ocorrencia.dataOcorrencia;
+    ocorrenciaEntity.idMotorista = ocorrencia.idMotorista;
 
-    const savedOcorrencia = await this.ocorrenciaRepository.save(entity);
+    const savedOcorrencia =
+      await this.ocorrenciaRepository.save(ocorrenciaEntity);
+
+    let urlArquivo = null;
+
+    if (arquivo) {
+      try {
+        urlArquivo = await this.anexoService.salvarArquivo(
+          arquivo,
+          'ocorrencias',
+          undefined,
+          'ocorrencia',
+        );
+      } catch (error) {
+        console.error('Error saving file:', error);
+      }
+    }
+
+    const ocorrenciaArquivoEntity = new OcorrenciaArquivoEntity();
+    ocorrenciaArquivoEntity.idOcorrencia = savedOcorrencia.idOcorrencia;
+    ocorrenciaArquivoEntity.dataUpload = new Date();
+    ocorrenciaArquivoEntity.urlArquivo = urlArquivo;
+
+    await this.ocorrenciaArquivoRepository.save(ocorrenciaArquivoEntity);
 
     const logData: LogDto = {
       nomeTabela: 'ocorrencia',
@@ -38,6 +74,30 @@ export class ocorrenciaService {
     };
 
     await this.logService.logChange(logData);
+
+
+    if(ocorrencia.enviadoMotorista){
+        const administrators = await this.usuarioService.findAll({
+          administrador: true,
+        });
+        const motorista = await this.usuarioService.findById(currentUserId);
+
+        for (const admin of administrators) {
+          await this.emailService.sendMail(
+            admin.email,
+            'Registro de Ocorrência',
+            'cadastroDeOcorrencia.hbs',
+            {
+              administrador: admin.nome,
+              motorista: motorista.nome,
+              corrida: ocorrenciaEntity.idCorrida,
+              descricao: ocorrenciaEntity.descricao,
+            },
+          );
+        }
+    }
+
+    
 
     return savedOcorrencia;
   }
@@ -155,7 +215,8 @@ export class ocorrenciaService {
     foundOcorrencia.dataOcorrencia = ocorrencia.dataOcorrencia;
     foundOcorrencia.idMotorista = ocorrencia.idMotorista;
 
-    const updatedOcorrencia = await this.ocorrenciaRepository.save(foundOcorrencia);
+    const updatedOcorrencia =
+      await this.ocorrenciaRepository.save(foundOcorrencia);
 
     const logData: LogDto = {
       nomeTabela: 'ocorrencia',
