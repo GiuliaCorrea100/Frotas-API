@@ -1,9 +1,9 @@
 /* eslint-disable prettier/prettier */
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, FindOptionsWhere, Like, Entity } from 'typeorm';
 import { OcorrenciaEntity } from 'src/db/entities/ocorrencia.entity';
-import { FindAllParameters, ocorrenciaDto } from './ocorrencia.dto';
+import { FindAllParameters, OcorrenciaArquivoDto, ocorrenciaDto } from './ocorrencia.dto';
 import { LogService } from '../log/log.service';
 import { LogDto } from '../log/log.dto';
 import { OcorrenciaArquivoEntity } from 'src/db/entities/ocorrenciaArquivo.entity';
@@ -38,30 +38,7 @@ export class ocorrenciaService {
     ocorrenciaEntity.dataOcorrencia = ocorrencia.dataOcorrencia;
     ocorrenciaEntity.idMotorista = ocorrencia.idMotorista;
 
-    const savedOcorrencia =
-      await this.ocorrenciaRepository.save(ocorrenciaEntity);
-
-    let urlArquivo = null;
-
-    if (arquivo) {
-      try {
-        urlArquivo = await this.anexoService.salvarArquivo(
-          arquivo,
-          'ocorrencias',
-          undefined,
-          'ocorrencia',
-        );
-      } catch (error) {
-        console.error('Error saving file:', error);
-      }
-    }
-
-    const ocorrenciaArquivoEntity = new OcorrenciaArquivoEntity();
-    ocorrenciaArquivoEntity.idOcorrencia = savedOcorrencia.idOcorrencia;
-    ocorrenciaArquivoEntity.dataUpload = new Date();
-    ocorrenciaArquivoEntity.urlArquivo = urlArquivo;
-
-    await this.ocorrenciaArquivoRepository.save(ocorrenciaArquivoEntity);
+    const savedOcorrencia = await this.ocorrenciaRepository.save(ocorrenciaEntity);
 
     const logData: LogDto = {
       nomeTabela: 'ocorrencia',
@@ -75,31 +52,76 @@ export class ocorrenciaService {
 
     await this.logService.logChange(logData);
 
+    if (ocorrencia.enviadoMotorista) {
+      const administrators = await this.usuarioService.findAll({
+        administrador: true,
+      });
+      const motorista = await this.usuarioService.findById(currentUserId);
 
-    if(ocorrencia.enviadoMotorista){
-        const administrators = await this.usuarioService.findAll({
-          administrador: true,
-        });
-        const motorista = await this.usuarioService.findById(currentUserId);
-
-        for (const admin of administrators) {
-          await this.emailService.sendMail(
-            admin.email,
-            'Registro de Ocorrência',
-            'cadastroDeOcorrencia.hbs',
-            {
-              administrador: admin.nome,
-              motorista: motorista.nome,
-              corrida: ocorrenciaEntity.idCorrida,
-              descricao: ocorrenciaEntity.descricao,
-            },
-          );
-        }
+      for (const admin of administrators) {
+        await this.emailService.sendMail(
+          admin.email,
+          'Registro de Ocorrência',
+          'cadastroDeOcorrencia.hbs',
+          {
+            administrador: admin.nome,
+            motorista: motorista.nome,
+            corrida: ocorrenciaEntity.idCorrida,
+            descricao: ocorrenciaEntity.descricao,
+          },
+        );
+      }
     }
 
-    
-
     return savedOcorrencia;
+  }
+
+  async salvarArquivos(
+      anexos:  OcorrenciaArquivoDto[],
+      files: Express.Multer.File[],
+    ): Promise< OcorrenciaArquivoDto[]> {
+      if (!files || files.length !== anexos.length) {
+        throw new BadRequestException(
+          `Número de arquivos incompatível. Esperado: ${anexos.length}, Recebido: ${files?.length || 0}`,
+        );
+      }
+  
+      const anexosToSave = await Promise.all(
+        anexos.map(async (anexo, index) => {
+          const file = files[index];
+  
+          if (!file) {
+            throw new BadRequestException(
+              `Arquivo não enviado para o anexo ${index + 1}`,
+            );
+          }
+  
+          if (!file.buffer || file.buffer.length === 0) {
+            throw new BadRequestException(
+              `Arquivo vazio para o anexo ${index + 1}`,
+            );
+          }
+  
+          const urlArquivo = await this.anexoService.salvarArquivo(
+            file,
+            'ocorrencias',
+            anexo.idOcorrencia,
+            'ocorrencia',
+          );
+          
+          console.log(urlArquivo);
+
+          return {
+            idOcorrencia: anexo.idOcorrencia,
+            urlArquivo: urlArquivo,
+            dataUpload: new Date(),
+          };
+        }),
+      );
+  
+      const savedAnexos =
+        await this.ocorrenciaArquivoRepository.save(anexosToSave);
+      return savedAnexos;
   }
 
   async findById(idOcorrencia: number): Promise<ocorrenciaDto> {
