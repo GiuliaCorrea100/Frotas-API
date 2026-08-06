@@ -12,6 +12,7 @@ export class CarroDto {
   idTipoCombustivel?: number;
 
   nomeTipoCombustivel?: string;
+  urlCrlv?: string;
 }
 
 export interface FindAllParameters {

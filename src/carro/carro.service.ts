@@ -10,6 +10,7 @@ import { Equal, FindOptionsWhere, ILike, Like, Repository } from 'typeorm';
 import { CarroDto, FindAllParameters } from './carro.dto';
 import { LogService } from '../log/log.service';
 import { LogDto } from '../log/log.dto';
+import { AnexoService } from '../anexo/anexo.service';
 
 @Injectable()
 export class carroService {
@@ -22,10 +23,12 @@ export class carroService {
     private readonly tipoCombustivelRepository: Repository<TipoCombustivelEntity>,
 
     private readonly logService: LogService,
+    private readonly anexoService: AnexoService,
   ) {}
 
   async create(
     carro: CarroDto,
+    arquivo?: Express.Multer.File,
     currentUserId?: number,
     currentUserName?: string,
   ) {
@@ -63,6 +66,22 @@ export class carroService {
 
     const savedCarro = await this.carroRepository.save(carroToSave);
 
+    if (arquivo) {
+      try {
+        const urlCrlv = await this.anexoService.salvarArquivo(
+          arquivo,
+          'crlv',
+          savedCarro.idCarro,
+          'crlv',
+        );
+
+        savedCarro.urlCrlv = urlCrlv;
+        await this.carroRepository.save(savedCarro);
+      } catch (error) {
+        console.error('Erro ao salvar arquivo CRLV:', error);
+      }
+    }
+
     const logData: LogDto = {
       nomeTabela: 'carro',
       idRegistro: savedCarro.idCarro,
@@ -75,7 +94,7 @@ export class carroService {
 
     await this.logService.logChange(logData);
 
-    return savedCarro;
+    return this.mapEntityToDto(savedCarro);
   }
 
   async findById(idCarro: number): Promise<CarroDto> {
@@ -172,6 +191,88 @@ export class carroService {
     const updatedCarro = await this.carroRepository.findOne({
       where: { idCarro },
     });
+
+    const logData: LogDto = {
+      nomeTabela: 'carro',
+      idRegistro: idCarro,
+      operacao: 'UPDATE',
+      dadosAntigos: dadosAntigos,
+      dadosNovos: updatedCarro,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    await this.logService.logChange(logData);
+  }
+
+  async atualizarArquivo(
+    idCarro: number,
+    arquivo: Express.Multer.File,
+    currentUserId?: number,
+    currentUserName?: string,
+  ) {
+    const foundCarro = await this.carroRepository.findOne({
+      where: { idCarro },
+    });
+
+    if (!foundCarro) {
+      throw new NotFoundException(`Veículo com id ${idCarro} não encontrado`);
+    }
+
+    const dadosAntigos = { ...foundCarro };
+
+    const urlCrlv = await this.anexoService.salvarArquivo(
+      arquivo,
+      'crlv',
+      idCarro,
+      'crlv',
+    );
+
+    foundCarro.urlCrlv = urlCrlv;
+
+    const updatedCarro = await this.carroRepository.save(foundCarro);
+
+    const logData: LogDto = {
+      nomeTabela: 'carro',
+      idRegistro: idCarro,
+      operacao: 'UPDATE',
+      dadosAntigos: dadosAntigos,
+      dadosNovos: updatedCarro,
+      idUsuario: currentUserId,
+      usuario: currentUserName,
+    };
+
+    await this.logService.logChange(logData);
+  }
+
+  async removerArquivo(
+    idCarro: number,
+    currentUserId?: number,
+    currentUserName?: string,
+  ) {
+    const foundCarro = await this.carroRepository.findOne({
+      where: { idCarro },
+    });
+
+    if (!foundCarro) {
+      throw new NotFoundException(`Veículo com id ${idCarro} não encontrado`);
+    }
+
+    if (!foundCarro.urlCrlv) {
+      return;
+    }
+
+    const dadosAntigos = { ...foundCarro };
+    const urlArquivoParaDeletar = foundCarro.urlCrlv;
+
+    foundCarro.urlCrlv = null;
+    const updatedCarro = await this.carroRepository.save(foundCarro);
+
+    try {
+      await this.anexoService.deletarArquivoPorUrl(urlArquivoParaDeletar);
+    } catch (error) {
+      console.error('Erro ao deletar arquivo físico do CRLV:', error);
+    }
 
     const logData: LogDto = {
       nomeTabela: 'carro',
@@ -329,6 +430,7 @@ export class carroService {
       localidadeFisica: CarroEntity.localidadeFisica,
       situacao: CarroEntity.situacao,
       ativo: CarroEntity.ativo,
+      urlCrlv: CarroEntity.urlCrlv,
 
       nomeTipoCombustivel: CarroEntity.tipo_combustivel?.nome,
       idTipoCombustivel: CarroEntity.idTipoCombustivel,
@@ -345,6 +447,7 @@ export class carroService {
       localidadeFisica: CarroDto.localidadeFisica,
       situacao: CarroDto.situacao,
       ativo: CarroDto.ativo,
+      urlCrlv: CarroDto.urlCrlv,
       idTipoCombustivel: CarroDto.idTipoCombustivel,
     };
   }
