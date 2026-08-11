@@ -13,11 +13,13 @@ import {
   UseGuards,
   UploadedFile,
   UseInterceptors,
+  UploadedFiles,
+  BadRequestException,
 } from '@nestjs/common';
 import { ocorrenciaService } from './ocorrencia.service';
 import { FindAllParameters, ocorrenciaDto } from './ocorrencia.dto';
 import { AuthGuard } from '../auth/auth.guard';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { bool } from 'sharp';
 
 @Controller('ocorrencia')
@@ -47,33 +49,51 @@ export class ocorrenciaController {
   @UseGuards(AuthGuard)
   @UseInterceptors(FileInterceptor('arquivo'))
   async create(
-    @Body() ocorrenciaDto: ocorrenciaDto,
-    @UploadedFile() arquivo: Express.Multer.File,
-    @Request() req: any,
-  ) {
+  @Body() ocorrenciaDto: ocorrenciaDto,
+  @UploadedFile() arquivo: Express.Multer.File,
+  @Request() req: any,
+) {
+  return this.ocorrenciaService.create(
+    {
+      ...ocorrenciaDto,
+      idCorrida: Number(ocorrenciaDto.idCorrida),
+      idMotorista: ocorrenciaDto.idMotorista
+        ? Number(ocorrenciaDto.idMotorista)
+        : undefined,
+      dataOcorrencia: new Date(ocorrenciaDto.dataOcorrencia),
+      enviadoMotorista: Boolean(ocorrenciaDto.enviadoMotorista),
+    },
+    arquivo,
+    req.user.sub,
+    req.user.login,
+  );
+}
 
-    let enviadoMotorista: boolean;
-  
-    if (typeof ocorrenciaDto.enviadoMotorista === 'string') {
-      enviadoMotorista = ocorrenciaDto.enviadoMotorista.toLowerCase() === 'true';
-    } else {
-      enviadoMotorista = Boolean(ocorrenciaDto.enviadoMotorista);
-    }
-    return this.ocorrenciaService.create(
-      {
-        ...ocorrenciaDto,
-        idCorrida: Number(ocorrenciaDto.idCorrida),
-        idMotorista: ocorrenciaDto.idMotorista
-          ? Number(ocorrenciaDto.idMotorista)
-          : undefined,
-        dataOcorrencia: new Date(ocorrenciaDto.dataOcorrencia),
-        enviadoMotorista,
-      },
-      arquivo,
-      req.user.sub,
-      req.user.login,
-    );
+  @Post('upload/:idOcorrencia')
+  @UseInterceptors(FilesInterceptor('files'))
+  async uploadFiles(
+      @UploadedFiles() files: Array<Express.Multer.File>,
+      @Param('idOcorrencia') idOcorrencia: number,
+    ) {
+      if (!files || files.length === 0) {
+        throw new BadRequestException('Nenhum arquivo enviado.');
+      }
+      console.log(idOcorrencia);
+      const anexos = files.map(() => ({
+        idOcorrencia: Number(idOcorrencia),
+      }));
+      return await this.ocorrenciaService.salvarArquivos(anexos, files);
   }
+
+  @Get('arquivos/:idOcorrencia')
+  async buscarArquivosOcorrencia(
+    @Param('idOcorrencia') idOcorrencia: number,
+  ){
+    return await this.ocorrenciaService.buscarArquivos(Number(idOcorrencia),);
+  }
+
+  
+
 
   @Put('/:idOcorrencia')
   @UseGuards(AuthGuard)

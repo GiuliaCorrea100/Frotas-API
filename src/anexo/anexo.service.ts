@@ -59,19 +59,12 @@ export class AnexoService {
     if (!existsSync(ocorrenciasPath)) {
       mkdirSync(ocorrenciasPath, { recursive: true });
     }
-
-    console.log('Pastas de upload verificadas/criadas:');
-    console.log(`   - ${multasPath}`);
-    console.log(`   - ${boletosPath}`);
-    console.log(`   - ${comprovantesPath}`);
-    console.log(`   - ${recursosPath}`);
-    console.log(`   - ${ocorrenciasPath}`);
   }
 
   async salvarArquivo(
     file: Express.Multer.File,
     subPasta: string = 'multas',
-    idMulta?: number,
+    id?: number,
     tipo?: string,
   ): Promise<string> {
     if (!file) {
@@ -115,10 +108,8 @@ export class AnexoService {
 
       let fileName = '';
 
-      if (idMulta && tipo) {
-        fileName = `${idMulta}_${tipo}_${random8}${fileExtension}`;
-      } else if (tipo) {
-        fileName = `${tipo}_${random8}${fileExtension}`;
+      if (id && tipo) {
+        fileName = `${id}_${tipo}_${random8}${fileExtension}`;
       } else {
         fileName = `${random8}${fileExtension}`;
       }

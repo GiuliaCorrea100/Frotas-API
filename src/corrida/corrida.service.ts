@@ -42,13 +42,11 @@ export class CorridaService {
     private readonly carroService: carroService,
   ) {}
 
-  async verificarConflitoDeCorrida(
+ async verificarConflitoDeCorrida(
     idMotorista: number,
     dataInicio: Date,
     dataTermino: Date,
     idCorrida?: number,
-    dataHoraLiberacaoChave?: Date,
-    dataHoraRecebimentoChave?: Date,
   ): Promise<boolean> {
     const wherePrincipal: any = {
       idMotoristaPrincipal: idMotorista,
@@ -69,22 +67,15 @@ export class CorridaService {
       return true;
     }
 
-    // const query = this.corridaRepository
-    //   .createQueryBuilder('corrida')
-    //   .innerJoin('corrida.motoristas', 'motoristaSecundario')
-    //   .where('corrida.situacao = :situacao', { situacao: 'AGENDADA' })
-    //   .andWhere('corrida.dataInicio <= :dataTermino', { dataTermino })
-    //   .andWhere('corrida.dataTermino >= :dataInicio', { dataInicio })
-    //   .andWhere('motoristaSecundario.idMotorista = :idMotorista', {
-    //     idMotorista,
-    //   });
-
     const query = this.corridaRepository
       .createQueryBuilder('corrida')
       .innerJoin('corrida.motoristas', 'motoristaSecundario')
       .where('corrida.situacao = :situacao', { situacao: 'AGENDADA' })
-      .andWhere(('corrida.dataHoraLiberacaoChave <= :dataTermino OR corrida.dataInicio <= :dataTermino' ), { dataTermino })
-      .andWhere('corrida.dataTermino >= :dataInicio', { dataInicio })
+      .andWhere(
+        `COALESCE(corrida.dataHoraLiberacaoChave, corrida.dataInicio) <= :dataTermino 
+         AND corrida.dataTermino >= :dataInicio`,
+        { dataInicio, dataTermino }
+      )
       .andWhere('motoristaSecundario.idMotorista = :idMotorista', {
         idMotorista,
       });
@@ -153,6 +144,8 @@ export class CorridaService {
           'Já existe uma corrida agendada para esse usuário nesse período!',
           HttpStatus.CONFLICT,
         );
+
+        
       }
     }
 
