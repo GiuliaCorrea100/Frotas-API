@@ -32,8 +32,16 @@ export class carroService {
     currentUserId?: number,
     currentUserName?: string,
   ) {
+    const condicoesWhere: FindOptionsWhere<CarroEntity>[] = [
+      { placa: ILike(carro.placa) },
+    ];
+
+    if (carro.tombo && !isNaN(Number(carro.tombo))) {
+      condicoesWhere.push({ tombo: Number(carro.tombo) });
+    }
+
     const carroDuplicado = await this.carroRepository.findOne({
-      where: [{ placa: ILike(carro.placa) }, { tombo: carro.tombo }],
+      where: condicoesWhere,
     });
 
     if (carroDuplicado) {

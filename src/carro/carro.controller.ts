@@ -50,16 +50,20 @@ export class CarroController {
     const currentUserId = req.user?.sub;
     const currentUserName = req.user?.login;
 
+    const tomboParsed = parseInt(body.tombo, 10);
+    const anoParsed = parseInt(body.ano, 10);
+    const idTipoCombustivelParsed = parseInt(body.idTipoCombustivel, 10);
+
     const dadosVeiculo: CarroDto = {
       placa: body.placa,
       odometro: body.odometro,
       modelo: body.modelo,
-      ano: Number(body.ano),
-      tombo: Number(body.tombo),
+      ano: isNaN(anoParsed) ? 0 : anoParsed,
+      tombo: isNaN(tomboParsed) ? 0 : tomboParsed,
       localidadeFisica: body.localidadeFisica,
       ativo: body.ativo === 'true' || body.ativo === true,
       situacao: body.situacao || 'DISPONIVEL',
-      idTipoCombustivel: Number(body.idTipoCombustivel),
+      idTipoCombustivel: isNaN(idTipoCombustivelParsed) ? 0 : idTipoCombustivelParsed,
     };
 
     return await this.carroService.create(
