@@ -108,8 +108,6 @@ export class ocorrenciaService {
             anexo.idOcorrencia,
             'ocorrencia',
           );
-          
-          console.log(urlArquivo);
 
           return {
             idOcorrencia: anexo.idOcorrencia,
@@ -122,6 +120,15 @@ export class ocorrenciaService {
       const savedAnexos =
         await this.ocorrenciaArquivoRepository.save(anexosToSave);
       return savedAnexos;
+  }
+
+  async buscarArquivos(idOcorrencia: number): Promise<OcorrenciaArquivoDto[]>{
+    const arquivos = await this.ocorrenciaArquivoRepository.find({
+      where: { idOcorrencia },
+      order: {dataUpload: 'ASC'},
+    });
+
+    return arquivos.map((entity) => this.mapArquivoToDto(entity));
   }
 
   async findById(idOcorrencia: number): Promise<ocorrenciaDto> {
@@ -342,5 +349,18 @@ export class ocorrenciaService {
       ativa: ocorrenciaDto.ativa,
       idMotorista: ocorrenciaDto.idMotorista,
     };
+  }
+
+  private mapArquivoToDto(
+    entity: OcorrenciaArquivoEntity,
+  ): OcorrenciaArquivoDto {
+    const nomeArquivo = entity.urlArquivo.split('/').pop() || entity.urlArquivo;
+
+    return{
+      idOcorrenciaArquivo: entity.idOcorrenciaArquivo,
+      idOcorrencia: entity.idOcorrencia,
+      urlArquivo: `/uploads/ocorrencias/${nomeArquivo}`,
+      dataUpload: entity.dataUpload,
+    }
   }
 }

@@ -69,9 +69,9 @@ export class ocorrenciaController {
   );
 }
 
-   @Post('upload/:idOcorrencia')
-    @UseInterceptors(FilesInterceptor('files'))
-    async uploadFiles(
+  @Post('upload/:idOcorrencia')
+  @UseInterceptors(FilesInterceptor('files'))
+  async uploadFiles(
       @UploadedFiles() files: Array<Express.Multer.File>,
       @Param('idOcorrencia') idOcorrencia: number,
     ) {
@@ -83,7 +83,16 @@ export class ocorrenciaController {
         idOcorrencia: Number(idOcorrencia),
       }));
       return await this.ocorrenciaService.salvarArquivos(anexos, files);
-    }
+  }
+
+  @Get('arquivos/:idOcorrencia')
+  async buscarArquivosOcorrencia(
+    @Param('idOcorrencia') idOcorrencia: number,
+  ){
+    return await this.ocorrenciaService.buscarArquivos(Number(idOcorrencia),);
+  }
+
+  
 
 
   @Put('/:idOcorrencia')
