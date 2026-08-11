@@ -39,6 +39,9 @@ export class CarroEntity {
   @Column({ type: 'boolean', name: 'ativo' })
   ativo: boolean;
 
+  @Column({ type: 'varchar', length: 255, name: 'url_crlv', nullable: true })
+  urlCrlv?: string;
+
   @ManyToOne(() => TipoCombustivelEntity)
   @JoinColumn({ name: 'id_tipo_combustivel' })
   tipo_combustivel: TipoCombustivelEntity;
