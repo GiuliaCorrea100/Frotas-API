@@ -122,7 +122,7 @@ export class AuthService {
         administrador: false,
         nome: 'MOTORISTA FROTAS',
         idUsuario: 2,
-        email: 'nataly.tobias11@gmail.com',
+        email: 'giuliarafaela32@gmail.com',
         idPessoaSigaa: 999999, // ID fictício
       },
     ];
