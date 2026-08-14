@@ -187,6 +187,7 @@ export class AnexoService {
         'comprovantes',
         'recursos',
         'ocorrencias',
+        'crlv',
       ];
 
       for (const pasta of possiveisPastas) {
@@ -213,7 +214,7 @@ export class AnexoService {
   }
 
   async deletarArquivo(fileName: string): Promise<void> {
-    const possiveisPastas = ['multas', 'boletos', 'comprovantes', 'recursos'];
+    const possiveisPastas = ['multas', 'boletos', 'comprovantes', 'recursos', 'crlv'];
 
     for (const pasta of possiveisPastas) {
       const filePath = join(this.baseUploadPath, pasta, fileName);
