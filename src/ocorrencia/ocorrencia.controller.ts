@@ -92,8 +92,11 @@ export class ocorrenciaController {
     return await this.ocorrenciaService.buscarArquivos(Number(idOcorrencia),);
   }
 
-  
-
+  @Delete('arquivo/:idArquivo')
+  @UseGuards(AuthGuard)
+  async excluirArquivo(@Param('idArquivo') idArquivo: number): Promise<void> {
+    return this.ocorrenciaService.excluirArquivo(Number(idArquivo));
+  }
 
   @Put('/:idOcorrencia')
   @UseGuards(AuthGuard)

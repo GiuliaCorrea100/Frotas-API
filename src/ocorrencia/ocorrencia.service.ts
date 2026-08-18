@@ -131,6 +131,18 @@ export class ocorrenciaService {
     return arquivos.map((entity) => this.mapArquivoToDto(entity));
   }
 
+  async excluirArquivo(idArquivo: number): Promise<void> {
+    const arquivo = await this.ocorrenciaArquivoRepository.findOne({
+      where: { idOcorrenciaArquivo: idArquivo },
+    });
+
+    if (!arquivo) {
+      throw new NotFoundException(`Arquivo com id ${idArquivo} não encontrado`);
+    }
+
+    await this.ocorrenciaArquivoRepository.delete(idArquivo);
+  }
+
   async findById(idOcorrencia: number): Promise<ocorrenciaDto> {
     const foundOcorrencia = await this.ocorrenciaRepository.findOne({
       where: { idOcorrencia },
