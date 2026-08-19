@@ -90,7 +90,9 @@ export class AnexoController {
     @Res() res: Response,
   ) {
     try {
+
       const filePath = await this.anexoService.getArquivo(fileName);
+
       return res.download(filePath);
     } catch (error) {
       throw new BadRequestException(getErrorMessage(error));

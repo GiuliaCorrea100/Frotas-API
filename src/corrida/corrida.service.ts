@@ -412,9 +412,11 @@ export class CorridaService {
       );
     }
 
-    const motoristasIds = dados.motoristasIds?.length
+    const motoristasIdsRaw = dados.motoristasIds?.length
       ? dados.motoristasIds
       : [dados.idMotoristaPrincipal ?? corrida.idMotoristaPrincipal];
+
+    const motoristasIds = Array.from(new Set(motoristasIdsRaw));
 
     for (const idMotorista of motoristasIds) {
       const conflitoMotorista = await this.verificarConflitoDeCorrida(
@@ -435,13 +437,13 @@ export class CorridaService {
     await this.corridaRepository.update(idCorrida, {
       dataInicio: dados.dataInicio ?? corrida.dataInicio,
       dataTermino: dataTerminoAjustada,
-      idMotoristaPrincipal: motoristasIds[0],
+      idMotoristaPrincipal: dados.idMotoristaPrincipal ?? motoristasIds[0],
       idCarro: dados.idCarro ?? corrida.idCarro,
     });
 
     if (dados.motoristasIds) {
       await this.corridaMotoristaRepository.delete({ idCorrida });
-      for (const idMotorista of dados.motoristasIds) {
+      for (const idMotorista of motoristasIds) {
         await this.corridaMotoristaRepository.insert({
           idCorrida,
           idMotorista,
